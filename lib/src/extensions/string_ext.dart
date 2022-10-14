@@ -19,6 +19,7 @@ extension StringExt on String {
   String capFirstLetter() => replaceRange(0, 1, this[0].toUpperCase());
 
   String get stripInvalidCharsForPhoneNumber => replaceAll(RegExp('[ +\\-()]'), '');
+
   String get stripNewLines => replaceAll(r"\n", "");
 
   String trimSplash() => replaceAll("/", "");

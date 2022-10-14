@@ -4,7 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:sprintf/sprintf.dart';
 
-final _pattern = RegExp('.{1,800}');
+const _maxCharactersInLine = 800;
+final _pattern = RegExp('.{50,$_maxCharactersInLine}');
 final _dateFormatter = DateFormat("Hms");
 const _tagAction = ":";
 
@@ -32,7 +33,16 @@ class CustomLogger extends LogPrinter {
     final text = '${_labelFor(event.level)} $timeStr $messageStr$errorStr$traceStr';
 
     final result = _pattern.allMatches(text).map((match) => match[0] ?? "").toList();
-    return truncateMessages ? [result.first] : result;
+
+    if (!truncateMessages) {
+      return result;
+    }
+
+    while (result.join("").length > _maxCharactersInLine) {
+      result.removeLast();
+    }
+
+    return result;
   }
 
   String _labelFor(Level level) {

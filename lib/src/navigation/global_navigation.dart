@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:siberian_core/siberian_core.dart';
@@ -10,12 +12,12 @@ class GlobalNavigator {
 
   static NavigatorState get _navigator => key.currentState!;
 
-  static pop({NavigationResult? result}) {
+  static FutureOr pop({NavigationResult? result}) {
     GlobalLogger.instance.logMessage("popping $result", tag: _tag);
     return _navigator.canPop().let((it) => it ? _navigator.pop(result) : SystemNavigator.pop());
   }
 
-  static popCancel({dynamic data}) => pop(result: NavigationResult.cancel(data: data));
+  static popCancel({dynamic data}) => pop(result: NavigationResult.cancel(data));
 
   static replaceNamed(String name, {dynamic data}) {
     GlobalLogger.instance.logMessage("replacing route to $name($data)", tag: _tag);
@@ -32,6 +34,15 @@ class GlobalNavigator {
     _navigator.popUntil((route) => route.settings.name == popTo);
     return pop(result: navigationResult);
   }
+
+  static Future pushNamedAndRemoveUntil(String newRouteName, bool Function(Route route) test, {dynamic data}) =>
+      _navigator.pushNamedAndRemoveUntil(newRouteName, test, arguments: data);
+
+  static Future push(Route route) => _navigator.push(route);
+
+  static Future replace(Route route) => _navigator.pushReplacement(route);
+
+  static void popDialog(BuildContext context) => Navigator.of(context).pop();
 }
 
 const _tag = "GlobalNavigator";

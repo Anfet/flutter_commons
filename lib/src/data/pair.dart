@@ -1,0 +1,28 @@
+import 'package:flutter/cupertino.dart';
+
+@immutable
+class Pair<A, B> {
+  final A? first;
+  final B? second;
+
+  A get requireFirst => first!;
+
+  B get requireSecond => second!;
+
+  Pair(this.first, this.second);
+
+  Pair.from({this.first, this.second});
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Pair && runtimeType == other.runtimeType && first == other.first && second == other.second;
+
+  @override
+  int get hashCode => first.hashCode ^ second.hashCode;
+
+  @override
+  String toString() {
+    return 'Pair{first: $first, second: $second}';
+  }
+}

@@ -45,7 +45,7 @@ class Translator<D, P> extends ChangeNotifier {
   }
 
   String getQuantityString(P resId, int amount) {
-    Translation translation = _translations[_currentLocale]!;
+    Translation<D, P> translation = _translations[_currentLocale]!;
     Plural? plural = translation.pluralResolver(resId);
     if (plural == null) {
       throw QuantityLocalizationNotProvidedException(

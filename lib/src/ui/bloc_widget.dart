@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:siberian_core/siberian_core.dart';
 
 import '../extensions/context_ext.dart';
-import 'bloc_arguments.dart';
 import 'bloc_events.dart';
 import 'bloc_ex.dart';
 import 'bloc_state.dart';
@@ -26,7 +25,8 @@ abstract class BlocWidgetState<S extends BlocState, B extends BlocEx<S>, W exten
   void onEvent(BuildContext context, S state) {}
 
   @protected
-  bool containsEvent(S previous, S current) => false;
+  bool containsEvent(S previous, S current) =>
+      current.reactions.filter((it) => it != null).cast<BlocReaction>().any((it) => !it.isConsumed);
 
   @protected
   bool shouldRebuild(S previous, S current) => previous != current;
@@ -36,13 +36,14 @@ abstract class BlocWidgetState<S extends BlocState, B extends BlocEx<S>, W exten
     super.didChangeDependencies();
     if (_bloc == null) {
       _bloc = onCreateBloc(context);
-      _bloc?.push(BlocEvents.init(arguments: context.routeArguments as BlocArguments?));
+      _bloc?.push(BlocEvents.init(arguments: context.routeArguments));
     }
   }
 
   @override
   void dispose() {
-    Future.value(bloc.close()).whenComplete(() => super.dispose());
+    Future.sync(() => bloc.close());
+    super.dispose();
   }
 
   @override

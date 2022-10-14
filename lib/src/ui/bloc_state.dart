@@ -1,4 +1,8 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
+
+import 'bloc_reaction.dart';
 
 @immutable
-abstract class BlocState {}
+abstract class BlocState {
+  Iterable<BlocReaction?> get reactions => [];
+}

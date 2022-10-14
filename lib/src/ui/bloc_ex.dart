@@ -123,7 +123,7 @@ class BlocEx<S extends BlocState> extends StateStreamableSource<S> with Logging 
       _subscriptions.subscribeTo(stream, listener);
 
   @override
-  FutureOr<void> close() => _bloc.close();
+  Future<void> close() => _bloc.close();
 
   @override
   bool get isClosed => _bloc.isClosed;

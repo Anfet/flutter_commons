@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:siberian_core/siberian_core.dart';
 
 import 'bloc_arguments.dart';
 import 'bloc_state.dart';
@@ -24,16 +25,18 @@ abstract class BlocEvent {
 class BlocEvents {
   const BlocEvents._();
 
-  static BlocEvent init({BlocArguments? arguments}) => OnInit._(arguments: arguments);
+  static BlocEvent init({Object? arguments}) => OnInit._(arguments: arguments);
 
   static BlocEvent updateState<T extends BlocState>(T newState) => UpdateState._(newState);
+
+  static BlocEvent updateLoader(Lce newState) => UpdateLoader._(newState);
 
   static BlocEvent returnResult(dynamic data) => ReturnResult._(data);
 }
 
 @immutable
 class OnInit extends BlocEvent {
-  final BlocArguments? arguments;
+  final Object? arguments;
 
   OnInit._({this.arguments});
 
@@ -41,8 +44,6 @@ class OnInit extends BlocEvent {
   String toString() {
     return 'OnInit{arguments: $arguments}';
   }
-
-  BlocArguments get requiredArgs => arguments ?? {};
 }
 
 @immutable
@@ -55,6 +56,34 @@ class UpdateState<T extends BlocState> extends BlocEvent {
   String toString() {
     return 'UpdateState{newState: $newState}';
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      super == other && other is UpdateState && runtimeType == other.runtimeType && newState == other.newState;
+
+  @override
+  int get hashCode => super.hashCode ^ newState.hashCode;
+}
+
+@immutable
+class UpdateLoader extends BlocEvent {
+  final Lce<dynamic> newState;
+
+  UpdateLoader._(this.newState);
+
+  @override
+  String toString() {
+    return 'UpdateLoader{newState: $newState}';
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      super == other && other is UpdateLoader && runtimeType == other.runtimeType && newState == other.newState;
+
+  @override
+  int get hashCode => super.hashCode ^ newState.hashCode;
 }
 
 @immutable
@@ -67,4 +96,12 @@ class ReturnResult extends BlocEvent {
   String toString() {
     return 'ReturnResult{data: $data}';
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      super == other && other is ReturnResult && runtimeType == other.runtimeType && data == other.data;
+
+  @override
+  int get hashCode => super.hashCode ^ data.hashCode;
 }

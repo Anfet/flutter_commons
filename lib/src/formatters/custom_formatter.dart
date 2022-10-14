@@ -32,7 +32,8 @@ class CustomFormatter {
         }
         formatted += patternLetter.character;
       } else if (patternLetter.pattern == _Pattern.digit) {
-        final int? digit = int.tryParse(_textSource.consume());
+        final sourceLetter = _textSource.consume();
+        final int? digit = int.tryParse(sourceLetter);
         if (digit == null) {
           break;
         }

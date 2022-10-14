@@ -26,5 +26,10 @@ class FinalValue<T> {
   @override
   int get hashCode => _value.hashCode;
 
-  FinalValue();
+  FinalValue([T? value]) : _value = value;
+
+  @override
+  String toString() {
+    return 'FinalValue{_value: $_value}';
+  }
 }

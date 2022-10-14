@@ -1,21 +1,22 @@
 import 'package:flutter/widgets.dart';
+import 'package:siberian_core/siberian_core.dart';
 
 @immutable
-class NavigationResult {
+class NavigationResult<T> {
   static const resultCancel = -1;
   static const resultSuccess = 0;
   static const resultOther = 1;
 
   final int result;
-  final dynamic data;
+  final T? data;
 
   const NavigationResult(this.result, {this.data});
 
-  factory NavigationResult.success({dynamic data}) => NavigationResult(resultSuccess, data: data);
+  factory NavigationResult.success([T? data]) => NavigationResult(resultSuccess, data: data);
 
-  factory NavigationResult.cancel({dynamic data}) => NavigationResult(resultCancel, data: data);
+  factory NavigationResult.cancel([T? data]) => NavigationResult(resultCancel, data: data);
 
-  factory NavigationResult.other({int result = resultOther, dynamic data}) => NavigationResult(result, data: data);
+  factory NavigationResult.other({int result = resultOther, T? data}) => NavigationResult(result, data: data);
 
   bool get isSuccess => result == resultSuccess;
 
@@ -26,9 +27,9 @@ class NavigationResult {
     return 'NavigationResult{result: $result, data: $data}';
   }
 
-  static NavigationResult ofAny(result) {
+  static NavigationResult<T> of<T>(result) {
+    if (result is NavigationResult) return result as NavigationResult<T>;
     if (result == null) return NavigationResult.cancel();
-    if (result is NavigationResult) return result;
-    return NavigationResult.success(data: result);
+    return NavigationResult.success(result);
   }
 }
