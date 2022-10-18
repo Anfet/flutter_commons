@@ -133,4 +133,10 @@ class BlocEx<S extends BlocState> extends StateStreamableSource<S> with Logging 
 
   @override
   Stream<S> get stream => _bloc.stream;
+
+  Iterable<BlocReaction> reactionsFrom(S current) =>
+      reactionsFieldsFrom(current).filterIfIs<BlocReaction>().filter((it) => !it.isConsumed);
+
+  @protected
+  Iterable<BlocReaction?> reactionsFieldsFrom(S current) => [];
 }

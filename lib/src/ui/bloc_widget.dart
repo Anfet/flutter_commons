@@ -25,8 +25,7 @@ abstract class BlocWidgetState<S extends BlocState, B extends BlocEx<S>, W exten
   void onEvent(BuildContext context, S state) {}
 
   @protected
-  bool containsEvent(S previous, S current) =>
-      current.reactions.filter((it) => it != null).cast<BlocReaction>().any((it) => !it.isConsumed);
+  bool containsEvent(S previous, S current) => bloc.reactionsFrom(current).isNotEmpty;
 
   @protected
   bool shouldRebuild(S previous, S current) => previous != current;
