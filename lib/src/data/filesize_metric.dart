@@ -1,6 +1,6 @@
-const KB = 1024;
-const MB = KB * 1024;
-const GB = MB * 1024;
+const kb = 1024;
+const mb = kb * 1024;
+const gb = mb * 1024;
 
 enum FilesizeMetric {
   bytes("B"),
@@ -20,25 +20,25 @@ class FormattedFilesize {
     if (bytes != null) {
       this.bytes = bytes;
     } else if (kbytes != null) {
-      this.bytes = kbytes * KB;
+      this.bytes = kbytes * kb;
     } else if (mbytes != null) {
-      this.bytes = mbytes * MB;
+      this.bytes = mbytes * mb;
     } else if (gbytes != null) {
-      this.bytes = gbytes * GB;
+      this.bytes = gbytes * gb;
     } else {
       this.bytes = 0;
     }
   }
 
-  int get inKB => (bytes / KB).truncate();
+  int get inKB => (bytes / kb).truncate();
 
-  int get inMB => (bytes / MB).truncate();
+  int get inMB => (bytes / mb).truncate();
 
-  int get inGB => (bytes / GB).truncate();
+  int get inGB => (bytes / gb).truncate();
 
-  FilesizeMetric get metric => bytes >= GB
+  FilesizeMetric get metric => bytes >= gb
       ? FilesizeMetric.gbytes
-      : (bytes >= MB ? FilesizeMetric.mbytes : (bytes >= KB ? FilesizeMetric.kbytes : FilesizeMetric.bytes));
+      : (bytes >= mb ? FilesizeMetric.mbytes : (bytes >= kb ? FilesizeMetric.kbytes : FilesizeMetric.bytes));
 
   int inMetric(FilesizeMetric metric) {
     switch (metric) {

@@ -8,11 +8,17 @@ const _maxCharactersInLine = 800;
 final _pattern = RegExp('.{50,$_maxCharactersInLine}');
 final _dateFormatter = DateFormat("Hms");
 const _tagAction = ":";
+const encoder = JsonEncoder.withIndent(null);
 
-class GlobalLogger with Logging {
-  GlobalLogger._();
+late final Logger logger;
 
-  static final GlobalLogger instance = GlobalLogger._();
+void setDefaultLogger([Logger? customLogger]) {
+  logger = customLogger ??
+      Logger(
+        printer: CustomLogger(
+          truncateMessages: true,
+        ),
+      );
 }
 
 class CustomLogger extends LogPrinter {
@@ -28,7 +34,7 @@ class CustomLogger extends LogPrinter {
     var errorStr = event.error != null ? '\n${event.error}' : '';
     final now = DateTime.now();
     final msec = sprintf("%03i", [now.millisecond]);
-    var timeStr = _dateFormatter.format(now) + ".$msec";
+    var timeStr = "${_dateFormatter.format(now)}.$msec";
     var traceStr = event.stackTrace == null ? "" : "\n${event.stackTrace}";
     final text = '${_labelFor(event.level)} $timeStr $messageStr$errorStr$traceStr';
 
@@ -55,7 +61,6 @@ class CustomLogger extends LogPrinter {
   String _stringifyMessage(dynamic message) {
     final finalMessage = message is Function ? message() : message;
     if (finalMessage is Map || finalMessage is Iterable) {
-      var encoder = JsonEncoder.withIndent(null);
       return encoder.convert(finalMessage);
     } else {
       return finalMessage.toString();
@@ -63,15 +68,9 @@ class CustomLogger extends LogPrinter {
   }
 }
 
-final _logger = Logger(
-  printer: CustomLogger(
-    truncateMessages: true,
-  ),
-);
-
 void _logCustom(String message,
         {String tag = "", Level level = Level.verbose, dynamic error, StackTrace? stackTrace}) =>
-    _logger.log(level, (tag.isEmpty ? message : "$tag$_tagAction $message"), error, stackTrace);
+    logger.log(level, (tag.isEmpty ? message : "$tag$_tagAction $message"), error, stackTrace);
 
 mixin Logging {
   void logMessage(String message, {String? tag, Level level = Level.verbose, dynamic error, StackTrace? stackTrace}) =>

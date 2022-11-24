@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 import '../functions.dart';
 
@@ -6,7 +7,7 @@ class OneTimeBuilder extends StatefulWidget {
   final WidgetBuilder builder;
   final ValueCallback<BuildContext>? onFirstBuild;
 
-  const OneTimeBuilder({Key? key, required this.builder, this.onFirstBuild}) : super(key: key);
+  OneTimeBuilder({required this.builder, this.onFirstBuild}) : super(key: ValueKey(const Uuid().v1().toString()));
 
   @override
   State<OneTimeBuilder> createState() => _OneTimeBuilderState();

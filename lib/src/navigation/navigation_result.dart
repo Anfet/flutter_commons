@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'package:siberian_core/siberian_core.dart';
 
 @immutable
 class NavigationResult<T> {

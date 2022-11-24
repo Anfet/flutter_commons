@@ -6,7 +6,7 @@ import '../localizations/localizations.dart';
 class Languages {
   Languages._();
 
-  static ChangeNotifier languageChangeNotifier = ChangeNotifier();
+  static ValueNotifier<Locale> languageChangeNotifier = ValueNotifier(enUS);
 
   static const ruRU = Locale("ru", "RU");
   static const enUS = Locale('en', 'US');
@@ -16,17 +16,14 @@ class Languages {
     enUS,
   ];
 
-  static Locale _locale = enUS;
-
-  static Locale get locale => _locale;
+  static Locale get locale => languageChangeNotifier.value;
 
   static set locale(Locale value) {
     if (!_supportedLocales.contains(value)) {
       throw LocaleNotSupportedException("Locale $value not supported");
     }
 
-    _locale = value;
-    languageChangeNotifier.notifyListeners();
+    languageChangeNotifier.value = value;
   }
 
   static List<Locale> get supportedLocales => _supportedLocales;

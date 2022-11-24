@@ -9,9 +9,9 @@ class Pair<A, B> {
 
   B get requireSecond => second!;
 
-  Pair(this.first, this.second);
+  const Pair(this.first, this.second);
 
-  Pair.from({this.first, this.second});
+  const Pair.from({this.first, this.second});
 
   @override
   bool operator ==(Object other) =>

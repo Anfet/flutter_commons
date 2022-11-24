@@ -21,7 +21,7 @@ class ThemeBuilder<C extends ThemeColors, S extends Styles> extends StatelessWid
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<ThemeNotifier<C>>.value(
-      value: themeNotifier ?? Provider.of<ThemeNotifier<C>>(context) ?? throwIfNull("No themeNotifier provided or set"),
+      value: themeNotifier ?? Provider.of<ThemeNotifier<C>>(context),
       child: Consumer<ThemePattern<C>>(
         builder: (context, theme, child) {
           return MultiProvider(

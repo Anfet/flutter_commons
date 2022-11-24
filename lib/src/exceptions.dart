@@ -1,11 +1,12 @@
 dynamic throwIfNull([String? text]) => throw IllegalArgumentException(text ?? "Value is null");
-
 dynamic throwWtf([String? text]) => throw WtfException(text ?? "Value is null");
+
+dynamic throwE(AppException exception) => throw exception;
 
 class AppException implements Exception {
   final String message;
 
-  AppException(this.message);
+  const AppException(this.message);
 
   AppException.fromOther(Object error) : this(error.toString());
 
@@ -13,9 +14,6 @@ class AppException implements Exception {
   String toString() {
     return '$runtimeType{message: $message}';
   }
-
-  @override
-  String get userDescription => message;
 }
 
 class WtfException extends AppException {

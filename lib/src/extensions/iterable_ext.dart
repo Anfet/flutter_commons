@@ -83,7 +83,7 @@ extension IterableExt<T> on Iterable<T> {
     final result = <X>[];
     for (final value in this) {
       if (value is X) {
-        result.add(value as X);
+        result.add(value);
       }
     }
     return result;
@@ -93,14 +93,14 @@ extension IterableExt<T> on Iterable<T> {
     final result = <T>[];
     for (final value in this) {
       if (value is! X) {
-        result.add(value as T);
+        result.add(value);
       }
     }
     return result;
   }
 
   Iterable<T> distinct() {
-    Set<T> result = Set();
+    Set<T> result = {};
     for (final value in this) {
       result.add(value);
     }

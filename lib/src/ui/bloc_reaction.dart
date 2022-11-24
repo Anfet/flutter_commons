@@ -4,7 +4,8 @@ int _rid = 0;
 
 class BlocReaction<T> {
   final int reactionId = ++_rid;
-  T _data;
+  final T _data;
+
   bool _isConsumed = false;
 
   bool get isConsumed => _isConsumed;
@@ -13,28 +14,28 @@ class BlocReaction<T> {
 
   BlocReaction(this._data);
 
-  static BlocReaction<String> generate() => BlocReaction(const Uuid().v1().toString());
-
   void consume(Function(T argument) block) {
-    if (!_isConsumed) {
-      block(data);
+    try {
+      if (!_isConsumed) {
+        block(data);
+      }
+    } finally {
+      _isConsumed = true;
     }
-    _isConsumed = true;
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is BlocReaction &&
-          runtimeType == other.runtimeType &&
-          reactionId == other.reactionId &&
-          _isConsumed == other._isConsumed;
+      other is BlocReaction && runtimeType == other.runtimeType && reactionId == other.reactionId;
 
   @override
-  int get hashCode => reactionId.hashCode ^ _isConsumed.hashCode;
+  int get hashCode => reactionId.hashCode;
 
   @override
   String toString() {
     return 'BlocReaction{reactionId: $reactionId, _data: $_data, _isConsumed: $_isConsumed}';
   }
+
+  static BlocReaction<String> generate() => BlocReaction(const Uuid().v1().toString());
 }

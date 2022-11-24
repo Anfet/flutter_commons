@@ -58,7 +58,7 @@ class Lce<C> {
 
   @override
   String toString() {
-    return 'Lce{' + ' isLoading: $isLoading,' + ' content: $content,' + ' error: $error,' + ' stack: $stack,' + '}';
+    return 'Lce{ isLoading: $isLoading, content: $content, error: $error, stack: $stack,}';
   }
 
   Lce<C> copyWith({
@@ -77,10 +77,10 @@ class Lce<C> {
 
   Map<String, dynamic> toMap() {
     return {
-      'isLoading': this.isLoading,
-      'content': this.content,
-      'error': this.error,
-      'stack': this.stack,
+      'isLoading': isLoading,
+      'content': content,
+      'error': error,
+      'stack': stack,
     };
   }
 

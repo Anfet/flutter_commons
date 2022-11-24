@@ -1,8 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:siberian_core/siberian_core.dart';
-
-import 'bloc_arguments.dart';
-import 'bloc_state.dart';
+import 'package:siberian_core/src/navigation/navigation_arguments.dart';
 
 int _eid = 0;
 
@@ -25,18 +23,20 @@ abstract class BlocEvent {
 class BlocEvents {
   const BlocEvents._();
 
-  static BlocEvent init({Object? arguments}) => OnInit._(arguments: arguments);
+  static OnInit init({NavigationArguments? arguments}) => OnInit._(arguments: arguments);
 
-  static BlocEvent updateState<T extends BlocState>(T newState) => UpdateState._(newState);
+  static UpdateState updateState<T extends BlocState>(T newState) => UpdateState._(newState);
 
-  static BlocEvent updateLoader(Lce newState) => UpdateLoader._(newState);
+  static UpdateLoader updateLoader(Lce newState) => UpdateLoader._(newState);
 
-  static BlocEvent returnResult(dynamic data) => ReturnResult._(data);
+  static ReturnResult returnResult(dynamic data) => ReturnResult._(data);
+
+  static OnChainResult onChainResult([NavigationResult? result, NavigationArguments? data]) => OnChainResult._(result, data);
 }
 
 @immutable
 class OnInit extends BlocEvent {
-  final Object? arguments;
+  final NavigationArguments? arguments;
 
   OnInit._({this.arguments});
 
@@ -104,4 +104,24 @@ class ReturnResult extends BlocEvent {
 
   @override
   int get hashCode => super.hashCode ^ data.hashCode;
+}
+
+@immutable
+class OnChainResult extends BlocEvent {
+  final NavigationResult? result;
+  final NavigationArguments? data;
+
+  OnChainResult._(this.result, this.data);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      super == other &&
+          other is OnChainResult &&
+          runtimeType == other.runtimeType &&
+          result == other.result &&
+          data == other.data;
+
+  @override
+  int get hashCode => super.hashCode ^ result.hashCode ^ data.hashCode;
 }

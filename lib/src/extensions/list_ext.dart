@@ -1,12 +1,17 @@
-import '../functions.dart';
 import 'iterable_ext.dart';
+
+typedef SortFunc<T> = int Function(T a, T b);
 
 extension ListExt<T> on List<T> {
   List<T> clone() => List.of(this);
 
   T nextOrLast(T it) => isLast(it) ? it : (elementAt(indexOf(it) + 1));
 
+  T nextOrFirst(T it) => isLast(it) ? first : (elementAt(indexOf(it) + 1));
+
   T priorOrFirst(T it) => isFirst(it) ? it : (elementAt(indexOf(it) - 1));
+
+  T priorOrLast(T it) => isFirst(it) ? last : (elementAt(indexOf(it) - 1));
 
   List<T> toggle(T it) {
     final result = List.of(this);
@@ -16,10 +21,11 @@ extension ListExt<T> on List<T> {
 
   List<X> map<X>(X Function(T it) mapper) => this.map((it) => mapper(it)).toList();
 
-  List<T> extract(int amount) {
+  List<T> extract(int amount, {int from = 0}) {
+    assert(length > from, 'Original list has $length elements, cannot extract $amount from $from');
     List<T> result = <T>[];
     while (result.length < amount && !isEmpty) {
-      result.add(removeAt(0));
+      result.add(removeAt(from));
     }
 
     return result;
@@ -74,9 +80,13 @@ extension ListExt<T> on List<T> {
     return result;
   }
 
-  void tryAdd(T? value) {
+  List<T> tryAdd(T? value) {
+    List<T> result = clone();
+
     if (value != null) {
-      add(value);
+      result.add(value);
     }
+
+    return result;
   }
 }

@@ -40,7 +40,7 @@ class CustomFormatter {
         formatted += "$digit";
       } else if (patternLetter.pattern == _Pattern.any) {
         final any = _textSource.consume();
-        if (any == empty) {
+        if (any == Strings.empty) {
           break;
         }
         formatted += any;

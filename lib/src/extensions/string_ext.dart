@@ -22,14 +22,10 @@ extension StringExt on String {
 
   String get stripNewLines => replaceAll(r"\n", "");
 
-  String trimSplash() => replaceAll("/", "");
+  String trimSplash() => replaceAll(RegExp('[/\\]'), "");
 
   String charAt(int index) => characters.characterAt(index).first;
 
   String setChar(int index, String char) =>
       characters.take(index).string + char + characters.getRange(index + 1).string;
-}
-
-extension NullStringExt on String? {
-  String get orEmpty => this == null ? "" : this!;
 }

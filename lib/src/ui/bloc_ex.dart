@@ -1,16 +1,11 @@
 import 'dart:async';
 
-import 'package:bloc/bloc.dart';
+import 'package:async/async.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
 import 'package:siberian_core/siberian_core.dart';
-
-import '../data/composite_subscription.dart';
-import '../functions.dart';
-import '../logger.dart';
-import 'bloc_events.dart';
-import 'bloc_state.dart';
+import 'package:siberian_core/src/navigation/navigation_arguments.dart';
 
 typedef EventHandlerEx<Event, State> = FutureOr<dynamic> Function(
   Event event,
@@ -65,8 +60,13 @@ class BlocEx<S extends BlocState> extends StateStreamableSource<S> with Logging 
 
   final Map<int, Completer> _eventAwaiters = {};
   final CompositeSubscription _subscriptions = CompositeSubscription();
+  final CustomNavigator navigator;
+  final Map<Type, CancelableOperation> delayedEvents = {};
 
-  BlocEx(S initialState) {
+  BlocEx(
+    S initialState, {
+    required this.navigator,
+  }) {
     _bloc = _BlocInternal(
       initialState,
       onEventReceived: (event) => logMessage("\t> $event"),
@@ -77,24 +77,73 @@ class BlocEx<S extends BlocState> extends StateStreamableSource<S> with Logging 
 
     on<OnInit>(onInit);
     on<UpdateState>((event, emit) => emit(event.newState as S));
+    on<OnChainResult>(onChainResult);
   }
 
+  void debounced<E extends BlocEvent>(EventHandlerEx<E, S> handler, {EventTransformer<E>? transformer}) => _bloc.on<E>(
+        (event, emit) {
+          CancelableOperation? delayedEvent = delayedEvents[E.runtimeType];
+          delayedEvent?.cancel();
+          var delayed = CancelableOperation.fromFuture(Future.delayed(const Duration(milliseconds: 300)));
+          delayedEvents[E.runtimeType] = delayed;
+          delayed.then((_) => handler(event, emit)).then(
+                (result) => _eventAwaiters.remove(event.eventId)?.complete(result),
+                onError: (error, stackTrace) => _eventAwaiters
+                    .remove(event.eventId)
+                    ?.completeError(error ?? WtfException("Error without an error"), stackTrace),
+              );
+        },
+        transformer: transformer,
+      );
+
   void on<E extends BlocEvent>(EventHandlerEx<E, S> handler, {EventTransformer<E>? transformer}) => _bloc.on<E>(
-      (event, emit) => Future.value(handler(event, emit))
-          .then(
-            (result) => _eventAwaiters.remove(event.eventId)?.complete(result),
-          )
-          .onError(
-            (error, stackTrace) => _eventAwaiters
-                .remove(event.eventId)
-                ?.completeError(error ?? WtfException("Error without an error"), stackTrace),
-          ),
-      transformer: transformer);
+        (event, emit) {
+          return Future.value(handler(event, emit))
+              .then(
+                (result) => _eventAwaiters.remove(event.eventId)?.complete(result),
+              )
+              .onError(
+                (error, stackTrace) => _eventAwaiters
+                    .remove(event.eventId)
+                    ?.completeError(error ?? WtfException("Error without an error"), stackTrace),
+              );
+        },
+        transformer: transformer,
+      );
 
   @protected
-  FutureOr<void> onInit(OnInit event, Emitter<S> emit) {}
+  @mustCallSuper
+  FutureOr<void> onInit(OnInit event, Emitter<S> emit) {
+    event.arguments?.use((it) => _onNavigationArgumentsPresent(it));
+  }
 
-  @protected
+  void _onNavigationArgumentsPresent(final NavigationArguments arguments) {
+    final path = arguments.navigationPath;
+    if (path == null) {
+      return;
+    }
+
+    NavigationChain chain = NavigationChain(path);
+    NavigationChainFlow flow = processNavigationChain(arguments);
+    logMessage("received $chain in navigation args; decision = $flow");
+    switch (flow) {
+      case NavigationChainFlow.push:
+        navigator
+            .pushNamed(chain.path, data: arguments)
+            .then((result) => push(BlocEvents.onChainResult(result, arguments)));
+        break;
+      case NavigationChainFlow.replace:
+        navigator.replaceNamed(chain.path, data: arguments);
+        break;
+      case NavigationChainFlow.ignore:
+        break;
+    }
+  }
+
+  NavigationChainFlow processNavigationChain(final NavigationArguments arguments) => NavigationChainFlow.push;
+
+  FutureOr onChainResult(OnChainResult event, Emitter<S> emit) => null;
+
   Future<void> _dispose() async {
     logMessage("\t> disposing");
     _eventAwaiters.clear();
@@ -133,10 +182,4 @@ class BlocEx<S extends BlocState> extends StateStreamableSource<S> with Logging 
 
   @override
   Stream<S> get stream => _bloc.stream;
-
-  Iterable<BlocReaction> reactionsFrom(S current) =>
-      reactionsFieldsFrom(current).filterIfIs<BlocReaction>().filter((it) => !it.isConsumed);
-
-  @protected
-  Iterable<BlocReaction?> reactionsFieldsFrom(S current) => [];
 }

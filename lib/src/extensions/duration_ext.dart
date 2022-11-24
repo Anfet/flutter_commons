@@ -2,7 +2,7 @@ import 'package:sprintf/sprintf.dart';
 
 extension DurationExt on Duration {
   String get hhmmss {
-    Duration copy = Duration(seconds: this.inSeconds);
+    Duration copy = Duration(seconds: inSeconds);
 
     final hours = copy.inHours;
     if (hours > 0) {
