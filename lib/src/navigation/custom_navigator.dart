@@ -45,15 +45,15 @@ abstract class CustomNavigator with Logging {
 
   FutureOr popCancel([dynamic data]) => pop(NavigationResult.cancel(data));
 
-  Future replaceNamed(String name, {dynamic data}) {
+  Future replaceNamed(String name, {Object? data}) {
     logMessage("replacing route to '$name' {$data}");
-    NavigationArguments? arguments = data?.let((it) => it is NavigationArguments ? it : NavigationArguments(it));
+    NavigationArguments? arguments = _castToNavigationArguments(data);
     return _navigator.pushReplacementNamed(name, arguments: arguments);
   }
 
-  Future<dynamic> pushNamed(String name, {data}) {
+  Future<dynamic> pushNamed(String name, {Object? data}) {
     logMessage("replacing route to '$name' {$data}");
-    NavigationArguments? arguments = data?.let((it) => it is NavigationArguments ? it : NavigationArguments(it));
+    NavigationArguments? arguments = _castToNavigationArguments(data);
     stack.clear();
     stack.add(RouteSettings(name: name, arguments: arguments));
     return _navigator.pushNamed(name, arguments: arguments);
@@ -75,7 +75,7 @@ abstract class CustomNavigator with Logging {
 
   Future pushNamedAndRemoveUntil(String newRouteName, bool Function(Route route) test, {data}) {
     logMessage("pushing '$newRouteName' with arguments {$data}} and popping to 'unknown'");
-    NavigationArguments? arguments = data?.let((it) => it is NavigationArguments ? it : NavigationArguments(it));
+    NavigationArguments? arguments = _castToNavigationArguments(data);
     return _navigator.pushNamedAndRemoveUntil(newRouteName, test, arguments: arguments);
   }
 
@@ -98,4 +98,9 @@ abstract class CustomNavigator with Logging {
   }
 
   void popDialog(BuildContext context) => Navigator.of(context).pop();
+
+  NavigationArguments _castToNavigationArguments(Object? data) {
+    if (data is NavigationArguments) return data;
+    return NavigationArguments(data);
+  }
 }
