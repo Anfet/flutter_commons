@@ -7,6 +7,7 @@ import 'package:siberian_core/src/navigation/navigation_arguments.dart';
 
 abstract class CustomNavigator with Logging {
   final GlobalKey<NavigatorState> key;
+  final List<RouteSettings> stack = [];
 
   CustomNavigator(String debugLabel) : key = GlobalKey(debugLabel: debugLabel);
 
@@ -34,7 +35,12 @@ abstract class CustomNavigator with Logging {
 
   FutureOr pop([NavigationResult? result]) {
     logMessage("popping $result");
-    return _navigator.canPop().let((it) => it ? _navigator.pop(result) : SystemNavigator.pop());
+    if (_navigator.canPop()) {
+      _navigator.pop(result);
+      stack.removeLast();
+    } else {
+      SystemNavigator.pop();
+    }
   }
 
   FutureOr popCancel([dynamic data]) => pop(NavigationResult.cancel(data));
@@ -48,12 +54,22 @@ abstract class CustomNavigator with Logging {
   Future<dynamic> pushNamed(String name, {data}) {
     logMessage("replacing route to '$name' {$data}");
     NavigationArguments? arguments = data?.let((it) => it is NavigationArguments ? it : NavigationArguments(it));
+    stack.clear();
+    stack.add(RouteSettings(name: name, arguments: arguments));
     return _navigator.pushNamed(name, arguments: arguments);
   }
 
   popToAndReturn(String popTo, NavigationResult? navigationResult) async {
     logMessage("popping to '$popTo' with result {$navigationResult}");
-    _navigator.popUntil((route) => route.settings.name == popTo);
+    _navigator.popUntil((route) {
+      var untilMatched = route.settings.name == popTo;
+      if (!untilMatched) {
+        stack.removeLast();
+      }
+      return untilMatched;
+    });
+
+    stack.removeLast();
     return pop(navigationResult);
   }
 
@@ -67,6 +83,7 @@ abstract class CustomNavigator with Logging {
     assert(route.settings.arguments == null || route.settings.arguments is! NavigationArguments,
         'route setting must be NavigationData');
     logMessage("pushing '${route.settings.name}' with arguments {${route.settings.arguments}}");
+    stack.add(RouteSettings(name: route.settings.name, arguments: route.settings.arguments));
     return _navigator.push(route);
   }
 
@@ -75,6 +92,8 @@ abstract class CustomNavigator with Logging {
         'route setting must be NavigationData');
     logMessage(
         "replacing current route '$currentPath' to '${route.settings.name}' with arguments {${route.settings.arguments}}");
+    stack.clear();
+    stack.add(RouteSettings(name: route.settings.name, arguments: route.settings.arguments));
     return _navigator.pushReplacement(route);
   }
 

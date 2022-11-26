@@ -1,7 +1,8 @@
 dynamic throwIfNull([String? text]) => throw IllegalArgumentException(text ?? "Value is null");
+
 dynamic throwWtf([String? text]) => throw WtfException(text ?? "Value is null");
 
-dynamic throwE(AppException exception) => throw exception;
+dynamic throwE(Exception exception) => throw exception;
 
 class AppException implements Exception {
   final String message;

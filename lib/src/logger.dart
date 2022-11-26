@@ -10,10 +10,10 @@ final _dateFormatter = DateFormat("Hms");
 const _tagAction = ":";
 const encoder = JsonEncoder.withIndent(null);
 
-late final Logger logger;
+Logger? _logger;
 
 void setDefaultLogger([Logger? customLogger]) {
-  logger = customLogger ??
+  _logger = customLogger ??
       Logger(
         printer: CustomLogger(
           truncateMessages: true,
@@ -68,11 +68,12 @@ class CustomLogger extends LogPrinter {
   }
 }
 
-void _logCustom(String message,
-        {String tag = "", Level level = Level.verbose, dynamic error, StackTrace? stackTrace}) =>
-    logger.log(level, (tag.isEmpty ? message : "$tag$_tagAction $message"), error, stackTrace);
+void logCustom(String message, {String tag = "", Level level = Level.verbose, dynamic error, StackTrace? stackTrace}) {
+  assert(_logger != null, "logger must be initilized; call 'setDefaultLogger'");
+  _logger?.log(level, (tag.isEmpty ? message : "$tag$_tagAction $message"), error, stackTrace);
+}
 
 mixin Logging {
   void logMessage(String message, {String? tag, Level level = Level.verbose, dynamic error, StackTrace? stackTrace}) =>
-      _logCustom(message, level: level, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
+      logCustom(message, level: level, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
 }
