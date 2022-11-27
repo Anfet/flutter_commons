@@ -153,6 +153,7 @@ class BlocEx<S extends BlocState> extends StateStreamableSource<S> with Logging 
   void push(BlocEvent event) {
     if (_bloc.isDisposed) {
       logCustom("$runtimeType is disposed; cannot push ${event.runtimeType}", level: Level.verbose);
+      return;
     }
     _bloc.add(event);
   }

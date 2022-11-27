@@ -49,7 +49,10 @@ abstract class BlocWidgetState<S extends BlocState, B extends BlocEx<S>, W exten
     if (_bloc == null) {
       _bloc = onCreateBloc(context);
       final args = context.routeArguments;
-      assert(args == null || args is! NavigationArguments, 'route arguments not NavigationData');
+      if (args != null) {
+        assert(args is NavigationArguments, 'route arguments not NavigationData');
+      }
+
       _bloc?.push(BlocEvents.init(arguments: args));
     }
   }
