@@ -2,6 +2,8 @@ import 'package:uuid/uuid.dart';
 
 int _rid = 0;
 
+typedef StringReaction = BlocReaction<String>;
+
 class BlocReaction<T> {
   final int reactionId = ++_rid;
   final T _data;
@@ -26,8 +28,7 @@ class BlocReaction<T> {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is BlocReaction && runtimeType == other.runtimeType && reactionId == other.reactionId;
+      identical(this, other) || other is BlocReaction && runtimeType == other.runtimeType && reactionId == other.reactionId;
 
   @override
   int get hashCode => reactionId.hashCode;

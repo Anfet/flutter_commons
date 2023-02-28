@@ -63,7 +63,7 @@ extension ListExt<T> on List<T> {
     return result;
   }
 
-  List<T> multiSortBy(List<SortFunc<T>> sort) {
+  List<T> multiSortBy(List<SortFunc<T>> sort, {bool asc = true}) {
     List<T> result = clone();
 
     result.sort((a, b) {
@@ -77,6 +77,10 @@ extension ListExt<T> on List<T> {
       return result;
     });
 
+    if (!asc) {
+      return result.reversed.toList();
+    }
+
     return result;
   }
 
@@ -87,6 +91,20 @@ extension ListExt<T> on List<T> {
       result.add(value);
     }
 
+    return result;
+  }
+
+  List<T> sortedBy(SortFunc<T> sf) {
+    var result = this.clone();
+    result.sort(sf);
+    return result;
+  }
+
+  List<T> takeRandom([int count = 1]) {
+    var result = <T>[];
+    for (int i = 0; i < count; i++) {
+      result.add(randomElement);
+    }
     return result;
   }
 }

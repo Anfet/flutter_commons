@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:siberian_core/siberian_core.dart';
 import 'package:sprintf/sprintf.dart';
 
@@ -6,33 +7,29 @@ typedef PluralSpecResolver = PluralSpec Function(int amount);
 typedef TextResolver<T> = String? Function(T resId);
 typedef PluralResolver<P> = Plural? Function(P resId);
 
-class Translator<D, P> extends ChangeNotifier {
+class Translator<D, P> extends ValueNotifier<Locale> {
   static const ok = "OK";
 
-  Locale _currentLocale;
-  final Map<Locale, Translation<D, P>> _translations = {};
+  final Map<String, Translation<D, P>> _translations = {};
 
-  Translator(this._currentLocale);
+  Translator(Locale locale) : super(locale);
 
-  get supportedLocales => _translations.values.map((tr) => tr.locale);
+  Iterable<Locale> get supportedLocales => _translations.values.map((tr) => tr.locale);
 
-  get locale => _currentLocale;
+  Locale get locale => this.value;
 
   addTranslation(Translation<D, P> translation) {
-    _translations.putIfAbsent(translation.locale, () => translation);
+    _translations.putIfAbsent(translation.locale.languageCode, () => translation);
+    initializeDateFormatting(translation.locale.languageCode);
   }
 
-  setLocale(Locale locale) {
-    _currentLocale = locale;
-    notifyListeners();
-  }
+  set locale(Locale locale) => value = locale;
 
   String getString(D resId) {
-    final translations = _translations[locale];
+    final translations = _translations[locale.languageCode];
     final text = translations?.textResolver(resId);
     if (text == null) {
-      throw LocalizationNotProvidedException(
-          "No string provided for locale ${_currentLocale.languageCode} text $resId");
+      throw LocalizationNotProvidedException("No string provided for locale ${locale.languageCode} text $resId");
     }
     return text;
   }
@@ -43,19 +40,17 @@ class Translator<D, P> extends ChangeNotifier {
   }
 
   String getQuantityString(P resId, int amount) {
-    Translation<D, P> translation = _translations[_currentLocale]!;
+    Translation<D, P> translation = _translations[locale.languageCode]!;
     Plural? plural = translation.pluralResolver(resId);
     if (plural == null) {
-      throw QuantityLocalizationNotProvidedException(
-          "No quantity string provided for ${_currentLocale.languageCode} plural $resId");
+      throw QuantityLocalizationNotProvidedException("No quantity string provided for ${locale.languageCode} plural $resId");
     }
 
     PluralSpec spec = translation.specResolver(amount);
     String format = plural.get(spec);
 
     if (format.isEmpty) {
-      throw QuantityLocalizationNotProvidedException(
-          "No quantity string provided for locale ${_currentLocale.languageCode} plural $resId");
+      throw QuantityLocalizationNotProvidedException("No quantity string provided for locale ${locale.languageCode} plural $resId");
     }
 
     return sprintf(format, [amount]);

@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:siberian_core/siberian_core.dart';
-import 'package:siberian_core/src/navigation/navigation_arguments.dart';
+import 'package:siberian_core/src/routing/navigation_arguments.dart';
 
 int _eid = 0;
 
@@ -12,8 +12,7 @@ abstract class BlocEvent {
   String toString() => "$runtimeType";
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) || other is BlocEvent && runtimeType == other.runtimeType && eventId == other.eventId;
+  bool operator ==(Object other) => identical(this, other) || other is BlocEvent && runtimeType == other.runtimeType && eventId == other.eventId;
 
   @override
   int get hashCode => eventId.hashCode;
@@ -29,9 +28,7 @@ class BlocEvents {
 
   static UpdateLoader updateLoader(Lce newState) => UpdateLoader._(newState);
 
-  static ReturnResult returnResult(dynamic data) => ReturnResult._(data);
-
-  static OnChainResult onChainResult([NavigationResult? result, NavigationArguments? data]) => OnChainResult._(result, data);
+  static ReturnResult returnResult([data]) => ReturnResult._(data);
 }
 
 @immutable
@@ -59,8 +56,7 @@ class UpdateState<T extends BlocState> extends BlocEvent {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      super == other && other is UpdateState && runtimeType == other.runtimeType && newState == other.newState;
+      identical(this, other) || super == other && other is UpdateState && runtimeType == other.runtimeType && newState == other.newState;
 
   @override
   int get hashCode => super.hashCode ^ newState.hashCode;
@@ -79,8 +75,7 @@ class UpdateLoader extends BlocEvent {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      super == other && other is UpdateLoader && runtimeType == other.runtimeType && newState == other.newState;
+      identical(this, other) || super == other && other is UpdateLoader && runtimeType == other.runtimeType && newState == other.newState;
 
   @override
   int get hashCode => super.hashCode ^ newState.hashCode;
@@ -99,29 +94,8 @@ class ReturnResult extends BlocEvent {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      super == other && other is ReturnResult && runtimeType == other.runtimeType && data == other.data;
+      identical(this, other) || super == other && other is ReturnResult && runtimeType == other.runtimeType && data == other.data;
 
   @override
   int get hashCode => super.hashCode ^ data.hashCode;
-}
-
-@immutable
-class OnChainResult extends BlocEvent {
-  final NavigationResult? result;
-  final NavigationArguments? data;
-
-  OnChainResult._(this.result, this.data);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      super == other &&
-          other is OnChainResult &&
-          runtimeType == other.runtimeType &&
-          result == other.result &&
-          data == other.data;
-
-  @override
-  int get hashCode => super.hashCode ^ result.hashCode ^ data.hashCode;
 }

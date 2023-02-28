@@ -6,14 +6,15 @@ class VSpacer extends StatelessWidget {
   final EdgeInsets padding;
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) =>
+      Container(
         height: height,
+        width: 1,
         color: color,
         padding: padding,
       );
 
-  const VSpacer(
-    this.height, {
+  const VSpacer(this.height, {
     Key? key,
     this.color,
     this.padding = EdgeInsets.zero,
@@ -26,14 +27,15 @@ class HSpacer extends StatelessWidget {
   final EdgeInsets padding;
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) =>
+      Container(
         width: width,
+        height: 1,
         color: color,
         padding: padding,
       );
 
-  const HSpacer(
-    this.width, {
+  const HSpacer(this.width, {
     Key? key,
     this.color,
     this.padding = EdgeInsets.zero,

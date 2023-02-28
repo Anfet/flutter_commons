@@ -8,18 +8,13 @@ const _maxCharactersInLine = 800;
 final _pattern = RegExp('.{50,$_maxCharactersInLine}');
 final _dateFormatter = DateFormat("Hms");
 const _tagAction = ":";
-const encoder = JsonEncoder.withIndent(null);
+const _encoder = JsonEncoder.withIndent(null);
 
-Logger? _logger;
-
-void setDefaultLogger([Logger? customLogger]) {
-  _logger = customLogger ??
-      Logger(
-        printer: CustomLogger(
-          truncateMessages: true,
-        ),
-      );
-}
+Logger logger = Logger(
+  printer: CustomLogger(
+    truncateMessages: true,
+  ),
+);
 
 class CustomLogger extends LogPrinter {
   final bool truncateMessages;
@@ -61,19 +56,26 @@ class CustomLogger extends LogPrinter {
   String _stringifyMessage(dynamic message) {
     final finalMessage = message is Function ? message() : message;
     if (finalMessage is Map || finalMessage is Iterable) {
-      return encoder.convert(finalMessage);
+      return _encoder.convert(finalMessage);
     } else {
       return finalMessage.toString();
     }
   }
 }
 
-void logCustom(String message, {String tag = "", Level level = Level.verbose, dynamic error, StackTrace? stackTrace}) {
-  assert(_logger != null, "logger must be initilized; call 'setDefaultLogger'");
-  _logger?.log(level, (tag.isEmpty ? message : "$tag$_tagAction $message"), error, stackTrace);
-}
+void logCustom(String message, {String tag = "", Level level = Level.verbose, dynamic error, StackTrace? stackTrace}) =>
+    logger.log(level, (tag.isEmpty ? message : "$tag$_tagAction $message"), error, stackTrace);
 
 mixin Logging {
   void logMessage(String message, {String? tag, Level level = Level.verbose, dynamic error, StackTrace? stackTrace}) =>
       logCustom(message, level: level, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
+
+  void warn(String message, {String? tag, dynamic error, StackTrace? stackTrace}) =>
+      logCustom(message, level: Level.warning, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
+
+  void verbose(String message, {String? tag, dynamic error, StackTrace? stackTrace}) =>
+      logCustom(message, level: Level.verbose, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
+
+  void error(String message, [dynamic error, StackTrace? stackTrace, String? tag]) =>
+      logCustom(message, level: Level.error, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
 }

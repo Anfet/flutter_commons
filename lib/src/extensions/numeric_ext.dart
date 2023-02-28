@@ -1,3 +1,5 @@
+import 'dart:math';
+
 extension NumberExt on num {
   String get asSigned => this > 0 ? "+$this" : "$this";
 
@@ -17,5 +19,11 @@ extension IntExt on int {
 extension DoubleExt on double {
   bool get isInt => (this - floor()).abs() < 0.00001;
 
-  int? get intQuantity => isInt ? floor() : null;
+  int? get asIntOrNull => isInt ? floor() : null;
+
+  double truncFraction([int digits = 1]) {
+    var divider = pow(10, digits);
+    var result = (this * divider).truncate() / divider;
+    return result;
+  }
 }

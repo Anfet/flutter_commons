@@ -22,7 +22,7 @@ extension StringExt on String {
 
   String get stripNewLines => replaceAll(r"\n", "");
 
-  String trimSplash() => replaceAll(RegExp('[/\\]'), "");
+  String trimSplash() => replaceAll(RegExp(r'[/\\]'), "");
 
   String charAt(int index) => characters.characterAt(index).first;
 
