@@ -107,4 +107,27 @@ extension ListExt<T> on List<T> {
     }
     return result;
   }
+
+  List<T> insertInBetween(T Function(int index) generator) {
+    final result = <T>[];
+    for (int i = 0; i < length; i++) {
+      result.add(randomElement);
+      if (i < length - 1) {
+        result.add(generator(i));
+      }
+    }
+    return result;
+  }
+
+  List<List<T>> splitBy(int amount) {
+    var copy = this.clone();
+    List<List<T>> result = [];
+
+    while (copy.isNotEmpty) {
+      result.add(copy.take(amount).toList(growable: false));
+      copy.removeRange(0, copy.length >= amount ? amount : copy.length);
+    }
+
+    return result;
+  }
 }
