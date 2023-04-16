@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 
-typedef ValueCallback<T> = void Function(T value);
-typedef AsyncValueCallback<F, T> = Future<F> Function(T value);
-typedef ResultRequest<R> = R Function();
-typedef AsyncResultRequest<R> = Future<R> Function();
-typedef ResultValueCallback<R, T> = R Function(T value);
-typedef AsyncResultValueCallback<R, T> = Future<R> Function(T value);
+typedef TypedCallback<T> = void Function(T value);
+typedef AsyncTypedCallback<F, T> = Future<F> Function(T value);
+typedef TypedResult<R> = R Function();
+typedef AsyncTypedResult<R> = Future<R> Function();
+typedef TypedResultCallback<R, T> = R Function(T value);
+typedef AsyncTypedResultCallback<R, T> = Future<R> Function(T value);
 
 typedef CustomErrorWidgetBuilderFunc<T> = Widget Function(BuildContext context, Object? error);
 
 typedef WidgetCallback = Widget Function(BuildContext context);
-typedef WidgetCallbackWithContent<T> = Widget Function(BuildContext context, T content);
-typedef WidgetCallbackWithErrorAndContent<T> = Widget Function(BuildContext context, dynamic error, T content);
+typedef WidgetCallbackExtended<T> = Widget Function(BuildContext context, {Object? error, T? content});

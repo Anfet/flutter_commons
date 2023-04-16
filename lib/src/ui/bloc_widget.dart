@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
-import 'package:provider/single_child_widget.dart';
 import 'package:siberian_core/siberian_core.dart';
 
 abstract class BlocWidget<S extends BlocState, B extends Bloc<BlocEvent, S>> extends StatefulWidget {
@@ -24,48 +23,33 @@ abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>
   @protected
   bool shouldRebuild(S previous, S current) => previous != current;
 
-  List<SingleChildWidget> get providers => [];
-
   @override
   Widget build(BuildContext context) {
-    childBuilder(BuildContext context) => BlocProvider<B>(
-          create: (_) {
-            bloc = onCreateBloc(context);
-            final args = context.routeArguments;
-            if (args != null) {
-              assert(args is NavigationArguments, 'route arguments not NavigationData');
-            }
-
-            bloc.add(BlocEvents.init(arguments: args));
-            return bloc;
+    return BlocProvider<B>(
+      create: (_) {
+        bloc = onCreateBloc(context);
+        final args = context.routeArguments;
+        bloc.add(BlocEvents.init(arguments: args));
+        return bloc;
+      },
+      child: BlocConsumer<B, S>(
+        listener: onReactions,
+        listenWhen: containsReactions,
+        buildWhen: (previous, current) => shouldRebuild(previous, current),
+        builder: (_, state) => LayoutBuilder(
+          builder: (_, constraints) {
+            return Provider<LayoutInformation>.value(
+              value: LayoutInformation(
+                constraints: constraints,
+                deviceType: DeviceType.values.firstWhere((size) => size.minWidth > constraints.maxWidth),
+                orientation: constraints.maxWidth > constraints.maxHeight ? Orientation.landscape : Orientation.portrait,
+              ),
+              builder: (providerContext, child) => buildContent(providerContext, state),
+            );
           },
-          child: BlocConsumer<B, S>(
-            listener: onReactions,
-            listenWhen: containsReactions,
-            buildWhen: (previous, current) => shouldRebuild(previous, current),
-            builder: (_, state) => LayoutBuilder(
-              builder: (_, constraints) {
-                return Provider<ScreenInformation>.value(
-                  value: ScreenInformation(
-                    constraints: constraints,
-                    deviceType: DeviceType.values.firstWhere((size) => size.minWidth > constraints.maxWidth),
-                    orientation: constraints.maxWidth > constraints.maxHeight ? Orientation.landscape : Orientation.portrait,
-                  ),
-                  builder: (providerContext, child) => buildContent(providerContext, state),
-                );
-              },
-            ),
-          ),
-        );
-
-    if (providers.isNotEmpty) {
-      return MultiProvider(
-        providers: providers,
-        builder: (providerContext, child) => childBuilder(providerContext),
-      );
-    }
-
-    return childBuilder(context);
+        ),
+      ),
+    );
   }
 }
 
@@ -81,14 +65,14 @@ enum DeviceType {
 }
 
 @immutable
-class ScreenInformation {
+class LayoutInformation {
   final Orientation orientation;
   final BoxConstraints constraints;
   final DeviceType deviceType;
 
   Size get size => Size(constraints.maxWidth, constraints.maxHeight);
 
-  const ScreenInformation({
+  const LayoutInformation({
     required this.orientation,
     required this.constraints,
     required this.deviceType,
@@ -96,6 +80,6 @@ class ScreenInformation {
 
   @override
   String toString() {
-    return 'ScreenInformation{orientation: $orientation, constraints: $constraints, deviceType: $deviceType}';
+    return 'LayoutInformation{orientation: $orientation, constraints: $constraints, deviceType: $deviceType}';
   }
 }

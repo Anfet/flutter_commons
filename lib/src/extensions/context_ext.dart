@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 extension BuildContextExt on BuildContext {
-  dynamic get routeArguments => ModalRoute.of(this)?.settings.arguments;
+  Object? get routeArguments => ModalRoute.of(this)?.settings.arguments;
 
-  Size get mediaQuerySize => MediaQuery.of(this).size;
+  Size get size => MediaQuery.of(this).size;
 }

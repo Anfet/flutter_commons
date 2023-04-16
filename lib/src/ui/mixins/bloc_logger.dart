@@ -2,7 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
 import 'package:siberian_core/siberian_core.dart';
 
-mixin BlocLogger<E, S> on Bloc<E, S> {
+mixin BlocLogging<E, S> on Bloc<E, S> {
   @override
   void onEvent(event) {
     super.onEvent(event);

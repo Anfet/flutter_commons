@@ -8,7 +8,7 @@ typedef ThemeWidgetBuilder<C extends ThemeColors> = Widget Function(
   Widget? child,
 );
 
-class ThemeBuilder<C extends ThemeColors, S extends Styles> extends StatelessWidget {
+class ThemeBuilder<C extends ThemeColors> extends StatelessWidget {
   final ThemeNotifier<C>? themeNotifier;
   final ThemeWidgetBuilder<C> builder;
 

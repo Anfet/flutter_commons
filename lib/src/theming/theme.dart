@@ -8,10 +8,6 @@ abstract class ThemePattern<C extends ThemeColors> {
 
 abstract class ThemeColors {}
 
-abstract class Typography {}
-
-abstract class Styles {}
-
 class ThemeNotifier<C extends ThemeColors> extends ChangeNotifier {
   final List<ThemePattern<C>> themes;
   ThemePattern<C> _selected;
