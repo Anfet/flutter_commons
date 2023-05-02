@@ -26,4 +26,12 @@ extension DoubleExt on double {
     var result = (this * divider).truncate() / divider;
     return result;
   }
+
+  double get fraction {
+    return this - floor();
+  }
+
+  double get asRadians {
+    return this * pi / 180;
+  }
 }
