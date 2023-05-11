@@ -111,7 +111,7 @@ extension ListExt<T> on List<T> {
   List<T> insertInBetween(T Function(int index) generator) {
     final result = <T>[];
     for (int i = 0; i < length; i++) {
-      result.add(randomElement);
+      result.add(this[i]);
       if (i < length - 1) {
         result.add(generator(i));
       }
