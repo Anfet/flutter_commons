@@ -12,7 +12,11 @@ class Translator<D, P> extends ValueNotifier<Locale> {
 
   final Map<String, Translation<D, P>> _translations = {};
 
-  Translator(Locale locale) : super(locale);
+  final Locale defaultLocale;
+
+  Translation<D, P>? get defaultTranslations => _translations[defaultLocale.languageCode];
+
+  Translator(Locale locale, {required this.defaultLocale}) : super(locale);
 
   Iterable<Locale> get supportedLocales => _translations.values.map((tr) => tr.locale);
 
@@ -27,7 +31,7 @@ class Translator<D, P> extends ValueNotifier<Locale> {
 
   String getString(D resId) {
     final translations = _translations[locale.languageCode];
-    final text = translations?.textResolver(resId);
+    var text = translations?.textResolver(resId) ?? defaultTranslations?.textResolver(resId);
     if (text == null) {
       throw LocalizationNotProvidedException("No string provided for locale ${locale.languageCode} text $resId");
     }
@@ -41,7 +45,7 @@ class Translator<D, P> extends ValueNotifier<Locale> {
 
   String getQuantityString(P resId, int amount) {
     Translation<D, P> translation = _translations[locale.languageCode]!;
-    Plural? plural = translation.pluralResolver(resId);
+    Plural? plural = translation.pluralResolver(resId) ?? defaultTranslations?.pluralResolver(resId);
     if (plural == null) {
       throw QuantityLocalizationNotProvidedException("No quantity string provided for ${locale.languageCode} plural $resId");
     }
