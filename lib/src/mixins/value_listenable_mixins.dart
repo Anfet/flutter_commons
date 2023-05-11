@@ -13,7 +13,7 @@ mixin ValueListenableMixin {
   @Deprecated("use listenToValueChanges")
   void onValueChanged<T extends Object>(ValueListenable<T> valueListenable, TypedCallback<T> onChange) => listenToValueChanges;
 
-  void cancelValueListeners() {
+  Future<void> removeValueListeners() async {
     for (var notifier in _valueListenableSubscriptions.keys) {
       for (var listener in _valueListenableSubscriptions[notifier]!) {
         notifier.removeListener(listener);
@@ -22,5 +22,5 @@ mixin ValueListenableMixin {
   }
 
   @Deprecated("use removeValueListeners")
-  void removeListeners() => cancelValueListeners;
+  void removeListeners() => removeValueListeners;
 }
