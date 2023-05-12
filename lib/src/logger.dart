@@ -16,7 +16,7 @@ Logger logger = Logger(
   ),
 );
 
-class CustomLogger extends LogPrinter {
+class CustomLogger extends PrettyPrinter {
   final bool truncateMessages;
 
   CustomLogger({this.truncateMessages = true}) : super();
