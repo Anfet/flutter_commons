@@ -8,8 +8,7 @@ class Range<T> {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Range && runtimeType == other.runtimeType && from == other.from && till == other.till;
+      identical(this, other) || other is Range && runtimeType == other.runtimeType && from == other.from && till == other.till;
 
   @override
   int get hashCode => from.hashCode ^ till.hashCode;
@@ -18,4 +17,8 @@ class Range<T> {
   String toString() {
     return 'Range{from: $from, till: $till}';
   }
+
+  T get requiredFrom => from!;
+
+  T get requireTill => till!;
 }
