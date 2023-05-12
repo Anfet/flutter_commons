@@ -67,15 +67,15 @@ void logCustom(String message, {String tag = "", Level level = Level.verbose, dy
     logger.log(level, (tag.isEmpty ? message : "$tag$_tagAction $message"), error, stackTrace);
 
 mixin Logging {
-  void logMessage(String message, {String? tag, Level level = Level.verbose, dynamic error, StackTrace? stackTrace}) =>
-      logCustom(message, level: level, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
+  void logMessage(Object message, {String? tag, Level level = Level.verbose, dynamic error, StackTrace? stackTrace}) =>
+      logCustom('$message', level: level, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
 
-  void warn(String message, {String? tag, dynamic error, StackTrace? stackTrace}) =>
-      logCustom(message, level: Level.warning, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
+  void warn(Object message, {String? tag, dynamic error, StackTrace? stackTrace}) =>
+      logCustom('$message', level: Level.warning, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
 
-  void verbose(String message, {String? tag, dynamic error, StackTrace? stackTrace}) =>
-      logCustom(message, level: Level.verbose, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
+  void verbose(Object message, {String? tag, dynamic error, StackTrace? stackTrace}) =>
+      logCustom('$message', level: Level.verbose, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
 
-  void error(String message, [dynamic error, StackTrace? stackTrace, String? tag]) =>
-      logCustom(message, level: Level.error, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
+  void error(Object message, [dynamic error, StackTrace? stackTrace, String? tag]) =>
+      logCustom('$message', level: Level.error, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
 }
