@@ -65,19 +65,20 @@ class CustomLogger extends LogPrinter {
   }
 }
 
-void logCustom(String message, {String tag = "", Level level = Level.verbose, dynamic error, StackTrace? stackTrace}) =>
-    logger.log(level, (tag.isEmpty ? message : "$tag$_tagAction $message"), error, stackTrace);
+void logCustom(message, {String tag = "", Level level = Level.verbose, dynamic error, StackTrace? stackTrace}) {
+  logger.log(level, (tag.isEmpty ? message : "$tag$_tagAction $message"), error, stackTrace);
+}
 
 mixin Logging {
-  void logMessage(Object message, {String? tag, Level level = Level.verbose, dynamic error, StackTrace? stackTrace}) =>
-      logCustom('$message', level: level, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
+  void logMessage(message, {String? tag, Level level = Level.verbose, dynamic error, StackTrace? stackTrace}) =>
+      logCustom(message, level: level, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
 
-  void warn(Object message, {String? tag, dynamic error, StackTrace? stackTrace}) =>
-      logCustom('$message', level: Level.warning, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
+  void warn(message, {String? tag, dynamic error, StackTrace? stackTrace}) =>
+      logCustom(message, level: Level.warning, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
 
-  void verbose(Object message, {String? tag, dynamic error, StackTrace? stackTrace}) =>
-      logCustom('$message', level: Level.verbose, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
+  void verbose(message, {String? tag, dynamic error, StackTrace? stackTrace}) =>
+      logCustom(message, level: Level.verbose, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
 
-  void error(Object message, [dynamic error, StackTrace? stackTrace, String? tag]) =>
-      logCustom('$message', level: Level.error, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
+  void error(message, [dynamic error, StackTrace? stackTrace, String? tag]) =>
+      logCustom(message, level: Level.error, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
 }
