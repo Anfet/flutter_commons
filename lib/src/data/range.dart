@@ -18,7 +18,7 @@ class Range<T> {
     return 'Range{from: $from, till: $till}';
   }
 
-  T get requiredFrom => from!;
+  T get requireFrom => from!;
 
   T get requireTill => till!;
 }
