@@ -19,9 +19,11 @@ Logger logger = Logger(
 class CustomLogger extends LogPrinter {
   final bool truncateMessages;
 
-  CustomLogger({
-    this.truncateMessages = true,
-  }) : super();
+  CustomLogger({this.truncateMessages = true}) : super();
+
+  void install() {
+    logger = Logger(printer: this);
+  }
 
   @override
   List<String> log(LogEvent event) {
