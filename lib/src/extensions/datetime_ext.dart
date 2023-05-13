@@ -14,4 +14,6 @@ extension SiberitanDateTimeExt on DateTime {
   int get daysInMonth => DateUtils.getDaysInMonth(year, month);
 
   DateTime get stripTime => DateTime(year, month, day, 0, 0, 0, 0, 0);
+
+  bool between(DateTime a, DateTime b) => isSameOrAfter(a) && isSameOrBefore(b);
 }
