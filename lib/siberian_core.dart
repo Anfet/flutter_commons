@@ -38,6 +38,7 @@ export 'src/mappers.dart';
 export 'src/mixins/stream_listenable_mixins.dart';
 export 'src/mixins/value_listenable_mixins.dart';
 export 'src/randomizer.dart';
+export 'src/routing/routing_helpers.dart';
 export 'src/timed.dart';
 export 'src/ui/bloc_events.dart';
 export 'src/ui/bloc_reaction.dart';
