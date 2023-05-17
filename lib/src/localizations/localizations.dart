@@ -33,17 +33,17 @@ class Translator<D, P> extends ValueNotifier<Locale> {
 
   String getString(D resId) {
     final translations = _translations[locale.languageCode];
-    var text = translations?.textResolver(resId) ??
-        (
-          defaultTranslations?.textResolver(resId)?.let(
-            (it) {
-              if (!markMissingTranslations) {
-                return it;
-              }
-              return "$it (${locale.languageCode})";
-            },
-          ),
-        );
+    String? text = translations?.textResolver(resId);
+
+    text ??= defaultTranslations?.textResolver(resId)?.let(
+      (it) {
+        if (!markMissingTranslations) {
+          return it;
+        }
+        return "$it (${locale.languageCode})";
+      },
+    );
+
     return text ?? '$resId';
   }
 
