@@ -69,7 +69,7 @@ class Translator<D, P> extends ValueNotifier<Locale> {
     }
 
     if (plural == null) {
-      if (!isDefault) {
+      if (isDefault) {
         return '$resId(${locale.languageCode})';
       }
 
@@ -85,7 +85,7 @@ class Translator<D, P> extends ValueNotifier<Locale> {
     }
 
     var result = sprintf(format, [amount]);
-    if (!isDefault) {
+    if (isDefault) {
       return "$result(${locale.languageCode})";
     }
 
