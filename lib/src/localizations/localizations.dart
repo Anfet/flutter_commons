@@ -10,13 +10,15 @@ typedef PluralResolver<P> = Plural? Function(P resId);
 class Translator<D, P> extends ValueNotifier<Locale> {
   static const ok = "OK";
 
+  final bool markMissingTranslations;
+
   final Map<String, Translation<D, P>> _translations = {};
 
   final Locale defaultLocale;
 
   Translation<D, P>? get defaultTranslations => _translations[defaultLocale.languageCode];
 
-  Translator(Locale locale, {required this.defaultLocale}) : super(locale);
+  Translator(Locale locale, {required this.defaultLocale, this.markMissingTranslations = false}) : super(locale);
 
   Iterable<Locale> get supportedLocales => _translations.values.map((tr) => tr.locale);
 
@@ -31,7 +33,17 @@ class Translator<D, P> extends ValueNotifier<Locale> {
 
   String getString(D resId) {
     final translations = _translations[locale.languageCode];
-    var text = translations?.textResolver(resId) ?? (defaultTranslations?.textResolver(resId)?.let((it) => "$it*"));
+    var text = translations?.textResolver(resId) ??
+        (
+          defaultTranslations?.textResolver(resId)?.let(
+            (it) {
+              if (!markMissingTranslations) {
+                return it;
+              }
+              return "$it (${locale.languageCode})";
+            },
+          ),
+        );
     return text ?? '$resId';
   }
 
@@ -52,7 +64,11 @@ class Translator<D, P> extends ValueNotifier<Locale> {
     }
 
     if (plural == null) {
-      return '$resId${isDefault ? '' : '*'}';
+      if (!isDefault) {
+        return '$resId(${locale.languageCode})';
+      }
+
+      return '$resId';
       // throw QuantityLocalizationNotProvidedException("No quantity string provided for ${locale.languageCode} plural $resId");
     }
 
@@ -63,7 +79,12 @@ class Translator<D, P> extends ValueNotifier<Locale> {
       throw QuantityLocalizationNotProvidedException("No quantity string provided for locale ${locale.languageCode} plural $resId");
     }
 
-    return sprintf(format, [amount]);
+    var result = sprintf(format, [amount]);
+    if (!isDefault) {
+      return "$result(${locale.languageCode})";
+    }
+
+    return result;
   }
 }
 
