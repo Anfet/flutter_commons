@@ -42,9 +42,17 @@ class Translator<D, P> extends ValueNotifier<Locale> {
 
   String getQuantityString(P resId, int amount) {
     Translation<D, P> translation = _translations[locale.languageCode]!;
-    Plural? plural = translation.pluralResolver(resId) ?? (defaultTranslations?.pluralResolver(resId)?.let((it) => "$it*"));
+    Plural? plural = translation.pluralResolver(resId);
+
+    var isDefault = false;
     if (plural == null) {
-      return '$resId';
+      plural = defaultTranslations?.pluralResolver(resId);
+      isDefault = true;
+      // throw QuantityLocalizationNotProvidedException("No quantity string provided for ${locale.languageCode} plural $resId");
+    }
+
+    if (plural == null) {
+      return '$resId${isDefault ? '' : '*'}';
       // throw QuantityLocalizationNotProvidedException("No quantity string provided for ${locale.languageCode} plural $resId");
     }
 
