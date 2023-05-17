@@ -31,11 +31,8 @@ class Translator<D, P> extends ValueNotifier<Locale> {
 
   String getString(D resId) {
     final translations = _translations[locale.languageCode];
-    var text = translations?.textResolver(resId) ?? defaultTranslations?.textResolver(resId);
-    if (text == null) {
-      throw LocalizationNotProvidedException("No string provided for locale ${locale.languageCode} text $resId");
-    }
-    return text;
+    var text = translations?.textResolver(resId) ?? (defaultTranslations?.textResolver(resId)?.let((it) => "$it*"));
+    return text ?? '$resId';
   }
 
   String formatString(D resId, args) {
@@ -45,9 +42,10 @@ class Translator<D, P> extends ValueNotifier<Locale> {
 
   String getQuantityString(P resId, int amount) {
     Translation<D, P> translation = _translations[locale.languageCode]!;
-    Plural? plural = translation.pluralResolver(resId) ?? defaultTranslations?.pluralResolver(resId);
+    Plural? plural = translation.pluralResolver(resId) ?? (defaultTranslations?.pluralResolver(resId)?.let((it) => "$it*"));
     if (plural == null) {
-      throw QuantityLocalizationNotProvidedException("No quantity string provided for ${locale.languageCode} plural $resId");
+      return '$resId';
+      // throw QuantityLocalizationNotProvidedException("No quantity string provided for ${locale.languageCode} plural $resId");
     }
 
     PluralSpec spec = translation.specResolver(amount);
