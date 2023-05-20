@@ -12,9 +12,7 @@ class AppException implements Exception {
   AppException.fromOther(Object error) : this(error.toString());
 
   @override
-  String toString() {
-    return '$runtimeType{message: $message}';
-  }
+  String toString() => message;
 }
 
 class WtfException extends AppException {
