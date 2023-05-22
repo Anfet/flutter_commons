@@ -106,4 +106,14 @@ extension IterableExt<T> on Iterable<T> {
     }
     return result;
   }
+
+  num maxOf(num Function(T it) test, {num? orElse}) {
+    num? x;
+    for (final val in this) {
+      x ??= test(val);
+      x = max(x, test(val));
+    }
+
+    return x ?? orElse ?? 0;
+  }
 }
