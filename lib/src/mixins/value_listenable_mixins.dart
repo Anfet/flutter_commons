@@ -4,10 +4,13 @@ import 'package:siberian_core/src/functions.dart';
 mixin ValueListenableMixin {
   final Map<ValueListenable, List<VoidCallback>> _valueListenableSubscriptions = {};
 
-  void listenToValueChanges<T extends Object>(ValueListenable<T> valueListenable, TypedCallback<T> onChange) {
+  void listenToValueChanges<T extends Object>(ValueListenable<T> valueListenable, TypedCallback<T> onChange, {bool notifyOnSubscribe = true}) {
     listener() => onChange(valueListenable.value);
     _valueListenableSubscriptions.putIfAbsent(valueListenable, () => []).add(listener);
     valueListenable.addListener(listener);
+    if (notifyOnSubscribe) {
+      onChange(valueListenable.value);
+    }
   }
 
   @Deprecated("use listenToValueChanges")
