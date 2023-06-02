@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:siberian_core/siberian_core.dart';
 import 'package:sprintf/sprintf.dart';
 
@@ -52,7 +53,7 @@ class Translator<D, P> extends ValueNotifier<Locale> {
     return sprintf(text, ((args is List) ? args : [args]));
   }
 
-  String getQuantityString(P resId, int amount) {
+  String getQuantityString(P resId, int amount, {NumberFormat? formatter}) {
     var isDefault = false;
     Translation<D, P>? translation = _translations[locale.languageCode];
     if (translation == null) {
@@ -84,7 +85,16 @@ class Translator<D, P> extends ValueNotifier<Locale> {
       throw QuantityLocalizationNotProvidedException("No quantity string provided for locale ${locale.languageCode} plural $resId");
     }
 
-    var result = sprintf(format, [amount]);
+    String result = '';
+    if (format.contains("%s")) {
+      if (formatter != null) {
+        var amountText = formatter.format(amount);
+        result = sprintf(format, [amountText]);
+      }
+    } else {
+      result = sprintf(format, [amount]);
+    }
+
     if (isDefault) {
       return "$result(${locale.languageCode})";
     }
