@@ -88,7 +88,7 @@ class Translator<D, P> extends ValueNotifier<Locale> {
     String result = '';
     if (format.contains("%s")) {
       if (formatter != null) {
-        var amountText = formatter.format(amount);
+        var amountText = formatter.format(amount).trim();
         result = sprintf(format, [amountText]);
       }
     } else {
