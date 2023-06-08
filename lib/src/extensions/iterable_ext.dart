@@ -116,4 +116,22 @@ extension IterableExt<T> on Iterable<T> {
 
     return x ?? orElse ?? 0;
   }
+
+  num minOf(num Function(T it) test, {num? orElse}) {
+    num? x;
+    for (final val in this) {
+      x ??= test(val);
+      x = min(x, test(val));
+    }
+
+    return x ?? orElse ?? 0;
+  }
+
+  num sumOf(num Function(T it) test) {
+    num x = 0;
+    for (final val in this) {
+      x += test(val);
+    }
+    return x;
+  }
 }
