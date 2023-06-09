@@ -29,7 +29,7 @@ class SystemUiChangingObserver extends NavigatorObserver with Logging {
     }
 
     _activeStyle = requiredStyleHash;
-    SystemChrome.setSystemUIOverlayStyle(requiredStyle!);
+    Future.microtask(() => SystemChrome.setSystemUIOverlayStyle(requiredStyle!));
     if (enableLog) {
       verbose("switching UI style to '${styleName ?? requiredStyle.hashCode}'", tag: tag);
     }
