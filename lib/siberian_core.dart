@@ -45,4 +45,6 @@ export 'src/ui/bloc_reaction.dart';
 export 'src/ui/bloc_state.dart';
 export 'src/ui/bloc_widget.dart';
 export 'src/ui/mixins/bloc_logger.dart';
+export 'src/utils/paged_loader.dart';
+export 'src/utils/widget_exporter.dart';
 export 'src/widgets/spacers.dart';

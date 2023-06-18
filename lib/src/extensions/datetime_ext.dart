@@ -11,7 +11,9 @@ extension SiberitanDateTimeExt on DateTime {
 
   DateTime operator -(Duration duration) => this.subtract(duration);
 
-  DateTime get startOfTheWeek => subtract(Duration(days: this.weekday));
+  DateTime get startOfTheWeek => subtract(Duration(days: this.weekday - 1));
+
+  DateTime get startOfTheMonth => DateTime(year, month, 1).stripTime;
 
   int get daysInMonth => DateUtils.getDaysInMonth(year, month);
 
