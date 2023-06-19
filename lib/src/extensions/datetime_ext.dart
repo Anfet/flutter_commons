@@ -15,7 +15,7 @@ extension SiberitanDateTimeExt on DateTime {
 
   DateTime get startOfTheMonth => DateTime(year, month, 1).stripTime;
 
-  DateTime get endOfTheMonth => DateTime(year, month, 1).stripTime.add(Duration(days: daysInMonth));
+  DateTime get endOfTheMonth => DateTime(year, month, 1).stripTime.add(Duration(days: daysInMonth - 1));
 
   int get daysInMonth => DateUtils.getDaysInMonth(year, month);
 
