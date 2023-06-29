@@ -1,36 +1,40 @@
 import 'package:flutter/widgets.dart';
+import 'package:siberian_core/src/consts.dart';
 
 class TextUtils {
-  static Size textHeight(
-    BuildContext context,
-    String text,
-    TextStyle textStyle, {
-    double limitedWidth = double.infinity,
+  static Size textHeight({
+    required String text,
+    required TextStyle style,
+    double? textScaleFactor,
+    double width = double.infinity,
+    int? maxLines,
   }) {
     final painter = TextPainter(
-        text: TextSpan(text: text, style: textStyle),
-        maxLines: 1000,
-        textScaleFactor: MediaQuery.of(context).textScaleFactor,
-        textDirection: TextDirection.ltr);
+      text: TextSpan(text: text, style: style),
+      maxLines: maxLines ?? Ints.maxInt,
+      textScaleFactor: textScaleFactor ?? 1.0,
+      textDirection: TextDirection.ltr,
+    );
 
-    painter.layout(maxWidth: limitedWidth);
+    painter.layout(maxWidth: width);
     return painter.size;
   }
 
-  static int textLinesApprox(
-    BuildContext context,
-    String text,
-    TextStyle textStyle, {
-    double limitedWidth = double.infinity,
+  static int textLinesApprox({
+    required String text,
+    required TextStyle style,
+    double? textScaleFactor,
+    double width = double.infinity,
+    int? maxLines,
   }) {
-    final scaleFactor = MediaQuery.of(context).textScaleFactor;
     final painter = TextPainter(
-        text: TextSpan(text: text, style: textStyle),
-        maxLines: 1000,
-        textScaleFactor: scaleFactor,
-        textDirection: TextDirection.ltr);
+      text: TextSpan(text: text, style: style),
+      maxLines: maxLines ?? Ints.maxInt,
+      textScaleFactor: textScaleFactor ?? 1.0,
+      textDirection: TextDirection.ltr,
+    );
 
-    painter.layout(maxWidth: limitedWidth);
+    painter.layout(maxWidth: width);
     TextSelection selection = TextSelection(baseOffset: 0, extentOffset: text.length);
     List<TextBox> boxes = painter.getBoxesForSelection(selection);
     int numberOfLines = boxes.length;
