@@ -47,9 +47,9 @@ class PagedLoader<T> with Logging {
       if (result.isNotEmpty) {
         _page = loadingPage;
         _pages.putIfAbsent(_page, () => result);
-        lceNotifier.value = Lce(isLoading: false, content: items);
       }
 
+      lceNotifier.value = Lce(isLoading: false, content: items);
       verbose("items returned '${result.length}'; end reached = ${_endReached ? 'true' : 'false'}");
       return (result, _endReached);
     } catch (ex, stack) {
