@@ -6,9 +6,16 @@ extension StringExt on String {
   String get onlyNumbers => RegExp("[0-9]").allMatches(this).map((e) => substring(e.start, e.end)).join("");
 
   String take(int chars) {
-    if (chars > 0) return substring(0, min(chars, length));
-    if (chars < 0) return substring(max(0, length - chars.abs()), length);
-    return '';
+    String result = '';
+    if (chars > 0) {
+      result = substring(0, min(chars, length));
+    }
+    if (chars < 0) {
+      var from = max(0, length - chars.abs());
+      var end = length;
+      result = substring(from, end);
+    };
+    return result;
   }
 
   bool toBoolOrFalse() {
@@ -26,7 +33,15 @@ extension StringExt on String {
 
   String trimSplash() => replaceAll(RegExp(r'[/\\]'), "");
 
-  String charAt(int index) => characters.characterAt(index).first;
+  String charAt(int index) =>
+      characters
+          .characterAt(index)
+          .first;
 
-  String setChar(int index, String char) => characters.take(index).string + char + characters.getRange(index + 1).string;
+  String setChar(int index, String char) =>
+      characters
+          .take(index)
+          .string + char + characters
+          .getRange(index + 1)
+          .string;
 }
