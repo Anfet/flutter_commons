@@ -24,13 +24,6 @@ class SystemUiChangingObserver extends NavigatorObserver with Logging {
       return;
     }
 
-    if (_activeStyle == requiredStyleHash) {
-      if (enableLog) {
-        verbose("required style is same as current", tag: tag);
-      }
-      return;
-    }
-
     Future.delayed(delay ?? const Duration(milliseconds: 300)).then((value) {
       _activeStyle = requiredStyleHash;
       SystemChrome.setSystemUIOverlayStyle(requiredStyle!);
