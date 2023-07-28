@@ -2,12 +2,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:siberian_core/siberian_core.dart';
 
+typedef SystemUiOverlayStyleResolver = (String?, SystemUiOverlayStyle?) Function(String route);
+
 class SystemUiChangingObserver extends NavigatorObserver with Logging {
   final String? tag;
   final bool enableLog;
-  final (String?, SystemUiOverlayStyle?) Function(String route) onResolveStyle;
+  final Duration? delay;
+  final SystemUiOverlayStyleResolver onResolveStyle;
 
-  SystemUiChangingObserver({this.tag, required this.onResolveStyle, this.enableLog = true});
+  SystemUiChangingObserver({this.tag, required this.onResolveStyle, this.enableLog = true, this.delay});
 
   int? _activeStyle;
 
@@ -28,11 +31,13 @@ class SystemUiChangingObserver extends NavigatorObserver with Logging {
       return;
     }
 
-    _activeStyle = requiredStyleHash;
-    Future.microtask(() => SystemChrome.setSystemUIOverlayStyle(requiredStyle!));
-    if (enableLog) {
-      verbose("switching UI style to '${styleName ?? requiredStyle.hashCode}'", tag: tag);
-    }
+    Future.delayed(delay ?? const Duration(milliseconds: 300)).then((value) {
+      _activeStyle = requiredStyleHash;
+      SystemChrome.setSystemUIOverlayStyle(requiredStyle!);
+      if (enableLog) {
+        verbose("switching UI style to '${styleName ?? requiredStyle.hashCode}'", tag: tag);
+      }
+    });
   }
 
   @override
