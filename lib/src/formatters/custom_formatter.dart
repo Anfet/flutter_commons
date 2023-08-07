@@ -10,8 +10,9 @@ class CustomFormatter {
   final String pattern;
   late final _patternSource = StringSource(pattern);
   late final _textSource = StringSource(text);
+  final bool stripPlaceholdersIfNoText;
 
-  CustomFormatter({required this.text, required this.pattern});
+  CustomFormatter({required this.text, required this.pattern, this.stripPlaceholdersIfNoText = false});
 
   String get formatted => _format();
 
@@ -30,6 +31,11 @@ class CustomFormatter {
         if (_textSource.peek == patternLetter.character) {
           _textSource.consume();
         }
+
+        if (!_textSource.hasMore && stripPlaceholdersIfNoText) {
+          break;
+        }
+
         formatted += patternLetter.character;
       } else if (patternLetter.pattern == _Pattern.digit) {
         final sourceLetter = _textSource.consume();
