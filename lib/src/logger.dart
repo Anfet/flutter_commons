@@ -66,7 +66,7 @@ class CustomLogger extends LogPrinter {
 }
 
 void logCustom(message, {String tag = "", Level level = Level.verbose, dynamic error, StackTrace? stackTrace}) {
-  logger.log(level, (tag.isEmpty ? message : "$tag$_tagAction $message"), error, stackTrace);
+  logger.log(level, (tag.isEmpty ? message : "$tag$_tagAction $message"), error: error, stackTrace: stackTrace);
 }
 
 mixin Logging {
