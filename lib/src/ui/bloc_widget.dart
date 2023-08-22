@@ -2,12 +2,14 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:siberian_core/siberian_core.dart';
+import 'package:siberian_core/src/mixins/mounted_state_mixin.dart';
 
 abstract class BlocWidget<S extends BlocState, B extends Bloc<BlocEvent, S>> extends StatefulWidget {
   const BlocWidget({Key? key}) : super(key: key);
 }
 
-abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>, W extends BlocWidget<S, B>> extends State<W> with Logging {
+abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>, W extends BlocWidget<S, B>> extends State<W>
+    with Logging, MountedStateMixin {
   late B bloc;
 
   B onCreateBloc(BuildContext context);
