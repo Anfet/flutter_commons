@@ -48,6 +48,20 @@ extension ListExt<T> on List<T> {
 
   List<T> removeIf(bool Function(T it) test) => filter((it) => !test(it));
 
+  List<T> replaceWith(bool Function(T it) test, T Function(T old) replacer, {bool replaceAll = true}) {
+    List<T> result = clone();
+    for (var i = 0; i < result.length; i++) {
+      var item = result[i];
+      if (test(item)) {
+        result[i] = replacer(item);
+        if (!replaceAll) {
+          break;
+        }
+      }
+    }
+    return result;
+  }
+
   List<T> addOrReplace(T value, bool Function(T it) test) {
     List<T> result = clone();
 

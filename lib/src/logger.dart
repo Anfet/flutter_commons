@@ -65,19 +65,23 @@ class CustomLogger extends LogPrinter {
   }
 }
 
-void logCustom(message, {String tag = "", Level level = Level.verbose, dynamic error, StackTrace? stackTrace}) {
+void logCustom(message, {String tag = "", Level level = Level.trace, dynamic error, StackTrace? stackTrace}) {
   logger.log(level, (tag.isEmpty ? message : "$tag$_tagAction $message"), error: error, stackTrace: stackTrace);
 }
 
 mixin Logging {
-  void logMessage(message, {String? tag, Level level = Level.verbose, dynamic error, StackTrace? stackTrace}) =>
+  void logMessage(message, {String? tag, Level level = Level.trace, dynamic error, StackTrace? stackTrace}) =>
       logCustom(message, level: level, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
 
   void warn(message, {String? tag, dynamic error, StackTrace? stackTrace}) =>
       logCustom(message, level: Level.warning, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
 
+  @deprecated
   void verbose(message, {String? tag, dynamic error, StackTrace? stackTrace}) =>
-      logCustom(message, level: Level.verbose, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
+      logCustom(message, level: Level.trace, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
+
+  void trace(message, {String? tag, dynamic error, StackTrace? stackTrace}) =>
+      logCustom(message, level: Level.trace, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
 
   void error(message, [dynamic error, StackTrace? stackTrace, String? tag]) =>
       logCustom(message, level: Level.error, tag: tag ?? "$runtimeType", error: error, stackTrace: stackTrace);
