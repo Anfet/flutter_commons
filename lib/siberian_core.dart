@@ -1,5 +1,8 @@
 library siberian_core;
 
+export 'src/storage/storage.dart';
+export 'src/widgets/widgets.dart';
+
 export 'src/consts.dart';
 export 'src/data/filesize_metric.dart';
 export 'src/data/final_value.dart';
@@ -48,4 +51,3 @@ export 'src/ui/bloc_widget.dart';
 export 'src/ui/mixins/bloc_logger.dart';
 export 'src/utils/paged_loader.dart';
 export 'src/utils/widget_exporter.dart';
-export 'src/widgets/spacers.dart';
