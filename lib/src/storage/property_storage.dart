@@ -29,22 +29,22 @@ abstract interface class Property<T> {
 }
 
 abstract class StorageProperty<T> implements Property<T> {
-  final PropertyStorage adapter;
+  final PropertyStorage _storage;
   final String name;
   final ValueSetter<T>? onSave;
 
   StorageProperty(
-    this.adapter,
+    this._storage,
     this.name, {
     this.onSave,
   });
 
   @override
-  Future<void> delete() => adapter.delete(name);
+  Future<void> delete() => _storage.delete(name);
 
   @override
   Future<void> setValue(T val) async {
-    await adapter.set(name, '$val');
+    await _storage.set(name, '$val');
     onSave?.call(val);
   }
 
@@ -52,57 +52,57 @@ abstract class StorageProperty<T> implements Property<T> {
   String toString() => '$cachedValue';
 
   @override
-  FutureOr<bool> isSet() => adapter.exists(name);
+  FutureOr<bool> isSet() => _storage.exists(name);
 }
 
 final class BoolProperty extends StorageProperty<bool> {
-  BoolProperty(super.adapter, super.name, {super.onSave});
+  BoolProperty(super._storage, super.name, {super.onSave});
 
   @override
   bool cachedValue = false;
 
   @override
   FutureOr<bool> getValue() async {
-    cachedValue = bool.tryParse(await adapter.get(name)) ?? false;
+    cachedValue = bool.tryParse(await _storage.get(name)) ?? false;
     return cachedValue;
   }
 }
 
 final class IntProperty extends StorageProperty<int> {
-  IntProperty(super.adapter, super.name, {super.onSave});
+  IntProperty(super._storage, super.name, {super.onSave});
 
   @override
   int cachedValue = 0;
 
   @override
   FutureOr<int> getValue() async {
-    cachedValue = int.tryParse(await adapter.get(name)) ?? 0;
+    cachedValue = int.tryParse(await _storage.get(name)) ?? 0;
     return cachedValue;
   }
 }
 
 final class DoubleProperty extends StorageProperty<double> {
-  DoubleProperty(super.adapter, super.name, {super.onSave});
+  DoubleProperty(super._storage, super.name, {super.onSave});
 
   @override
   double cachedValue = 0;
 
   @override
   FutureOr<double> getValue() async {
-    cachedValue = double.tryParse(await adapter.get(name)) ?? 0.0;
+    cachedValue = double.tryParse(await _storage.get(name)) ?? 0.0;
     return cachedValue;
   }
 }
 
 final class StringProperty extends StorageProperty<String> {
-  StringProperty(super.adapter, super.name, {super.onSave});
+  StringProperty(super._storage, super.name, {super.onSave});
 
   @override
   String cachedValue = '';
 
   @override
   FutureOr<String> getValue() async {
-    cachedValue = await adapter.get(name);
+    cachedValue = await _storage.get(name);
     return cachedValue;
   }
 }
@@ -113,7 +113,7 @@ class JsonProperty<T> extends StorageProperty<T> with Logging {
   final T Function() ifNotExist;
 
   JsonProperty(
-    super.adapter,
+    super.storage,
     super.name, {
     super.onSave,
     required this.fromJson,
@@ -127,7 +127,7 @@ class JsonProperty<T> extends StorageProperty<T> with Logging {
   @override
   FutureOr<T> getValue() async {
     try {
-      var text = await adapter.get(name);
+      var text = await _storage.get(name);
       cachedValue = fromJson(jsonDecode(text));
     } catch (ex) {
       warn("property read error '$name'", error: ex);
@@ -140,7 +140,7 @@ class JsonProperty<T> extends StorageProperty<T> with Logging {
   @override
   Future<void> setValue(T val) async {
     var text = jsonEncode(toJson(val));
-    adapter.set(name, text);
+    _storage.set(name, text);
   }
 }
 
@@ -148,12 +148,12 @@ class DateTimeProperty extends StorageProperty<DateTime> with Logging {
   @override
   late DateTime cachedValue = DateTime(0);
 
-  DateTimeProperty(super.adapter, super.name);
+  DateTimeProperty(super._storage, super.name);
 
   @override
   FutureOr<DateTime> getValue() async {
     try {
-      var text = await adapter.get(name);
+      var text = await _storage.get(name);
       cachedValue = (DateTime.tryParse(text) ?? DateTime(0)).toLocal();
     } catch (ex, stack) {
       warn("property read error '$name'", error: ex, stackTrace: stack);
@@ -165,6 +165,6 @@ class DateTimeProperty extends StorageProperty<DateTime> with Logging {
   @override
   Future<void> setValue(DateTime val) async {
     var text = val.toUtc().toString();
-    adapter.set(name, text);
+    _storage.set(name, text);
   }
 }
