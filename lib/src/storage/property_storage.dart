@@ -24,8 +24,6 @@ abstract interface class Property<T> {
   Future<void> setValue(T val);
 
   FutureOr<void> delete();
-
-  FutureOr<bool> isSet();
 }
 
 abstract class StorageProperty<T> implements Property<T> {
@@ -43,7 +41,10 @@ abstract class StorageProperty<T> implements Property<T> {
   });
 
   @override
-  Future<void> delete() => _storage.delete(name);
+  Future<void> delete() async {
+    await _storage.delete(name);
+    await getValue();
+  }
 
   @override
   Future<void> setValue(T val) async {
@@ -54,9 +55,6 @@ abstract class StorageProperty<T> implements Property<T> {
 
   @override
   String toString() => '$cachedValue';
-
-  @override
-  FutureOr<bool> isSet() => _storage.exists(name);
 }
 
 final class BoolProperty extends StorageProperty<bool> {
