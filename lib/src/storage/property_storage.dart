@@ -33,6 +33,9 @@ abstract class StorageProperty<T> implements Property<T> {
   final String name;
   final ValueSetter<T>? onSave;
 
+  @override
+  late T cachedValue;
+
   StorageProperty(
     this._storage,
     this.name, {
@@ -45,6 +48,7 @@ abstract class StorageProperty<T> implements Property<T> {
   @override
   Future<void> setValue(T val) async {
     await _storage.set(name, '$val');
+    cachedValue = val;
     onSave?.call(val);
   }
 
@@ -56,10 +60,9 @@ abstract class StorageProperty<T> implements Property<T> {
 }
 
 final class BoolProperty extends StorageProperty<bool> {
-  BoolProperty(super._storage, super.name, {super.onSave});
-
-  @override
-  bool cachedValue = false;
+  BoolProperty(super._storage, super.name, {super.onSave}) {
+    cachedValue = false;
+  }
 
   @override
   FutureOr<bool> getValue() async {
@@ -69,10 +72,9 @@ final class BoolProperty extends StorageProperty<bool> {
 }
 
 final class IntProperty extends StorageProperty<int> {
-  IntProperty(super._storage, super.name, {super.onSave});
-
-  @override
-  int cachedValue = 0;
+  IntProperty(super._storage, super.name, {super.onSave}) {
+    cachedValue = 0;
+  }
 
   @override
   FutureOr<int> getValue() async {
@@ -82,10 +84,9 @@ final class IntProperty extends StorageProperty<int> {
 }
 
 final class DoubleProperty extends StorageProperty<double> {
-  DoubleProperty(super._storage, super.name, {super.onSave});
-
-  @override
-  double cachedValue = 0;
+  DoubleProperty(super._storage, super.name, {super.onSave}) {
+    cachedValue = 0;
+  }
 
   @override
   FutureOr<double> getValue() async {
@@ -95,10 +96,9 @@ final class DoubleProperty extends StorageProperty<double> {
 }
 
 final class StringProperty extends StorageProperty<String> {
-  StringProperty(super._storage, super.name, {super.onSave});
-
-  @override
-  String cachedValue = '';
+  StringProperty(super._storage, super.name, {super.onSave}) {
+    cachedValue = '';
+  }
 
   @override
   FutureOr<String> getValue() async {
@@ -119,10 +119,9 @@ class JsonProperty<T> extends StorageProperty<T> with Logging {
     required this.fromJson,
     required this.toJson,
     required this.ifNotExist,
-  });
-
-  @override
-  late T cachedValue = ifNotExist();
+  }) {
+    cachedValue = ifNotExist();
+  }
 
   @override
   FutureOr<T> getValue() async {
@@ -141,6 +140,7 @@ class JsonProperty<T> extends StorageProperty<T> with Logging {
   Future<void> setValue(T val) async {
     var text = jsonEncode(toJson(val));
     _storage.set(name, text);
+    cachedValue = val;
   }
 }
 
@@ -166,5 +166,6 @@ class DateTimeProperty extends StorageProperty<DateTime> with Logging {
   Future<void> setValue(DateTime val) async {
     var text = val.toUtc().toString();
     _storage.set(name, text);
+    cachedValue = val;
   }
 }
