@@ -1,13 +1,12 @@
 class Maybe<T> {
   final T? value;
 
-  Maybe(this.value);
+  const Maybe([this.value]);
 
   T? or(T? other) => value ?? other;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) || other is Maybe && runtimeType == other.runtimeType && value == other.value;
+  bool operator ==(Object other) => identical(this, other) || other is Maybe && runtimeType == other.runtimeType && value == other.value;
 
   @override
   int get hashCode => value.hashCode;

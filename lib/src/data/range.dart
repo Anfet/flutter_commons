@@ -2,9 +2,9 @@ class Range<T> {
   final T? from;
   final T? till;
 
-  Range(this.from, this.till);
+  const Range(this.from, this.till);
 
-  Range.from({this.from, this.till});
+  const Range.from({this.from, this.till});
 
   @override
   bool operator ==(Object other) =>
