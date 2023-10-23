@@ -6,7 +6,7 @@ mixin BlocLogging<E, S> on Bloc<E, S> {
   @override
   void onEvent(event) {
     super.onEvent(event);
-    logCustom("\t <- $event", level: Level.verbose, tag: "$runtimeType");
+    logCustom("\t <- $event", level: Level.trace, tag: "$runtimeType");
   }
 
   @override
