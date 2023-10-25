@@ -5,6 +5,10 @@ class Maybe<T> {
 
   T? or(T? other) => value ?? other;
 
+  T get requireValue => value!;
+
+  bool get hasValue => value != null;
+
   @override
   bool operator ==(Object other) => identical(this, other) || other is Maybe && runtimeType == other.runtimeType && value == other.value;
 
