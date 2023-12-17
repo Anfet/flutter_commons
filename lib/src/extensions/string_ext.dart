@@ -14,7 +14,8 @@ extension StringExt on String {
       var from = max(0, length - chars.abs());
       var end = length;
       result = substring(from, end);
-    };
+    }
+    ;
     return result;
   }
 
@@ -33,15 +34,9 @@ extension StringExt on String {
 
   String trimSplash() => replaceAll(RegExp(r'[/\\]'), "");
 
-  String charAt(int index) =>
-      characters
-          .characterAt(index)
-          .first;
+  String charAt(int index) => characters.characterAt(index).first;
 
-  String setChar(int index, String char) =>
-      characters
-          .take(index)
-          .string + char + characters
-          .getRange(index + 1)
-          .string;
+  String setChar(int index, String char) => characters.take(index).string + char + characters.getRange(index + 1).string;
+
+  String ifEmpty(String replacement) => isEmpty ? replacement : this;
 }

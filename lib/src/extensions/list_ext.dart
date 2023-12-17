@@ -122,17 +122,6 @@ extension ListExt<T> on List<T> {
     return result;
   }
 
-  List<T> insertInBetween(T Function(int index) generator) {
-    final result = <T>[];
-    for (int i = 0; i < length; i++) {
-      result.add(this[i]);
-      if (i < length - 1) {
-        result.add(generator(i));
-      }
-    }
-    return result;
-  }
-
   List<List<T>> splitBy(int amount) {
     var copy = this.clone();
     List<List<T>> result = [];
@@ -142,6 +131,14 @@ extension ListExt<T> on List<T> {
       copy.removeRange(0, copy.length >= amount ? amount : copy.length);
     }
 
+    return result;
+  }
+
+  List<X> mapIndexed<X>(X Function(int index, T value) mapper) {
+    var result = <X>[];
+    for (int i = 0; i < length; i++) {
+      result.add(mapper(i, this[i]));
+    }
     return result;
   }
 }

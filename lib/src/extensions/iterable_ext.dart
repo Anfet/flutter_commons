@@ -6,18 +6,15 @@ extension IterableExt<T> on Iterable<T> {
   bool isLast(T item) => lastOrNull == item;
 
   T firstOr(bool Function(T it) test, T defaultValue) {
-    if (isEmpty) return defaultValue;
-
-    try {
-      return firstWhere((it) => test(it));
-    } catch (ex) {
-      return defaultValue;
-    }
+    var value = firstIf(test);
+    return value ?? defaultValue;
   }
 
   T? firstIf(bool Function(T it) test) {
     for (final item in this) {
-      if (test(item)) return item;
+      if (test(item)) {
+        return item;
+      }
     }
 
     return null;
@@ -37,7 +34,7 @@ extension IterableExt<T> on Iterable<T> {
 
   T get randomElement => elementAt(Random().nextInt(length));
 
-  bool any(bool Function(T it) test) {
+  bool anyOf(bool Function(T it) test) {
     for (var element in this) {
       if (test(element)) return true;
     }
@@ -45,7 +42,7 @@ extension IterableExt<T> on Iterable<T> {
     return false;
   }
 
-  bool all(bool Function(T it) test) {
+  bool allOf(bool Function(T it) test) {
     for (var element in this) {
       if (!test(element)) return false;
     }
@@ -54,7 +51,7 @@ extension IterableExt<T> on Iterable<T> {
   }
 
   List<T> filter(bool Function(T it) test) {
-    final List<T> out = List.empty(growable: true);
+    final List<T> out = <T>[];
     for (final item in this) {
       if (test(item)) {
         out.add(item);
@@ -66,7 +63,9 @@ extension IterableExt<T> on Iterable<T> {
   /// cycles through items in list invoking [test] on each item until test returns true
   void forEachUntil(bool Function(T it) test) {
     for (final item in this) {
-      if (test(item)) break;
+      if (test(item)) {
+        break;
+      }
     }
   }
 
@@ -99,10 +98,13 @@ extension IterableExt<T> on Iterable<T> {
     return result;
   }
 
-  Iterable<T> distinct() {
+  Iterable<T> distinct([bool Function(T it)? test]) {
     Set<T> result = {};
     for (final value in this) {
-      result.add(value);
+      var testResult = test?.call(value) ?? true;
+      if (testResult) {
+        result.add(value);
+      }
     }
     return result;
   }
@@ -133,5 +135,15 @@ extension IterableExt<T> on Iterable<T> {
       x += test(val);
     }
     return x;
+  }
+
+  int count(bool Function(T it) test) {
+    var count = 0;
+    for (final val in this) {
+      if (test(val)) {
+        count++;
+      }
+    }
+    return count;
   }
 }
