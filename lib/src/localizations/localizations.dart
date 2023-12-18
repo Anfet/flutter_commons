@@ -8,10 +8,11 @@ typedef PluralSpecResolver = PluralSpec Function(int amount);
 typedef TextResolver<T> = String? Function(T resId);
 typedef PluralResolver<P> = Plural? Function(P resId);
 
-class Translator<D, P> extends ValueNotifier<Locale> {
+class Translator<D, P> extends ChangeNotifier {
   static const ok = "OK";
 
   final bool markMissingTranslations;
+  final bool rebuildAppOnChange;
 
   final Map<String, Translation<D, P>> _translations = {};
 
@@ -19,18 +20,33 @@ class Translator<D, P> extends ValueNotifier<Locale> {
 
   Translation<D, P>? get defaultTranslations => _translations[defaultLocale.languageCode];
 
-  Translator(Locale locale, {required this.defaultLocale, this.markMissingTranslations = false}) : super(locale);
-
   Iterable<Locale> get supportedLocales => _translations.values.map((tr) => tr.locale);
 
-  Locale get locale => this.value;
+  Locale _locale;
 
-  addTranslation(Translation<D, P> translation) {
+  Locale get locale => _locale;
+
+  set locale(Locale locale) {
+    if (_locale != locale) {
+      _locale = locale;
+      notifyListeners();
+      if (rebuildAppOnChange) {
+        WidgetsFlutterBinding.ensureInitialized().reassembleApplication();
+      }
+    }
+  }
+
+  Translator(
+    Locale locale, {
+    required this.defaultLocale,
+    this.markMissingTranslations = false,
+    this.rebuildAppOnChange = true,
+  }) : _locale = locale;
+
+  void addTranslation(Translation<D, P> translation) {
     _translations.putIfAbsent(translation.locale.languageCode, () => translation);
     initializeDateFormatting(translation.locale.languageCode);
   }
-
-  set locale(Locale locale) => value = locale;
 
   String getString(D resId) {
     final translations = _translations[locale.languageCode];
@@ -160,17 +176,17 @@ class Plural {
 }
 
 class LocalizationException extends AppException {
-  LocalizationException(String message) : super(message);
+  LocalizationException(super.message);
 }
 
 class LocalizationNotProvidedException extends LocalizationException {
-  LocalizationNotProvidedException(String message) : super(message);
+  LocalizationNotProvidedException(super.message);
 }
 
 class QuantityLocalizationNotProvidedException extends LocalizationException {
-  QuantityLocalizationNotProvidedException(String message) : super(message);
+  QuantityLocalizationNotProvidedException(super.message);
 }
 
 class LocaleNotSupportedException extends LocalizationException {
-  LocaleNotSupportedException(String message) : super(message);
+  LocaleNotSupportedException(super.message);
 }

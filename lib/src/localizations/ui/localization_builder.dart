@@ -3,19 +3,21 @@ import 'package:siberian_core/siberian_core.dart';
 
 class LocalizationBuilder<D, P> extends StatelessWidget {
   final Translator<D, P> translator;
-  final Widget child;
+  final TransitionBuilder builder;
+  final Widget? child;
 
   const LocalizationBuilder({
-    Key? key,
-    required this.child,
+    super.key,
     required this.translator,
-  }) : super(key: key);
+    required this.builder,
+    this.child,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Locale>(
-      valueListenable: translator,
-      builder: (context, value, child) => child!,
+    return ListenableBuilder(
+      listenable: translator,
+      builder: builder,
       child: child,
     );
   }
