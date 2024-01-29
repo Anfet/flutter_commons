@@ -1,8 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart';
 import 'package:siberian_core/siberian_core.dart';
-import 'package:siberian_core/src/mixins/mounted_state_mixin.dart';
 
 abstract class BlocWidget<S extends BlocState, B extends Bloc<BlocEvent, S>> extends StatefulWidget {
   const BlocWidget({Key? key}) : super(key: key);
@@ -38,18 +36,7 @@ abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>
         listener: onReactions,
         listenWhen: containsReactions,
         buildWhen: (previous, current) => shouldRebuild(previous, current),
-        builder: (_, state) => LayoutBuilder(
-          builder: (_, constraints) {
-            return Provider<LayoutInformation>.value(
-              value: LayoutInformation(
-                constraints: constraints,
-                deviceType: DeviceType.values.firstWhere((size) => size.minWidth > constraints.maxWidth),
-                orientation: constraints.maxWidth > constraints.maxHeight ? Orientation.landscape : Orientation.portrait,
-              ),
-              builder: (providerContext, child) => buildContent(providerContext, state),
-            );
-          },
-        ),
+        builder: buildContent,
       ),
     );
   }
