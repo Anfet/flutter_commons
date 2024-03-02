@@ -1,29 +1,25 @@
 import 'package:siberian_core/src/functions.dart';
-import 'package:siberian_core/src/utils.dart';
-import 'package:uuid/uuid.dart';
 
 int _rid = 0;
 
 typedef StringReaction = BlocReaction<String>;
 
-typedef ShotReaction = BlocReaction<void>;
+typedef ShotReaction = BlocReaction<String>;
 
 class BlocReaction<T> {
   final int reactionId = ++_rid;
 
-  final T? _data;
+  final T _data;
 
   bool _isConsumed = false;
 
   bool get isConsumed => _isConsumed;
 
-  T? get data => _data;
+  T get data => _data;
 
-  T get requireData => require(data);
+  BlocReaction(this._data);
 
-  BlocReaction([this._data]);
-
-  void consume(TypedCallback<T?> block) {
+  void consume(TypedCallback<T> block) {
     try {
       if (!_isConsumed) {
         block(_data);
@@ -45,7 +41,5 @@ class BlocReaction<T> {
     return 'BlocReaction{reactionId: $reactionId, _data: $_data, _isConsumed: $_isConsumed}';
   }
 
-  static StringReaction generate() => BlocReaction(const Uuid().v1().toString());
-
-  static ShotReaction fire() => ShotReaction();
+  static ShotReaction fire() => ShotReaction('');
 }
