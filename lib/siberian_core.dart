@@ -52,3 +52,5 @@ export 'src/ui/mixins/bloc_logger.dart';
 export 'src/utils/paged_loader.dart';
 export 'src/utils/widget_exporter.dart';
 export 'src/utils/separated_list.dart';
+export 'src/utils.dart';
+export 'src/extensions/change_notifier_ext.dart';

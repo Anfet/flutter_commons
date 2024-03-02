@@ -39,4 +39,23 @@ extension StringExt on String {
   String setChar(int index, String char) => characters.take(index).string + char + characters.getRange(index + 1).string;
 
   String ifEmpty(String replacement) => isEmpty ? replacement : this;
+
+  String get reversed {
+    var buf = StringBuffer();
+    for (var i = length - 1; i >= 0; i--) {
+      buf.write(this[i]);
+    }
+    return buf.toString();
+  }
+
+  String ensureLength(int length, {String fillChar = ' '}) {
+    assert(fillChar.isNotEmpty, 'fill char must not be empty');
+
+    var result = this;
+    while (result.length < length) {
+      result += fillChar;
+    }
+
+    return result;
+  }
 }
