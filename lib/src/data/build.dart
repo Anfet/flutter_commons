@@ -24,13 +24,13 @@ class Build {
     required this.host,
   });
 
-  Future<void> save(StringProperty property) async {
+  Future<void> save(Property<String> property) async {
     var value = jsonEncode({'host': host, 'enviroment': enviroment});
     await property.setValue(value);
     logCustom('enviroment changed to $this;', tag: 'Build', level: Level.warning);
   }
 
-  static Future<Build> load(StringProperty property) async {
+  static Future<Build> load(Property<String> property) async {
     var text = await property.getValue();
     try {
       var json = jsonDecode(text);
