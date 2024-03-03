@@ -27,6 +27,7 @@ export 'src/extensions/numeric_ext.dart';
 export 'src/extensions/set_ext.dart';
 export 'src/extensions/string_ext.dart';
 export 'src/extensions/text_ext.dart';
+export 'src/extensions/text_style_ext.dart';
 export 'src/extensions/value_notifier_ext.dart';
 export 'src/extensions/widget_ext.dart';
 export 'src/formatters/custom_formatter.dart';
