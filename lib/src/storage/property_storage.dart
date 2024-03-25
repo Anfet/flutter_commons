@@ -26,7 +26,11 @@ abstract interface class Property<T> {
   FutureOr<void> delete();
 }
 
-abstract class StorageProperty<T> implements Property<T> {
+abstract class ListenableProperty<T>
+    with ChangeNotifier
+    implements Property<T> {}
+
+abstract class StorageProperty<T> extends ListenableProperty<T> {
   final PropertyStorage _storage;
   final String name;
   final ValueSetter<T>? onSave;
@@ -46,6 +50,7 @@ abstract class StorageProperty<T> implements Property<T> {
   Future<void> delete() async {
     await _storage.delete(name);
     await getValue();
+    notifyListeners();
   }
 
   @override
@@ -53,6 +58,7 @@ abstract class StorageProperty<T> implements Property<T> {
     await _storage.set(name, '$val');
     _cachedValue = val;
     onSave?.call(val);
+    notifyListeners();
   }
 
   @override
@@ -169,3 +175,5 @@ class DateTimeProperty extends StorageProperty<DateTime> with Logging {
     cachedValue = val;
   }
 }
+
+
