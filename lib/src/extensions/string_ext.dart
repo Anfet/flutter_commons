@@ -15,7 +15,6 @@ extension StringExt on String {
       var end = length;
       result = substring(from, end);
     }
-    ;
     return result;
   }
 

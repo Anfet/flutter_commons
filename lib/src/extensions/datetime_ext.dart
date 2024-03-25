@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 import '../data/range.dart';
 
 extension SiberitanDateTimeExt on DateTime {
-  bool isSameOrAfter(DateTime other) => this.millisecondsSinceEpoch >= other.millisecondsSinceEpoch;
+  bool isSameOrAfter(DateTime other) => millisecondsSinceEpoch >= other.millisecondsSinceEpoch;
 
-  bool isSameOrBefore(DateTime other) => this.millisecondsSinceEpoch <= other.millisecondsSinceEpoch;
+  bool isSameOrBefore(DateTime other) => millisecondsSinceEpoch <= other.millisecondsSinceEpoch;
 
-  DateTime operator +(Duration duration) => this.add(duration);
+  DateTime operator +(Duration duration) => add(duration);
 
-  DateTime operator -(Duration duration) => this.subtract(duration);
+  DateTime operator -(Duration duration) => subtract(duration);
 
-  DateTime get startOfTheWeek => subtract(Duration(days: this.weekday - 1));
+  DateTime get startOfTheWeek => subtract(Duration(days: weekday - 1));
 
   DateTime get startOfTheMonth => DateTime(year, month, 1).stripTime;
 

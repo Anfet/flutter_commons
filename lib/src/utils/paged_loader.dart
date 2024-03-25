@@ -21,7 +21,7 @@ class PagedLoader<T> with Logging {
 
   int _page = 0;
   bool _endReached = false;
-  Map<int, List<T>> _pages = {};
+  final Map<int, List<T>> _pages = {};
 
   void clear() {
     verbose('clearing paged loader');

@@ -17,7 +17,5 @@ class MemoryProperty<T> implements Property<T> {
   FutureOr<T> getValue() => cachedValue;
 
   @override
-  Future<void> setValue(T val) async {
-    _value = val;
-  }
+  FutureOr<void> setValue(T val) => _value = val;
 }

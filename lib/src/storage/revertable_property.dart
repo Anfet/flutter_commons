@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:siberian_core/siberian_core.dart';
 
-import 'property_storage.dart';
 
 class RevertableProperty<T> implements Property<T> {
   T? _initialValue;
@@ -26,7 +25,7 @@ class RevertableProperty<T> implements Property<T> {
   FutureOr<void> delete() => child.delete();
 
   @override
-  Future<void> setValue(T val) => child.setValue(val);
+  FutureOr<void> setValue(T val) => child.setValue(val);
 
   FutureOr<void> revert() async {
     if (_initialValue == null || !hasChanged) {

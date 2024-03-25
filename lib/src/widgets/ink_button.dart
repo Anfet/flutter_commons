@@ -9,14 +9,14 @@ class InkButton extends StatelessWidget {
   final Widget child;
 
   const InkButton({
-    Key? key,
+    super.key,
     this.padding,
     this.onTap,
     this.borderRadius,
     this.backgroundColor,
     this.elevation,
     required this.child,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

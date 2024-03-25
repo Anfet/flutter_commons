@@ -32,5 +32,5 @@ class ErrorHandledException extends AppException {
 }
 
 class FlowException extends AppException {
-  FlowException(String message) : super(message);
+  FlowException(super.message);
 }

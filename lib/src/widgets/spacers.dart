@@ -15,10 +15,10 @@ class VSpacer extends StatelessWidget {
 
   const VSpacer(
     this.height, {
-    Key? key,
+    super.key,
     this.color,
     this.padding = EdgeInsets.zero,
-  }) : super(key: key);
+  });
 }
 
 class HSpacer extends StatelessWidget {
@@ -36,8 +36,8 @@ class HSpacer extends StatelessWidget {
 
   const HSpacer(
     this.width, {
-    Key? key,
+    super.key,
     this.color,
     this.padding = EdgeInsets.zero,
-  }) : super(key: key);
+  });
 }
