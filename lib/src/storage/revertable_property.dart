@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:siberian_core/siberian_core.dart';
 
-
 class RevertableProperty<T> implements Property<T> {
   T? _initialValue;
   final Property<T> child;
@@ -34,4 +33,7 @@ class RevertableProperty<T> implements Property<T> {
 
     await setValue(require(_initialValue));
   }
+
+  @override
+  void dispose() {}
 }

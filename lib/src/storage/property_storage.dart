@@ -1,6 +1,5 @@
 import 'dart:async';
 
-
 abstract class PropertyStorage {
   FutureOr<String> get(String name);
 
@@ -22,6 +21,3 @@ abstract interface class Property<T> {
 
   FutureOr<void> delete();
 }
-
-
-
