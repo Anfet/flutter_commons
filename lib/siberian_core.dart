@@ -5,6 +5,7 @@ export 'src/data/build.dart';
 export 'src/data/filesize_metric.dart';
 export 'src/data/final_value.dart';
 export 'src/data/lce.dart';
+export 'src/data/loadable.dart';
 export 'src/data/maybe.dart';
 export 'src/data/nullable.dart';
 export 'src/data/pair.dart';

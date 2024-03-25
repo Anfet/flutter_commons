@@ -1,3 +1,4 @@
+@Deprecated('use Loadable')
 class Lce<C> {
   final bool isLoading;
   final C? content;

@@ -47,17 +47,17 @@ final class Loadable<T> {
 
   Loadable<T> loading() => Loadable(value, isLoading: true, error: error);
 
-  Loadable<T> stopped() => Loadable(value, isLoading: false, error: error);
+  Loadable<T> idle() => Loadable(value, isLoading: false, error: error);
 
-  Loadable<T> withValue(T value) => Loadable(value, isLoading: isLoading, error: error);
+  Loadable<T> result([T? value]) => Loadable(value, isLoading: isLoading, error: error);
 
   Loadable<X> change<X>(X value) => Loadable(value, isLoading: isLoading, error: error);
 
-  Loadable<T> noValue() => Loadable(null, isLoading: isLoading, error: error);
+  Loadable<T> clearResult() => Loadable(null, isLoading: isLoading, error: error);
 
-  Loadable<T> withError(Object ex, [StackTrace? stack]) => Loadable(value, isLoading: isLoading, error: ex, stack: stack);
+  Loadable<T> fail(Object ex, [StackTrace? stack]) => Loadable(value, isLoading: isLoading, error: ex, stack: stack);
 
-  Loadable<T> noError() => Loadable(value, isLoading: isLoading, error: null);
+  Loadable<T> clearError() => Loadable(value, isLoading: isLoading, error: null);
 }
 
 extension LoadableExt<T> on T {
