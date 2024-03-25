@@ -1,9 +1,8 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
-import 'package:siberian_core/siberian_core.dart';
+import 'property_storage.dart';
 
-class MemoryProperty<T> extends ListenableProperty<T> {
+class MemoryProperty<T> implements Property<T> {
   T _value;
 
   MemoryProperty(this._value);
@@ -12,9 +11,7 @@ class MemoryProperty<T> extends ListenableProperty<T> {
   T get cachedValue => _value;
 
   @override
-  FutureOr<void> delete() {
-    notifyListeners();
-  }
+  FutureOr<void> delete() {}
 
   @override
   FutureOr<T> getValue() => cachedValue;
@@ -22,6 +19,5 @@ class MemoryProperty<T> extends ListenableProperty<T> {
   @override
   Future<void> setValue(T val) async {
     _value = val;
-    notifyListeners();
   }
 }

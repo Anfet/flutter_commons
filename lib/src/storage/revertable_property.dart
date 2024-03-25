@@ -4,11 +4,11 @@ import 'package:siberian_core/siberian_core.dart';
 
 import 'property_storage.dart';
 
-class SaveAwarePropertyWrap<T> implements Property<T> {
+class RevertableProperty<T> implements Property<T> {
   T? _initialValue;
   final Property<T> child;
 
-  SaveAwarePropertyWrap(this.child);
+  RevertableProperty(this.child);
 
   bool get hasChanged => _initialValue != cachedValue;
 
