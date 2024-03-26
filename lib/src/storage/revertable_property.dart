@@ -34,6 +34,8 @@ class RevertableProperty<T> implements Property<T> {
     await setValue(require(_initialValue));
   }
 
-  @override
-  void dispose() {}
+  RevertableProperty<T> reset() {
+    _initialValue = null;
+    return this;
+  }
 }
