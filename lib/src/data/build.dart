@@ -27,7 +27,6 @@ class Build {
   Future<void> save(Property<String> property) async {
     var value = jsonEncode({'host': host, 'enviroment': enviroment});
     await property.setValue(value);
-    logCustom('enviroment changed to $this;', tag: 'Build', level: Level.warning);
   }
 
   static Future<Build> load(Property<String> property) async {
