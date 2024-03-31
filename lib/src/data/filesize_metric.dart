@@ -36,9 +36,8 @@ class FormattedFilesize {
 
   int get inGB => (bytes / gb).truncate();
 
-  FilesizeMetric get metric => bytes >= gb
-      ? FilesizeMetric.gbytes
-      : (bytes >= mb ? FilesizeMetric.mbytes : (bytes >= kb ? FilesizeMetric.kbytes : FilesizeMetric.bytes));
+  FilesizeMetric get metric =>
+      bytes >= gb ? FilesizeMetric.gbytes : (bytes >= mb ? FilesizeMetric.mbytes : (bytes >= kb ? FilesizeMetric.kbytes : FilesizeMetric.bytes));
 
   int inMetric(FilesizeMetric metric) {
     switch (metric) {

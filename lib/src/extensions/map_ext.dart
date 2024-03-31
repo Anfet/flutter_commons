@@ -1,8 +1,6 @@
 extension MapImploder on Map<dynamic, dynamic> {
   String join({String separator = ",", String keyValueSeparator = "=", bool addEmptyValues = false}) {
-    List keyList = keys
-        .where((element) => addEmptyValues || ("$element".isNotEmpty && "${this[element]}".isNotEmpty))
-        .toList(growable: false);
+    List keyList = keys.where((element) => addEmptyValues || ("$element".isNotEmpty && "${this[element]}".isNotEmpty)).toList(growable: false);
 
     String result = List.generate(keyList.length, (index) {
       var key = keyList[index];

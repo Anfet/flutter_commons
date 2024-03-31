@@ -20,8 +20,7 @@ class FinalValue<T> {
   T? get tryTake => isSet ? take : null;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) || other is FinalValue && runtimeType == other.runtimeType && _value == other._value;
+  bool operator ==(Object other) => identical(this, other) || other is FinalValue && runtimeType == other.runtimeType && _value == other._value;
 
   @override
   int get hashCode => _value.hashCode;

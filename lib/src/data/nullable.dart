@@ -10,8 +10,7 @@ class Nullable<T> {
   Nullable copyWith({T? value}) => Nullable(value);
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) || other is Nullable && runtimeType == other.runtimeType && value == other.value;
+  bool operator ==(Object other) => identical(this, other) || other is Nullable && runtimeType == other.runtimeType && value == other.value;
 
   @override
   int get hashCode => value.hashCode;

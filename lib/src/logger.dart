@@ -13,6 +13,7 @@ const _encoder = JsonEncoder.withIndent(null);
 Logger logger = Logger(
   printer: CustomLogger(
     truncateMessages: true,
+    isEnabled: true,
   ),
 );
 
@@ -21,12 +22,20 @@ void installLogger(Logger value) {
 }
 
 class CustomLogger extends LogPrinter {
-  final bool truncateMessages;
+  bool truncateMessages;
+  bool isEnabled;
 
-  CustomLogger({this.truncateMessages = true}) : super();
+  CustomLogger({
+    this.truncateMessages = true,
+    this.isEnabled = true,
+  }) : super();
 
   @override
   List<String> log(LogEvent event) {
+    if (!isEnabled) {
+      return [];
+    }
+
     var messageStr = _stringifyMessage(event.message);
     var errorStr = event.error != null ? '\n${event.error}' : '';
     final now = DateTime.now();

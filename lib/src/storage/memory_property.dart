@@ -18,5 +18,4 @@ class MemoryProperty<T> implements Property<T> {
 
   @override
   FutureOr<void> setValue(T val) => _value = val;
-
 }
