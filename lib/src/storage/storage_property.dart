@@ -37,9 +37,6 @@ abstract class StorageProperty<T> implements Property<T> {
 
   @override
   String toString() => '$cachedValue';
-
-  @override
-  void dispose() {}
 }
 
 final class BoolProperty extends StorageProperty<bool> {

@@ -41,3 +41,24 @@ class HSpacer extends StatelessWidget {
     this.padding = EdgeInsets.zero,
   });
 }
+
+class NavbarSpacer extends StatelessWidget {
+  final _NavbarPosition _position;
+
+  const NavbarSpacer.bottom({super.key}) : _position = _NavbarPosition.bottom;
+
+  const NavbarSpacer.top({super.key}) : _position = _NavbarPosition.top;
+
+  @override
+  Widget build(BuildContext context) {
+    return VSpacer(switch (_position) {
+      _NavbarPosition.top => MediaQuery.of(context).padding.top,
+      _NavbarPosition.bottom => MediaQuery.of(context).padding.bottom,
+    });
+  }
+}
+
+enum _NavbarPosition {
+  top,
+  bottom,
+}

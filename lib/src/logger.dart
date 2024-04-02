@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
+import 'package:siberian_core/siberian_core.dart';
 import 'package:sprintf/sprintf.dart';
 
 const _maxCharactersInLine = 800;
@@ -25,9 +26,12 @@ class CustomLogger extends LogPrinter {
   bool truncateMessages;
   bool isEnabled;
 
+  final TypedResultCallback<String, String>? messageTransformer;
+
   CustomLogger({
     this.truncateMessages = true,
     this.isEnabled = true,
+    this.messageTransformer,
   }) : super();
 
   @override
@@ -43,8 +47,9 @@ class CustomLogger extends LogPrinter {
     var timeStr = "${_dateFormatter.format(now)}.$msec";
     var traceStr = event.stackTrace == null ? "" : "\n${event.stackTrace}";
     final text = '${_labelFor(event.level)} $timeStr $messageStr$errorStr$traceStr';
+    final transformed = messageTransformer?.call(text) ?? text;
 
-    final result = _pattern.allMatches(text).map((match) => match[0] ?? "").toList();
+    final result = _pattern.allMatches(transformed).map((match) => match[0] ?? "").toList();
 
     if (!truncateMessages) {
       return result;
