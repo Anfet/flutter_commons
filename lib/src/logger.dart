@@ -49,7 +49,7 @@ class CustomLogger extends LogPrinter {
     final msec = sprintf("%03i", [now.millisecond]);
     var timeStr = "${_dateFormatter.format(now)}.$msec";
     var traceStr = event.stackTrace == null ? "" : "\n${event.stackTrace}";
-    final text = '${_labelFor(event.level)} $timeStr $messageStr$errorStr$traceStr';
+    final text = '$timeStr ${_labelFor(event.level)} $messageStr$errorStr$traceStr';
     final transformed = messageTransformer?.call(text) ?? text;
 
     final result = _pattern.allMatches(transformed).map((match) => match[0] ?? "").toList();
