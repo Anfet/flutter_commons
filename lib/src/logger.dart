@@ -23,6 +23,8 @@ void installLogger(Logger value) {
 }
 
 class CustomLogger extends LogPrinter {
+  final bool isColored;
+
   bool truncateMessages;
   bool isEnabled;
 
@@ -32,6 +34,7 @@ class CustomLogger extends LogPrinter {
     this.truncateMessages = true,
     this.isEnabled = true,
     this.messageTransformer,
+    this.isColored = false,
   }) : super();
 
   @override
@@ -64,9 +67,12 @@ class CustomLogger extends LogPrinter {
 
   String _labelFor(Level level) {
     var prefix = SimplePrinter.levelPrefixes[level]!;
-    final color = SimplePrinter.levelColors[level]!;
+    if (isColored) {
+      final color = SimplePrinter.levelColors[level]!;
+      return color(prefix);
+    }
 
-    return color(prefix);
+    return prefix;
   }
 
   String _stringifyMessage(dynamic message) {
