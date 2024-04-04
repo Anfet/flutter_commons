@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:siberian_core/src/logger.dart';
+import 'package:siberian_logger/siberian_logger.dart';
 
 class KeyboardAwarePadding extends StatelessWidget {
   final Widget child;

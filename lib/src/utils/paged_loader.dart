@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:siberian_core/siberian_core.dart';
+import 'package:siberian_logger/siberian_logger.dart';
 
 typedef PagedLoaderCallback<T> = Future<List<T>> Function(int page, int itemsPerPage);
 
@@ -24,7 +25,7 @@ class PagedLoader<T> with Logging {
   final Map<int, List<T>> _pages = {};
 
   void clear() {
-    verbose('clearing paged loader');
+    trace('clearing paged loader');
     _pages.clear();
     _page = initialPage - 1;
     _endReached = false;
@@ -34,14 +35,14 @@ class PagedLoader<T> with Logging {
 
   Future<(List<T> items, bool endReached)> loadNextPage() async {
     if (_endReached || isLoading) {
-      verbose('load next page denied; already loading');
+      trace('load next page denied; already loading');
       return (<T>[], _endReached);
     }
 
     lceNotifier.value = Lce(isLoading: true, content: items);
     try {
       var loadingPage = _page + 1;
-      verbose("loading page '$loadingPage'");
+      trace("loading page '$loadingPage'");
       var result = await onDemand(loadingPage, itemsPerPage);
       _endReached = result.isEmpty || result.length < itemsPerPage;
       if (result.isNotEmpty) {
@@ -50,10 +51,10 @@ class PagedLoader<T> with Logging {
       }
 
       lceNotifier.value = Lce(isLoading: false, content: items);
-      verbose("items returned '${result.length}'; end reached = ${_endReached ? 'true' : 'false'}");
+      trace("items returned '${result.length}'; end reached = ${_endReached ? 'true' : 'false'}");
       return (result, _endReached);
     } catch (ex, stack) {
-      warn("page '${_page + 1}' load error", error: ex, stackTrace: stack);
+      warn("page '${_page + 1}' load error", error: ex, stack: stack);
       lceNotifier.value = Lce(isLoading: false, content: items, error: ex, stack: stack);
     }
 

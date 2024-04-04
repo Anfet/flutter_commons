@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:siberian_core/siberian_core.dart';
+import 'package:siberian_logger/siberian_logger.dart';
 
 typedef SystemUiOverlayStyleResolver = (String?, SystemUiOverlayStyle?) Function(String route);
 
@@ -19,7 +19,7 @@ class SystemUiChangingObserver extends NavigatorObserver with Logging {
     int? requiredStyleHash = requiredStyle?.hashCode;
     if (requiredStyleHash == null) {
       if (enableLog) {
-        verbose('no need to change', tag: tag);
+        trace('no need to change', tag: tag);
       }
       return;
     }
@@ -28,7 +28,7 @@ class SystemUiChangingObserver extends NavigatorObserver with Logging {
       _activeStyle = requiredStyleHash;
       SystemChrome.setSystemUIOverlayStyle(requiredStyle!);
       if (enableLog) {
-        verbose("switching UI style to '${styleName ?? requiredStyle.hashCode}'", tag: tag);
+        trace("switching UI style to '${styleName ?? requiredStyle.hashCode}'", tag: tag);
       }
     });
   }

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:siberian_core/src/logger.dart';
+import 'package:siberian_logger/siberian_logger.dart';
 
 import 'property_storage.dart';
 
@@ -136,7 +136,7 @@ class DateTimeProperty extends StorageProperty<DateTime> with Logging {
       var text = await _storage.get(name);
       cachedValue = (DateTime.tryParse(text) ?? DateTime(0)).toLocal();
     } catch (ex, stack) {
-      warn("property read error '$name'", error: ex, stackTrace: stack);
+      warn("property read error '$name'", error: ex, stack: stack);
     }
 
     return cachedValue;

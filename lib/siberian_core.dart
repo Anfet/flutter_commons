@@ -37,7 +37,6 @@ export 'src/formatters/formatters.dart';
 export 'src/functions.dart';
 export 'src/localizations/localizations.dart';
 export 'src/localizations/ui/localization_builder.dart';
-export 'src/logger.dart';
 export 'src/mappers.dart';
 export 'src/mixins/mounted_state_mixin.dart';
 export 'src/mixins/stream_listenable_mixins.dart';
