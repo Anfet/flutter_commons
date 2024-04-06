@@ -58,6 +58,8 @@ final class Loadable<T> {
   Loadable<T> fail(Object ex, [StackTrace? stack]) => Loadable(value, isLoading: isLoading, error: ex, stack: stack);
 
   Loadable<T> clearError() => Loadable(value, isLoading: isLoading, error: null);
+
+  T valueOr(T other) => value ?? other;
 }
 
 extension LoadableExt<T> on T {
