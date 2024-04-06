@@ -28,14 +28,19 @@ class Build {
     await property.setValue(value);
   }
 
-  static Future<Build> load(Property<String> property) async {
-    var text = await property.getValue();
+  factory Build.from(String text) {
     try {
       var json = jsonDecode(text);
-      return Build(enviroment: json['enviroment'], host: json['host']);
+      var build = Build(enviroment: json['enviroment'], host: json['host']);
+      return build;
     } catch (ex) {
       return Build(enviroment: Enviroment.prod.name, host: Enviroments.enviroments[Enviroment.prod]!);
     }
+  }
+
+  static Future<Build> load(Property<String> property) async {
+    var text = await property.getValue();
+    return Build.from(text);
   }
 
   @override
