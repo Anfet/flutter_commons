@@ -21,7 +21,7 @@ dependencies:
   siberian_logger:
     git:
       url: https://git.siberian.pro/toplionkin/flutter_siberian_logger.git
-      ref: 'master'
+      ref: 'release/0.0.1'
 
 dev_dependencies:
   flutter_test:
