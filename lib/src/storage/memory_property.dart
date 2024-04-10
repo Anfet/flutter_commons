@@ -1,17 +1,25 @@
 import 'dart:async';
 
+import 'package:siberian_core/src/utils.dart';
+
 import 'property_storage.dart';
 
 class MemoryProperty<T> implements Property<T> {
   T _value;
 
-  MemoryProperty(this._value);
+  T? _deletedValue;
+
+  MemoryProperty(this._value, [this._deletedValue]);
 
   @override
   T get cachedValue => _value;
 
   @override
-  FutureOr<void> delete() {}
+  FutureOr<void> delete() {
+    if (_deletedValue != null) {
+      _value = require(_deletedValue);
+    }
+  }
 
   @override
   FutureOr<T> getValue() => cachedValue;
