@@ -10,18 +10,20 @@ dependencies:
   flutter:
     sdk: flutter
 
-  logger: ^2.0.2+1
-  sprintf: ^7.0.0
-  uuid: ^3.0.7
-  short_uuids: ^2.0.0
+  uuid: ^4.4.0 
   provider: ^6.1.1
   flutter_bloc: ^8.1.3
-  intl: any
+
 
   siberian_logger:
     git:
       url: https://git.siberian.pro/toplionkin/flutter_siberian_logger.git
       ref: 'release/0.0.1'
+
+  #from logger
+  intl: any
+  logger: any
+  sprintf: any
 
 dev_dependencies:
   flutter_test:
