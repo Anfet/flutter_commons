@@ -6,7 +6,7 @@ typedef PagedLoaderCallback<T> = Future<List<T>> Function(int page, int itemsPer
 
 class PagedLoader<T> with Logging {
   final ValueNotifier<List<T>> itemsNotifier = ValueNotifier([]);
-  final ValueNotifier<Lce<List<T>>> lceNotifier = ValueNotifier(const Lce.content([]));
+  final ValueNotifier<Loadable<List<T>>> lceNotifier = ValueNotifier(const Loadable([]));
 
   final int itemsPerPage;
   final int initialPage;
@@ -30,7 +30,7 @@ class PagedLoader<T> with Logging {
     _page = initialPage - 1;
     _endReached = false;
     itemsNotifier.value = [];
-    lceNotifier.value = itemsNotifier.value.asContent;
+    lceNotifier.value = itemsNotifier.value.asLoadable;
   }
 
   Future<(List<T> items, bool endReached)> loadNextPage() async {
@@ -39,7 +39,7 @@ class PagedLoader<T> with Logging {
       return (<T>[], _endReached);
     }
 
-    lceNotifier.value = Lce(isLoading: true, content: items);
+    lceNotifier.value = Loadable(items, isLoading: true);
     try {
       var loadingPage = _page + 1;
       trace("loading page '$loadingPage'");
@@ -50,12 +50,12 @@ class PagedLoader<T> with Logging {
         _pages.putIfAbsent(_page, () => result);
       }
 
-      lceNotifier.value = Lce(isLoading: false, content: items);
+      lceNotifier.value = Loadable(items, isLoading: false);
       trace("items returned '${result.length}'; end reached = ${_endReached ? 'true' : 'false'}");
       return (result, _endReached);
     } catch (ex, stack) {
       warn("page '${_page + 1}' load error", error: ex, stack: stack);
-      lceNotifier.value = Lce(isLoading: false, content: items, error: ex, stack: stack);
+      lceNotifier.value = Loadable(items, isLoading: false, error: ex, stack: stack);
     }
 
     return (<T>[], _endReached);

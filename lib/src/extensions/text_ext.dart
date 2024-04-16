@@ -5,15 +5,16 @@ class TextUtils {
   static Size textHeight({
     required String text,
     required TextStyle style,
-    double? textScaleFactor,
     double width = double.infinity,
     int? maxLines,
+    TextDirection? textDirection,
+    TextScaler? textScaler,
   }) {
     final painter = TextPainter(
       text: TextSpan(text: text, style: style),
       maxLines: maxLines ?? Ints.maxInt,
-      textScaleFactor: textScaleFactor ?? 1.0,
-      textDirection: TextDirection.ltr,
+      textScaler: textScaler ?? TextScaler.noScaling,
+      textDirection: textDirection ?? TextDirection.ltr,
     );
 
     painter.layout(maxWidth: width);
@@ -26,12 +27,14 @@ class TextUtils {
     double? textScaleFactor,
     double width = double.infinity,
     int? maxLines,
+    TextDirection? textDirection,
+    TextScaler? textScaler,
   }) {
     final painter = TextPainter(
       text: TextSpan(text: text, style: style),
       maxLines: maxLines ?? Ints.maxInt,
-      textScaleFactor: textScaleFactor ?? 1.0,
-      textDirection: TextDirection.ltr,
+      textScaler: textScaler ?? TextScaler.noScaling,
+      textDirection: textDirection ?? TextDirection.ltr,
     );
 
     painter.layout(maxWidth: width);

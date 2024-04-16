@@ -1,10 +1,11 @@
 import 'package:siberian_core/src/functions.dart';
+import 'package:siberian_core/src/randomizer.dart';
 
 int _rid = 0;
 
 typedef StringReaction = BlocReaction<String>;
 
-typedef ShotReaction = BlocReaction<String>;
+typedef ShotReaction = BlocReaction<dynamic>;
 
 class BlocReaction<T> {
   final int reactionId = ++_rid;
@@ -41,5 +42,5 @@ class BlocReaction<T> {
     return 'BlocReaction{reactionId: $reactionId, _data: $_data, _isConsumed: $_isConsumed}';
   }
 
-  static ShotReaction fire() => ShotReaction('');
+  static ShotReaction fire() => ShotReaction(randomizer.nextDouble());
 }

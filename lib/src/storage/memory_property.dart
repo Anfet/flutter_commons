@@ -7,7 +7,7 @@ import 'property_storage.dart';
 class MemoryProperty<T> implements Property<T> {
   T _value;
 
-  T? _deletedValue;
+  final T? _deletedValue;
 
   MemoryProperty(this._value, [this._deletedValue]);
 

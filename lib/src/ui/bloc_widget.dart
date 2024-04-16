@@ -42,34 +42,3 @@ abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>
     );
   }
 }
-
-enum DeviceType {
-  phone(450),
-  tablet(1024),
-  desktop(10000),
-  ;
-
-  final int minWidth;
-
-  const DeviceType(this.minWidth);
-}
-
-@immutable
-class LayoutInformation {
-  final Orientation orientation;
-  final BoxConstraints constraints;
-  final DeviceType deviceType;
-
-  Size get size => Size(constraints.maxWidth, constraints.maxHeight);
-
-  const LayoutInformation({
-    required this.orientation,
-    required this.constraints,
-    required this.deviceType,
-  });
-
-  @override
-  String toString() {
-    return 'LayoutInformation{orientation: $orientation, constraints: $constraints, deviceType: $deviceType}';
-  }
-}
