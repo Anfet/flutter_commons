@@ -1,5 +1,12 @@
 library siberian_core;
 
+export 'package:siberian_logger/siberian_logger.dart';
+export 'package:intl/intl.dart';
+export 'package:sprintf/sprintf.dart';
+export 'package:provider/provider.dart';
+export 'package:bloc/bloc.dart';
+export 'package:flutter_bloc/flutter_bloc.dart';
+
 export 'src/consts.dart';
 export 'src/data/build.dart';
 export 'src/data/filesize_metric.dart';
