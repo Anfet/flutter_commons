@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:siberian_core/siberian_core.dart';
 
-class ListenableProperty<T> with ChangeNotifier implements Property<T> {
-  final Property<T> child;
+class ListenableProperty<T> with ChangeNotifier implements StorableProperty<T> {
+  final StorableProperty<T> child;
 
   ListenableProperty(this.child);
 
@@ -12,7 +12,7 @@ class ListenableProperty<T> with ChangeNotifier implements Property<T> {
   T get cachedValue => child.cachedValue;
 
   @override
-  FutureOr<void> delete() async {
+  Future<void> delete() async {
     await child.delete();
     notifyListeners();
   }

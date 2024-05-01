@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:siberian_core/siberian_core.dart';
-import 'package:siberian_logger/siberian_logger.dart';
 
 typedef PagedLoaderCallback<T> = Future<List<T>> Function(int page, int itemsPerPage);
 

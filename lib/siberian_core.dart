@@ -45,7 +45,6 @@ export 'src/mixins/stream_listenable_mixins.dart';
 export 'src/mixins/value_listenable_mixins.dart';
 export 'src/randomizer.dart';
 export 'src/routing/routing_helpers.dart';
-export 'src/storage/storage.dart';
 export 'src/timed.dart';
 export 'src/ui/bloc_events.dart';
 export 'src/ui/bloc_reaction.dart';
@@ -57,3 +56,5 @@ export 'src/utils/paged_loader.dart';
 export 'src/utils/separated_list.dart';
 export 'src/utils/widget_exporter.dart';
 export 'src/widgets/widgets.dart';
+
+export 'src/storage/storage.dart';

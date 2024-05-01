@@ -23,7 +23,7 @@ class Build {
     required this.host,
   });
 
-  Future<void> save(Property<String> property) async {
+  Future<void> save(StorableProperty<String> property) async {
     var value = jsonEncode({'host': host, 'enviroment': enviroment});
     await property.setValue(value);
   }
@@ -38,7 +38,7 @@ class Build {
     }
   }
 
-  static Future<Build> load(Property<String> property) async {
+  static Future<Build> load(StorableProperty<String> property) async {
     var text = await property.getValue();
     return Build.from(text);
   }
