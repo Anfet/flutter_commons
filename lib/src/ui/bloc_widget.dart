@@ -1,7 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:siberian_core/siberian_core.dart';
-import 'package:siberian_logger/siberian_logger.dart';
 
 abstract class BlocWidget<S extends BlocState, B extends Bloc<BlocEvent, S>> extends StatefulWidget {
   const BlocWidget({super.key});
