@@ -141,4 +141,14 @@ extension ListExt<T> on List<T> {
     }
     return result;
   }
+
+  List<T> replaceEach(T mapper(T it)) {
+    final result = <T>[];
+    for (var i = 0; i < length; i++) {
+      var item = this[i];
+      item = mapper(item);
+      this[i] = item;
+    }
+    return result;
+  }
 }
