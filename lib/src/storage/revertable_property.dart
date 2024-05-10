@@ -13,7 +13,7 @@ class RevertableProperty<T> implements StorableProperty<T> {
       : _value = child.cachedValue,
         _initialValue = child.cachedValue;
 
-  bool get hasChanged => _value != cachedValue;
+  bool get hasChanged => _value != _initialValue;
 
   @override
   FutureOr<T> getValue() async {

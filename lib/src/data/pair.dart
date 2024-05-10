@@ -9,6 +9,14 @@ class Pair<A, B> {
 
   B get requireSecond => second!;
 
+  A get a => requireFirst;
+
+  B get b => requireSecond;
+
+  A? get maybeA => first;
+
+  B? get maybeB => second;
+
   const Pair(this.first, this.second);
 
   const Pair.from({this.first, this.second});
