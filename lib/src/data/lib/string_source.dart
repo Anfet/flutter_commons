@@ -1,6 +1,7 @@
 import 'dart:math';
 
-import '../exceptions.dart';
+import 'package:siberian_core/src/exceptions.dart';
+
 
 class StringSource {
   int _pos = 0;

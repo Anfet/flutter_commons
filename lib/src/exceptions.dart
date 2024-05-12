@@ -34,3 +34,12 @@ class ErrorHandledException extends AppException {
 class FlowException extends AppException {
   FlowException(super.message);
 }
+
+class CancelledQueryException extends FlowException {
+  CancelledQueryException() : super('');
+
+  @override
+  String toString() {
+    return 'CancelledQueryException{}';
+  }
+}

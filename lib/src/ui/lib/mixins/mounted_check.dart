@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
+import 'package:siberian_core/src/consts.dart';
 
-mixin MountedStateMixin<S extends StatefulWidget> on State<S> {
+mixin MountedCheck<S extends StatefulWidget> on State<S> {
   bool _disposed = false;
 
   @override
@@ -17,12 +18,8 @@ mixin MountedStateMixin<S extends StatefulWidget> on State<S> {
   }
 
   /// Запрашивает обновление состояния. Использовать можно, если изменения провоцируют переменные, которые вставлять в setState неразумно
-  void markNeedsRebuild() => setState(() { });
+  ///
+  /// например, если в результате `await longLastingOp` меняеются данные
+  void markNeedsRebuild() => setState(nothing);
 
-  @Deprecated('Устарело. Лучше использовать setState')
-  void setStateChecked(VoidCallback func) {
-    if (mounted && !_disposed) {
-      setState(func);
-    }
-  }
 }
