@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../data/range.dart';
+import '../data/lib/range.dart';
 
 extension SiberitanDateTimeExt on DateTime {
   bool isSameOrAfter(DateTime other) => millisecondsSinceEpoch >= other.millisecondsSinceEpoch;

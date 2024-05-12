@@ -1,6 +1,8 @@
-import '../consts.dart';
-import '../data/string_source.dart';
-import '../extensions/any_ext.dart';
+
+
+import 'package:siberian_core/src/consts.dart';
+import 'package:siberian_core/src/data/lib/string_source.dart';
+import 'package:siberian_core/src/extensions/any_ext.dart';
 
 class CustomFormatter {
   static const digitPlaceholder = '#';

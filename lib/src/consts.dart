@@ -1,5 +1,7 @@
 import 'randomizer.dart';
 
+final nothing = () {};
+
 class Strings {
   Strings._();
 
