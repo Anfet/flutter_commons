@@ -20,4 +20,16 @@ extension DurationExt on Duration {
       return sprintf('%02d:%02d', [minutes, copy.inSeconds]);
     }
   }
+
+  Future get wait => Future.delayed(this);
+}
+
+extension IntForDuration on int {
+  Duration get milliseconds => Duration(milliseconds: this);
+
+  Duration get seconds => Duration(seconds: this);
+
+  Duration get minutes => Duration(minutes: this);
+
+  Duration get hours => Duration(hours: this);
 }

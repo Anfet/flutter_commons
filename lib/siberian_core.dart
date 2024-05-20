@@ -17,7 +17,6 @@ export 'src/randomizer.dart';
 export 'src/routing/routing_helpers.dart';
 export 'src/timed.dart';
 
-
 export 'src/utils.dart';
 export 'src/utils/paged_loader.dart';
 export 'src/utils/separated_list.dart';
@@ -29,3 +28,4 @@ export 'src/storage/storage.dart';
 export 'src/extensions.dart';
 export 'src/ui/ui.dart';
 export 'src/data/data.dart';
+export 'src/theming/theming.dart';

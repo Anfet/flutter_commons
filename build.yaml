@@ -1,0 +1,11 @@
+targets:
+  $default:
+    builders:
+      source_gen|combining_builder:
+        generate_for:
+          - lib/**.dart
+        options:
+          build_extensions:
+#            '^lib/{{}}.dart': 'lib/generated/{{}}.g.dart'                            --- генерирует lib/generated/path/file.g.dart
+#            '^lib/{{path}}/{{file}}.dart': 'lib/{{path}}/generated/{{file}}.g.dart'  --- генерирует lib/путь/generated/file.g.dart
+            '^lib/{{path}}/{{file}}.dart': 'lib/{{path}}/generated/{{file}}.g.dart'
