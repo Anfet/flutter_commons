@@ -3,6 +3,8 @@ class Maybe<T> {
 
   const Maybe([this.value]);
 
+  const Maybe.nothing() : value = null;
+
   T? or(T? other) => value ?? other;
 
   T get requireValue => value!;

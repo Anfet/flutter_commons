@@ -1,6 +1,6 @@
 name: siberian_core
 description: Core package
-version: 1.0.8
+version: 1.0.11
 publish_to: 'none'
 homepage: https://git.siberian.pro/toplionkin/flutter_siberian_logger.git
 
@@ -19,13 +19,11 @@ dependencies:
       url: https://git.siberian.pro/toplionkin/flutter_siberian_logger.git
       ref: 'release/0.0.2'
 
-  #from logger
-  intl: any
   sprintf: any
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: any
 
 flutter:
+  assets:

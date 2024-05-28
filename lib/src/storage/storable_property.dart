@@ -4,9 +4,19 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:siberian_logger/siberian_logger.dart';
 
-import 'property_storage.dart';
+import 'storage.dart';
 
-abstract class StorageProperty<T> implements Property<T> {
+abstract class StorableProperty<T> {
+  T get cachedValue;
+
+  FutureOr<T> getValue();
+
+  Future<void> setValue(T val);
+
+  Future<void> delete();
+}
+
+abstract class StorablePropertyImpl<T> implements StorableProperty<T> {
   final PropertyStorage _storage;
   final String name;
   final ValueSetter<T>? onSave;
@@ -16,7 +26,7 @@ abstract class StorageProperty<T> implements Property<T> {
   @override
   T get cachedValue => _cachedValue;
 
-  StorageProperty(
+  StorablePropertyImpl(
     this._storage,
     this.name, {
     this.onSave,
@@ -24,8 +34,7 @@ abstract class StorageProperty<T> implements Property<T> {
 
   @override
   Future<void> delete() async {
-    await _storage.delete(name);
-    await getValue();
+    await _storage.delete(name).then((value) => getValue());
   }
 
   @override
@@ -39,7 +48,7 @@ abstract class StorageProperty<T> implements Property<T> {
   String toString() => '$cachedValue';
 }
 
-final class BoolProperty extends StorageProperty<bool> {
+final class BoolProperty extends StorablePropertyImpl<bool> {
   BoolProperty(super._storage, super.name, {super.onSave}) {
     _cachedValue = false;
   }
@@ -51,7 +60,7 @@ final class BoolProperty extends StorageProperty<bool> {
   }
 }
 
-final class IntProperty extends StorageProperty<int> {
+final class IntProperty extends StorablePropertyImpl<int> {
   IntProperty(super._storage, super.name, {super.onSave}) {
     _cachedValue = 0;
   }
@@ -63,7 +72,7 @@ final class IntProperty extends StorageProperty<int> {
   }
 }
 
-final class DoubleProperty extends StorageProperty<double> {
+final class DoubleProperty extends StorablePropertyImpl<double> {
   DoubleProperty(super._storage, super.name, {super.onSave}) {
     _cachedValue = 0;
   }
@@ -75,7 +84,7 @@ final class DoubleProperty extends StorageProperty<double> {
   }
 }
 
-final class StringProperty extends StorageProperty<String> {
+final class StringProperty extends StorablePropertyImpl<String> {
   StringProperty(super._storage, super.name, {super.onSave}) {
     _cachedValue = '';
   }
@@ -87,7 +96,7 @@ final class StringProperty extends StorageProperty<String> {
   }
 }
 
-class JsonProperty<T> extends StorageProperty<T> with Logging {
+class JsonProperty<T> extends StorablePropertyImpl<T> with Logging {
   final T Function(Map<String, dynamic> json) fromJson;
   final Map<String, dynamic> Function(T data) toJson;
   final T Function() ifNotExist;
@@ -124,7 +133,7 @@ class JsonProperty<T> extends StorageProperty<T> with Logging {
   }
 }
 
-class DateTimeProperty extends StorageProperty<DateTime> with Logging {
+class DateTimeProperty extends StorablePropertyImpl<DateTime> with Logging {
   @override
   late DateTime cachedValue = DateTime(0);
 

@@ -2,40 +2,47 @@ import 'dart:async';
 
 import 'package:siberian_core/siberian_core.dart';
 
-class RevertableProperty<T> implements Property<T> {
-  T? _initialValue;
-  final Property<T> child;
+class RevertableProperty<T> implements StorableProperty<T> {
+  T? _value;
 
-  RevertableProperty(this.child);
+  T _initialValue;
 
-  bool get hasChanged => _initialValue != cachedValue;
+  final StorableProperty<T> child;
+
+  RevertableProperty(this.child)
+      : _value = child.cachedValue,
+        _initialValue = child.cachedValue;
+
+  bool get hasChanged => _value != _initialValue;
 
   @override
   FutureOr<T> getValue() async {
-    final value = await child.getValue();
-    _initialValue ??= value;
-    return value;
+    _value = await child.getValue();
+    return require(_value);
   }
 
   @override
-  T get cachedValue => child.cachedValue;
+  T get cachedValue => _value ?? _initialValue;
 
   @override
-  FutureOr<void> delete() => child.delete();
+  Future<void> delete() async {
+    _value = null;
+  }
 
   @override
-  FutureOr<void> setValue(T val) => child.setValue(val);
+  Future<void> setValue(T val) async {
+    _value = val;
+  }
 
-  FutureOr<void> revert() async {
-    if (_initialValue == null || !hasChanged) {
-      return;
+  FutureOr<void> revert() => _value = _initialValue;
+
+  FutureOr<void> commit() async {
+    if (_value == null) {
+      await child.delete();
+    } else {
+      await child.setValue(require(_value));
     }
 
-    await setValue(require(_initialValue));
-  }
-
-  RevertableProperty<T> reset() {
-    _initialValue = null;
-    return this;
+    _initialValue = await getValue();
   }
 }
