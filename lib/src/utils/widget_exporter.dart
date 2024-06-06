@@ -24,8 +24,9 @@ class WidgetExporter {
       view: flutterView,
       child: RenderPositionedBox(alignment: Alignment.center, child: repaintBoundary),
       configuration: ViewConfiguration(
-        logicalConstraints: BoxConstraints.loose(logicalSize),
-        physicalConstraints: BoxConstraints.loose(logicalSize),
+        size: logicalSize,
+        // logicalConstraints: BoxConstraints.loose(logicalSize),
+        // physicalConstraints: BoxConstraints.loose(logicalSize),
         devicePixelRatio: 1.0,
       ),
     );

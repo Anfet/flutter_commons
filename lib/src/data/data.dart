@@ -8,3 +8,4 @@ export 'lib/maybe.dart';
 export 'lib/pair.dart';
 export 'lib/range.dart';
 export 'lib/string_source.dart';
+export 'lib/lazy.dart';
