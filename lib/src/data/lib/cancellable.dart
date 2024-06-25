@@ -10,7 +10,7 @@ abstract interface class Cancellable {
 
 class StreamCancellable<T> implements Cancellable {
   final Stream<T> stream;
-  final AsyncTypedCallback<bool?, T> mapper;
+  final AsyncOrTypedCallback<Any, T> mapper;
   late final StreamSubscription subscription;
 
   StreamCancellable(this.stream, this.mapper) {
@@ -30,7 +30,7 @@ class NotifierCancellable implements Cancellable {
   static int _eid = 0;
   final ChangeNotifier notifier;
   final StreamController<int> _streamController = StreamController();
-  final AsyncTypedResult<bool?> mapper;
+  final AsyncOrTypedResult<Any> mapper;
 
   NotifierCancellable(this.notifier, this.mapper) {
     notifier.addListener(_mapper);
@@ -57,7 +57,7 @@ class NotifierCancellable implements Cancellable {
 class ListenableCancellable<T> implements Cancellable {
   final ValueListenable<T> listenable;
   final StreamController<T> _streamController = StreamController();
-  final AsyncTypedCallback<bool?, T> mapper;
+  final AsyncOrTypedCallback<Any, T> mapper;
 
   ListenableCancellable(this.listenable, this.mapper) {
     listenable.addListener(_mapper);
