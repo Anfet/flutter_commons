@@ -16,7 +16,7 @@ dependencies:
 
   siberian_logger:
     git:
-      url: https://git.siberian.pro/toplionkin/flutter_siberian_logger.git
+      url: https://git.siberian.pro/flutter_core/flutter_siberian_logger.git
       ref: 'release/0.0.2'
 
   sprintf: any
