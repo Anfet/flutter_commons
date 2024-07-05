@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:siberian_core/siberian_core.dart';
 import 'package:siberian_core/src/data/data.dart';
 
 mixin WaitableEvent<T> {
@@ -20,8 +21,9 @@ mixin WaitableEvent<T> {
 }
 
 extension BlocWaitableEventExt on Bloc {
-  Future<T> addAndWait<T>(WaitableEvent<T> event) async {
+  Future<T> addAndWait<T>(BlocEvent event) async {
+    assert(event is WaitableEvent<T>);
     add(event);
-    return event.completer().future;
+    return (event as WaitableEvent<T>).completer().future;
   }
 }
