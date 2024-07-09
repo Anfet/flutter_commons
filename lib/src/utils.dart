@@ -1,4 +1,4 @@
-import 'package:siberian_core/src/exceptions.dart';
+import 'package:flutter_commons/src/exceptions.dart';
 
 T require<T>(T? obj) {
   if (obj == null) {

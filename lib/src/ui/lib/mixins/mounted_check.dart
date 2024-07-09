@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:siberian_core/src/consts.dart';
+import 'package:flutter_commons/src/consts.dart';
 
 mixin MountedCheck<S extends StatefulWidget> on State<S> {
   bool _disposed = false;

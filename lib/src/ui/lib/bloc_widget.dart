@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:siberian_core/siberian_core.dart';
+import 'package:flutter_commons/flutter_commons.dart';
 
 abstract class BlocWidget<S extends BlocState, B extends Bloc<BlocEvent, S>> extends StatefulWidget {
   const BlocWidget({super.key});

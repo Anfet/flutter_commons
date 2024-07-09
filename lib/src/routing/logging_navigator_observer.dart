@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:siberian_logger/siberian_logger.dart';
+import 'package:flutter_logger/flutter_logger.dart';
 
 class LoggingNavigatorObserver extends NavigatorObserver with Logging {
   final String? tag;

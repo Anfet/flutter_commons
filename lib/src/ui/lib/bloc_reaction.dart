@@ -1,5 +1,5 @@
-import 'package:siberian_core/src/functions.dart';
-import 'package:siberian_core/src/randomizer.dart';
+import 'package:flutter_commons/src/functions.dart';
+import 'package:flutter_commons/src/randomizer.dart';
 
 int _rid = 0;
 

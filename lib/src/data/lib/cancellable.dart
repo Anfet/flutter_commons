@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:siberian_core/src/functions.dart';
+import 'package:flutter_commons/src/functions.dart';
 
 abstract interface class Cancellable {
   void cancel();

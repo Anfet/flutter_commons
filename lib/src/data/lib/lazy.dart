@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:siberian_core/siberian_core.dart';
+import 'package:flutter_commons/flutter_commons.dart';
 
 class Lazy<T> {
   T? instance;

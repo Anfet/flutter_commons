@@ -1,7 +1,7 @@
 // ignore_for_file: prefer_const_constructors_in_immutables
 
 import 'package:flutter/material.dart';
-import 'package:siberian_core/siberian_core.dart';
+import 'package:flutter_commons/flutter_commons.dart';
 
 const _defaultPinLength = 4;
 const _defaultPinSize = 16.0;

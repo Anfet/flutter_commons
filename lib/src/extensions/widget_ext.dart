@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:siberian_core/src/utils.dart';
+import 'package:flutter_commons/src/utils.dart';
 
 extension WidgetExt on Widget {
   Widget get expanded => Expanded(child: this);

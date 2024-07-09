@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:siberian_core/siberian_core.dart';
+import 'package:flutter_commons/flutter_commons.dart';
 
 typedef ThemeWidgetBuilder<T extends CustomTheme> = Widget Function(BuildContext context, T theme);
 

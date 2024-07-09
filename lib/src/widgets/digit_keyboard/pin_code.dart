@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:siberian_core/siberian_core.dart';
+import 'package:flutter_commons/flutter_commons.dart';
 
 const _kDefaultMaxPinLength = 4;
 

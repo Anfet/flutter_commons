@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:siberian_core/siberian_core.dart';
+import 'package:flutter_commons/src/storage/storable_property.dart';
 
 enum Enviroment { dev, stage, prod, custom }
 

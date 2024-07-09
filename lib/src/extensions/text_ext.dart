@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:siberian_core/src/consts.dart';
+import 'package:flutter_commons/src/consts.dart';
 
 class TextUtils {
   static Size textHeight({

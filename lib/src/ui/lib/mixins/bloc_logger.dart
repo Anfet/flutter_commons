@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:siberian_logger/siberian_logger.dart';
+import 'package:flutter_logger/flutter_logger.dart';
 
 mixin BlocLogging<E, S> on Bloc<E, S> {
   @override

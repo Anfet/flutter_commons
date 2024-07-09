@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:siberian_logger/siberian_logger.dart';
+import 'package:flutter_logger/flutter_logger.dart';
 
 import 'storage.dart';
 

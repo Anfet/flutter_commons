@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:siberian_core/siberian_core.dart';
-import 'package:siberian_core/src/data/data.dart';
+import 'package:flutter_commons/flutter_commons.dart';
+import 'package:flutter_commons/src/data/data.dart';
 
 mixin WaitableEvent<T> {
   final Lazy<Completer<T>> completer = Lazy(() => Completer<T>());

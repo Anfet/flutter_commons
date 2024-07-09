@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:siberian_core/siberian_core.dart';
+import 'package:flutter_commons/flutter_commons.dart';
 
 extension CompleterExt<T> on Completer<T> {
   Completer<T> fromFuture(Future<T> future) {

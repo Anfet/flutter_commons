@@ -1,8 +1,8 @@
 
 
-import 'package:siberian_core/src/consts.dart';
-import 'package:siberian_core/src/data/lib/string_source.dart';
-import 'package:siberian_core/src/extensions/any_ext.dart';
+import 'package:flutter_commons/src/consts.dart';
+import 'package:flutter_commons/src/data/lib/string_source.dart';
+import 'package:flutter_commons/src/extensions/any_ext.dart';
 
 class CustomFormatter {
   static const digitPlaceholder = '#';

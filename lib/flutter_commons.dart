@@ -1,6 +1,6 @@
-library siberian_core;
+library flutter_commons;
 
-export 'package:siberian_logger/siberian_logger.dart';
+export 'package:flutter_logger/flutter_logger.dart';
 export 'package:intl/intl.dart';
 export 'package:sprintf/sprintf.dart';
 export 'package:provider/provider.dart';

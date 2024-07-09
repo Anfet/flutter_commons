@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:siberian_core/siberian_core.dart';
+import 'package:flutter_commons/flutter_commons.dart';
 
 @immutable
 final class Loadable<T> {
