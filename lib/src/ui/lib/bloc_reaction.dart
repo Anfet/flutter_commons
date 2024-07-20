@@ -44,3 +44,11 @@ class BlocReaction<T> {
 
   static ShotReaction fire() => ShotReaction(randomizer.nextDouble());
 }
+
+extension StringAsReactionExt on String {
+  StringReaction get asReaction => StringReaction(this);
+}
+
+extension ObjectAsReactionExt<T> on T {
+  BlocReaction<T> get asReaction => BlocReaction(this);
+}
