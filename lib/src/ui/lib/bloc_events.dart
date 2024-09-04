@@ -1,20 +1,7 @@
 import 'package:flutter/widgets.dart';
 
-int _eid = 0;
-
 @immutable
-abstract class BlocEvent {
-  final int eventId = ++_eid;
-
-  @override
-  String toString() => "$runtimeType";
-
-  @override
-  bool operator ==(Object other) => identical(this, other) || other is BlocEvent && runtimeType == other.runtimeType && eventId == other.eventId;
-
-  @override
-  int get hashCode => eventId.hashCode;
-}
+abstract interface class BlocEvent {}
 
 @immutable
 class BlocEvents {
@@ -24,7 +11,7 @@ class BlocEvents {
 }
 
 @immutable
-class OnInit extends BlocEvent {
+class OnInit implements BlocEvent {
   final Object? arguments;
 
   OnInit._({this.arguments});
