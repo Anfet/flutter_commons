@@ -7,7 +7,6 @@ abstract class BlocWidget<S extends BlocState, B extends Bloc<BlocEvent, S>> ext
 
 abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>, W extends BlocWidget<S, B>> extends State<W>
     with Logging, MountedCheck {
-
   Widget buildContent(BuildContext context, S state);
 
   @protected
@@ -32,34 +31,39 @@ abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>
   late S _state;
 
   S get previous => _previous;
+
   S get state => _state;
 
   B? onCreateBloc(BuildContext context) => null;
 
-  @override
-  Widget build(BuildContext context) {
-    childBuilder(context) =>
-        BlocConsumer<B, S>(
-          listener: (context, state) => onReactions(context),
-          listenWhen: shouldRebuild,
-          buildWhen: (previous, current) => shouldRebuild(previous, current),
-          builder: buildContent,
-        );
-
+  B? onProvideBloc(BuildContext context) {
     try {
-      _bloc = BlocProvider.of(context);
-      return childBuilder(context);
+      return BlocProvider.of<B>(context);
     } catch (_) {
-      return BlocProvider<B>(
-        create: (_) {
-          _bloc = require(onCreateBloc(context));
-          final args = context.routeArguments;
-          bloc.add(BlocEvents.init(arguments: args));
-          return bloc;
-        },
-        child: childBuilder(context),
-      );
+      return null;
     }
   }
 
+  Widget _childBuilder(context) => BlocConsumer<B, S>(
+        listener: (context, state) => onReactions(context),
+        listenWhen: shouldRebuild,
+        buildWhen: (previous, current) => shouldRebuild(previous, current),
+        builder: buildContent,
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    _bloc = onProvideBloc(context);
+    return _bloc == null
+        ? BlocProvider<B>(
+            create: (_) {
+              _bloc = require(onCreateBloc(context));
+              final args = context.routeArguments;
+              bloc.add(BlocEvents.init(arguments: args));
+              return bloc;
+            },
+            child: _childBuilder(context),
+          )
+        : _childBuilder(context);
+  }
 }

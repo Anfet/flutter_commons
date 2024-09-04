@@ -1,6 +1,6 @@
 name: flutter_commons
 description: Core package
-version: 1.0.16
+version: 1.0.17
 publish_to: 'none'
 homepage: https://github.com/Anfet/flutter_commons.git
 
@@ -11,8 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
 
-  provider: ^6.1.1
-  flutter_bloc: ^8.1.3
+  provider: ^6.1.2
+  flutter_bloc: ^8.1.6
 
   flutter_logger:
     git:
@@ -24,6 +24,4 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: any
-
-flutter:
-  assets:
+ 
