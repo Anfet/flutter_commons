@@ -1,6 +1,6 @@
 library flutter_commons;
 
-export 'package:flutter_logger/flutter_logger.dart'; 
+export 'package:flutter_logger/flutter_logger.dart';
 export 'package:sprintf/sprintf.dart';
 export 'package:provider/provider.dart';
 export 'package:bloc/bloc.dart';
@@ -19,7 +19,6 @@ export 'src/timed.dart';
 export 'src/utils.dart';
 export 'src/utils/paged_loader.dart';
 export 'src/utils/separated_list.dart';
-export 'src/utils/widget_exporter.dart';
 export 'src/widgets/widgets.dart';
 export 'src/utils/query_scheduler.dart';
 

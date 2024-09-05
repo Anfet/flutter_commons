@@ -53,7 +53,7 @@ abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>
 
   @override
   Widget build(BuildContext context) {
-    _bloc = onProvideBloc(context);
+    _bloc ??= onProvideBloc(context);
     return _bloc == null
         ? BlocProvider<B>(
             create: (_) {
