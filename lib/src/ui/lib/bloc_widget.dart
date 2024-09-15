@@ -63,7 +63,7 @@ abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>
     if (_bloc == null) {
       _bloc ??= onProvideBloc(context);
       if (_bloc != null) {
-        return BlocProvider.value(value: require(_bloc), child: _childBuilder(context));
+        return _childBuilder(context);
       }
     }
 
