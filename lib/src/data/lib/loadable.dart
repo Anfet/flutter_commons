@@ -18,6 +18,10 @@ final class Loadable<T> {
 
   bool get hasValue => value != null;
 
+  bool get inProgress => isLoading;
+
+  bool get inWorking => isLoading;
+
   const Loadable.idle()
       : isLoading = false,
         value = null,
@@ -34,8 +38,7 @@ final class Loadable<T> {
       : isLoading = false,
         value = null;
 
-  const Loadable(
-    this.value, {
+  const Loadable(this.value, {
     this.isLoading = false,
     this.error,
     this.stack,

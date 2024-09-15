@@ -10,17 +10,15 @@ abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>
   Widget buildContent(BuildContext context, S state);
 
   @protected
-  void onReactions(BuildContext context) {}
+  void onReactions(BuildContext context, S previous, S state) {}
 
   @protected
-  bool containsReactions(S previous, S current) => true;
+  bool containsReactions(S previous, S state) => true;
 
   @protected
   @mustCallSuper
-  bool shouldRebuild(S previous, S current) {
-    _previous = previous;
-    _state = current;
-    return previous != current;
+  bool shouldRebuild(S previous, S state) {
+    return previous != state;
   }
 
   B? _bloc;
@@ -32,7 +30,7 @@ abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>
 
   S get previous => _previous;
 
-  S get state => _state;
+  S get state => bloc.state;
 
   B? onCreateBloc(BuildContext context) => null;
 
@@ -44,26 +42,39 @@ abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>
     }
   }
 
-  Widget _childBuilder(context) => BlocConsumer<B, S>(
-        listener: (context, state) => onReactions(context),
-        listenWhen: shouldRebuild,
-        buildWhen: (previous, current) => shouldRebuild(previous, current),
+  Widget _childBuilder(context) =>
+      BlocConsumer<B, S>(
+        listener: (context, state) => onReactions(context, _previous , state ),
+        listenWhen: (previous, current) {
+          _previous = previous;
+          _state = current;
+          return containsReactions(previous, current);
+        },
+        buildWhen: (previous, current) {
+          _previous = previous;
+          _state = current;
+          return shouldRebuild(previous, current);
+        },
         builder: buildContent,
       );
 
   @override
   Widget build(BuildContext context) {
-    _bloc ??= onProvideBloc(context);
-    return _bloc == null
-        ? BlocProvider<B>(
-            create: (_) {
-              _bloc = require(onCreateBloc(context));
-              final args = context.routeArguments;
-              bloc.add(BlocEvents.init(arguments: args));
-              return bloc;
-            },
-            child: _childBuilder(context),
-          )
-        : _childBuilder(context);
+    if (_bloc == null) {
+      _bloc ??= onProvideBloc(context);
+      if (_bloc != null) {
+        return BlocProvider.value(value: require(_bloc), child: _childBuilder(context));
+      }
+    }
+
+    return BlocProvider<B>(
+      create: (_) {
+        _bloc = require(onCreateBloc(context));
+        final args = context.routeArguments;
+        bloc.add(BlocEvents.init(arguments: args));
+        return bloc;
+      },
+      child: _childBuilder(context),
+    );
   }
 }

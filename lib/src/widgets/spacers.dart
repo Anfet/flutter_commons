@@ -41,3 +41,24 @@ class NavbarSpacer extends StatelessWidget {
 }
 
 enum _NavbarPosition { top, bottom }
+
+class SliverBox extends StatelessWidget {
+  final Widget? child;
+  final EdgeInsets? padding;
+
+  const SliverBox({
+    super.key,
+    this.child,
+    this.padding,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: padding ?? EdgeInsets.zero,
+        child: child,
+      ),
+    );
+  }
+}
