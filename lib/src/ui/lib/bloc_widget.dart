@@ -21,6 +21,7 @@ abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>
     return previous != state;
   }
 
+  bool? isBlocProvided;
   B? _bloc;
 
   B get bloc => require(_bloc);
@@ -44,7 +45,8 @@ abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>
 
   Widget _childBuilder(context) =>
       BlocConsumer<B, S>(
-        listener: (context, state) => onReactions(context, _previous , state ),
+        bloc: _bloc,
+        listener: (context, state) => onReactions(context, _previous, state),
         listenWhen: (previous, current) {
           _previous = previous;
           _state = current;
@@ -60,14 +62,13 @@ abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>
 
   @override
   Widget build(BuildContext context) {
-    if (_bloc == null) {
-      _bloc ??= onProvideBloc(context);
-      if (_bloc != null) {
-        return _childBuilder(context);
-      }
+    if (isBlocProvided == null) {
+      _bloc = onProvideBloc(context);
+      isBlocProvided = _bloc != null;
     }
 
-    return BlocProvider<B>(
+
+    return require(isBlocProvided) ? _childBuilder(context) : BlocProvider<B>(
       create: (_) {
         _bloc = require(onCreateBloc(context));
         final args = context.routeArguments;
@@ -75,6 +76,7 @@ abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>
         return bloc;
       },
       child: _childBuilder(context),
+      lazy: false,
     );
   }
 }

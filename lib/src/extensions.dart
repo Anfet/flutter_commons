@@ -15,3 +15,4 @@ export 'extensions/string_ext.dart';
 export 'extensions/text_ext.dart';
 export 'extensions/text_style_ext.dart';
 export 'extensions/widget_ext.dart';
+export 'extensions/enum_ext.dart';

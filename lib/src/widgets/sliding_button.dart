@@ -1,5 +1,6 @@
 // ignore: unused_element
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_commons/flutter_commons.dart';
 
@@ -86,7 +87,22 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Loggin
   late double slideSize = 0.0;
   Offset tapOffset = Offset.zero;
   late Duration slidingDuration;
-  double value = 0.0;
+  double _value = 0.0;
+
+  double get value => _value;
+
+  set value(double v) {
+    _value = v;
+    if (value < widget.successThreshold) {
+      canTriggerSuccess = true;
+    }
+
+    if (canTriggerSuccess && value >= 1.0) {
+      widget.onSuccess();
+      canTriggerSuccess = false;
+    }
+  }
+
   late bool canTriggerSuccess = value < 1.0;
 
   Range<double> get thumbWidth => Range(
@@ -104,15 +120,6 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Loggin
     slidingController.addListener(
       () {
         value = _animationTween!.evaluate(require(slidingController));
-        if (value < widget.successThreshold) {
-          canTriggerSuccess = true;
-        }
-
-        if (canTriggerSuccess && value >= 1.0) {
-          widget.onSuccess();
-          canTriggerSuccess = false;
-        }
-
         markNeedsRebuild();
       },
     );
@@ -133,6 +140,7 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Loggin
     }
 
     if (oldWidget.value != widget.value && widget.value != null) {
+      canTriggerSuccess = require(widget.value).value < widget.successThreshold;
       animateTo(require(widget.value).value, animateToSides: require(widget.value).runAnimations);
     }
 
@@ -141,11 +149,10 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Loggin
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: SizedBox(
-        height: widget.height,
-        child: LayoutBuilder(builder: (context, constraints) {
+    return SizedBox(
+      height: widget.height,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
           slideSize = constraints.maxWidth - widget.thumbWidth;
           return Listener(
             behavior: HitTestBehavior.opaque,
@@ -161,7 +168,6 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Loggin
               if (!widget.enabled || isSliding) {
                 return;
               }
-
               isTapped = false;
               _runAnimations();
             },
@@ -210,7 +216,7 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Loggin
               ],
             ),
           );
-        }),
+        },
       ),
     );
   }
@@ -295,4 +301,8 @@ class SlidingValue {
   String toString() {
     return 'SlidingValue{value: $value, runAnimations: $runAnimations}';
   }
+
+  static SlidingButtonWidgetBuilder loadingOverlayBuilder = (context, _) {
+    return Center(child: CupertinoActivityIndicator());
+  };
 }

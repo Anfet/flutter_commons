@@ -20,7 +20,7 @@ final class Loadable<T> {
 
   bool get inProgress => isLoading;
 
-  bool get inWorking => isLoading;
+  bool get isWorking => isLoading;
 
   const Loadable.idle()
       : isLoading = false,
