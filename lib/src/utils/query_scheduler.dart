@@ -1,9 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_commons/flutter_commons.dart';
-import 'package:flutter_commons/src/data/lib/disposable.dart';
-import 'package:flutter_commons/src/exceptions.dart';
-import 'package:flutter_logger/flutter_logger.dart';
 
 typedef QueryFailCallback<T> = FutureOr<QueryRetry> Function(QueryRequest<T> request, Object exception, int retries);
 

@@ -1,5 +1,3 @@
-
-
 import 'package:flutter_commons/src/consts.dart';
 import 'package:flutter_commons/src/data/lib/string_source.dart';
 import 'package:flutter_commons/src/extensions/any_ext.dart';

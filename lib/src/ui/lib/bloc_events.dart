@@ -14,7 +14,7 @@ class BlocEvents {
 class OnInit implements BlocEvent {
   final Object? arguments;
 
-  OnInit._({this.arguments});
+  const OnInit._({this.arguments});
 
   @override
   String toString() {

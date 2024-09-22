@@ -1,6 +1,7 @@
 // ignore: unused_element
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_commons/flutter_commons.dart';
 
@@ -42,7 +43,7 @@ class SlidingButton extends StatefulWidget {
 
   ///функция вызывается когда тумба достигает value = 1.0.
   ///Может быть вызвана только 1 раз при прогрессе более чем [successThreshold].
-  final VoidCallback onSuccess;
+  final AsyncValueGetter<bool> onSuccess;
 
   ///длительность анимации кнопки.
   ///по умолчанию [kDefaultAnimationDuration] или 300 msec
@@ -98,7 +99,7 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Loggin
     }
 
     if (canTriggerSuccess && value >= 1.0) {
-      widget.onSuccess();
+      runSuccess();
       canTriggerSuccess = false;
     }
   }
@@ -139,7 +140,7 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Loggin
       slidingDuration = widget.slidingDuration ?? SlidingButton.kDefaultAnimationDuration;
     }
 
-    if (oldWidget.value != widget.value && widget.value != null) {
+    if (widget.value != null) {
       canTriggerSuccess = require(widget.value).value < widget.successThreshold;
       animateTo(require(widget.value).value, animateToSides: require(widget.value).runAnimations);
     }
@@ -266,6 +267,13 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Loggin
   static SlidingButtonColorBuilder kDefaultThumbBackgrounColorBuilder = (context, percent) {
     return Theme.of(context).colorScheme.primary;
   };
+
+  Future runSuccess() async {
+    var success = await widget.onSuccess();
+    if (!success) {
+      runAnimationToStart();
+    }
+  }
 }
 
 class SlidingValue {
@@ -303,6 +311,6 @@ class SlidingValue {
   }
 
   static SlidingButtonWidgetBuilder loadingOverlayBuilder = (context, _) {
-    return Center(child: CupertinoActivityIndicator());
+    return const Center(child: CupertinoActivityIndicator());
   };
 }

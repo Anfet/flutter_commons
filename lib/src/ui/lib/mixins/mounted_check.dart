@@ -21,5 +21,4 @@ mixin MountedCheck<S extends StatefulWidget> on State<S> {
   ///
   /// например, если в результате `await longLastingOp` меняеются данные
   void markNeedsRebuild() => setState(nothing);
-
 }

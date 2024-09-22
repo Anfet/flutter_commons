@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_commons/flutter_commons.dart';
 
 @immutable
 final class Loadable<T> {
@@ -38,7 +37,8 @@ final class Loadable<T> {
       : isLoading = false,
         value = null;
 
-  const Loadable(this.value, {
+  const Loadable(
+    this.value, {
     this.isLoading = false,
     this.error,
     this.stack,

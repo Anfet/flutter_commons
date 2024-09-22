@@ -142,13 +142,19 @@ extension ListExt<T> on List<T> {
     return result;
   }
 
-  List<T> replaceEach(T mapper(T it)) {
+  List<T> replaceEach(T Function(T it) mapper) {
     final result = <T>[];
     for (var i = 0; i < length; i++) {
       var item = this[i];
       item = mapper(item);
       this[i] = item;
     }
+    return result;
+  }
+
+  List<T> replaceAt(int index, T mapper(T old)) {
+    var result = clone();
+    result[index] = mapper(result[index]);
     return result;
   }
 }

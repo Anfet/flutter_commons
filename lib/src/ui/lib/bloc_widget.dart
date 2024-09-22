@@ -43,8 +43,7 @@ abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>
     }
   }
 
-  Widget _childBuilder(context) =>
-      BlocConsumer<B, S>(
+  Widget _childBuilder(context) => BlocConsumer<B, S>(
         bloc: _bloc,
         listener: (context, state) => onReactions(context, _previous, state),
         listenWhen: (previous, current) {
@@ -67,16 +66,17 @@ abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>
       isBlocProvided = _bloc != null;
     }
 
-
-    return require(isBlocProvided) ? _childBuilder(context) : BlocProvider<B>(
-      create: (_) {
-        _bloc = require(onCreateBloc(context));
-        final args = context.routeArguments;
-        bloc.add(BlocEvents.init(arguments: args));
-        return bloc;
-      },
-      child: _childBuilder(context),
-      lazy: false,
-    );
+    return require(isBlocProvided)
+        ? _childBuilder(context)
+        : BlocProvider<B>(
+            create: (_) {
+              _bloc = require(onCreateBloc(context));
+              final args = context.routeArguments;
+              bloc.add(BlocEvents.init(arguments: args));
+              return bloc;
+            },
+            lazy: false,
+            child: _childBuilder(context),
+          );
   }
 }

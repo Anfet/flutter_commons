@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:flutter_commons/src/exceptions.dart';
 
-
 class StringSource {
   int _pos = 0;
   final String text;
