@@ -96,11 +96,9 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Loggin
     _value = v;
     if (value < widget.successThreshold) {
       canTriggerSuccess = true;
-    }
-
-    if (canTriggerSuccess && value >= 1.0) {
-      runSuccess();
+    } else if (canTriggerSuccess && value >= 1.0) {
       canTriggerSuccess = false;
+      runSuccess();
     }
   }
 
@@ -141,7 +139,6 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Loggin
     }
 
     if (widget.value != null) {
-      canTriggerSuccess = require(widget.value).value < widget.successThreshold;
       animateTo(require(widget.value).value, animateToSides: require(widget.value).runAnimations);
     }
 
@@ -222,30 +219,26 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Loggin
     );
   }
 
-  void runAnimationToSuccess() {
+  Future runAnimationToSuccess() async {
     if (value < 1.0) {
       _animationTween = Tween<double>(begin: value, end: 1.0);
       slidingController.reset();
       slidingController.duration = (slidingDuration.inMilliseconds * ((value - 1.0).abs())).truncate().milliseconds;
-      slidingController.forward();
+      return slidingController.forward().orCancel;
     }
   }
 
-  void runAnimationToStart() {
+  Future runAnimationToStart() async {
     if (value > 0.0) {
       _animationTween = Tween<double>(begin: value, end: 0.0);
       slidingController.reset();
       slidingController.duration = (slidingDuration.inMilliseconds * ((value - 0.0).abs())).truncate().milliseconds;
-      slidingController.forward();
+      return slidingController.forward().orCancel;
     }
   }
 
-  void _runAnimations() {
-    if (value > widget.successThreshold) {
-      runAnimationToSuccess();
-    } else {
-      runAnimationToStart();
-    }
+  Future _runAnimations() {
+    return value > widget.successThreshold ? runAnimationToSuccess() : runAnimationToStart();
   }
 
   Future animateTo(double value, {bool animateToSides = false}) async {
@@ -269,9 +262,10 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Loggin
   };
 
   Future runSuccess() async {
+    warn('runSuccess');
     var success = await widget.onSuccess();
     if (!success) {
-      runAnimationToStart();
+      await runAnimationToStart();
     }
   }
 }

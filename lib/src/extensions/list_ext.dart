@@ -152,7 +152,7 @@ extension ListExt<T> on List<T> {
     return result;
   }
 
-  List<T> replaceAt(int index, T mapper(T old)) {
+  List<T> replaceAt(int index, T Function(T old) mapper) {
     var result = clone();
     result[index] = mapper(result[index]);
     return result;
