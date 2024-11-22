@@ -22,6 +22,8 @@ extension DurationExt on Duration {
   }
 
   Future get wait => Future.delayed(this);
+
+  Future get future => Future.delayed(this);
 }
 
 extension IntForDuration on int {

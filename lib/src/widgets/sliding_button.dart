@@ -57,6 +57,7 @@ class SlidingButton extends StatefulWidget {
   final double? thumbElevation;
 
   final bool enabled;
+  final bool isInteractable;
 
   const SlidingButton({
     super.key,
@@ -74,6 +75,7 @@ class SlidingButton extends StatefulWidget {
     this.slidingDuration,
     this.thumbElevation,
     this.enabled = true,
+    this.isInteractable = true,
   });
 
   @override
@@ -155,7 +157,7 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Loggin
           return Listener(
             behavior: HitTestBehavior.opaque,
             onPointerDown: (details) {
-              if (!widget.enabled || isSliding) {
+              if (!widget.enabled || isSliding || !widget.isInteractable) {
                 return;
               }
 
@@ -163,14 +165,14 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Loggin
               tapOffset = Offset(thumbWidth.requireFrom - details.localPosition.dx, widget.height - details.localPosition.dy);
             },
             onPointerUp: (details) {
-              if (!widget.enabled || isSliding) {
+              if (!widget.enabled || isSliding || !widget.isInteractable) {
                 return;
               }
               isTapped = false;
               _runAnimations();
             },
             onPointerMove: (details) {
-              if (!widget.enabled || !isTapped) {
+              if (!widget.enabled || !isTapped || !widget.isInteractable) {
                 return;
               }
 

@@ -8,6 +8,10 @@ T require<T>(T? obj) {
   return obj;
 }
 
+Iterable<T> nonEmpty<T>(Iterable<T>? obj) {
+  return obj ?? [];
+}
+
 class RequireException extends AppException {
   RequireException(super.message);
 }
