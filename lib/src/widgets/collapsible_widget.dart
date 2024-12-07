@@ -71,7 +71,9 @@ class _CollapsibleWidgetState extends State<CollapsibleWidget> with MountedCheck
     }
 
     if (oldWidget.child.runtimeType != widget.child.runtimeType || oldWidget.child.key != widget.child.key) {
-      requireAdjust = true;
+      if (expanded) {
+        requireAdjust = true;
+      }
     }
 
     super.didUpdateWidget(oldWidget);
