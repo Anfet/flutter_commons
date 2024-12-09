@@ -1,6 +1,7 @@
 import 'randomizer.dart';
 
-final nothing = () {};
+const nbsp = ' ';
+final void Function() nothing = () {};
 
 class Strings {
   Strings._();

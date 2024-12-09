@@ -1,206 +1,271 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_commons/flutter_commons.dart';
 
+typedef CollapsibleWidgetBuilder = Widget Function(Animation<double> animation, Widget child);
+
 class CollapsibleWidget extends StatefulWidget {
   final Widget child;
   final bool expanded;
-  final ValueSetter<bool>? onCollapseChanged;
-  final Duration duration;
-  final Alignment alignment;
-  final Widget Function(BuildContext context, Animation<double> animation, Widget child) builder;
+  final Duration? duration;
+  final Alignment? alignment;
+  final CollapsibleWidgetBuilder? builder;
+  final Clip? clipBehavior;
+  final Curve? curve;
+  final Axis orientation;
 
   const CollapsibleWidget({
     super.key,
     required this.child,
-    required this.duration,
+    this.duration,
     this.expanded = false,
-    this.onCollapseChanged,
-    this.alignment = Alignment.topCenter,
-    this.builder = defaultAnimationBuilder,
+    this.alignment,
+    this.clipBehavior,
+    this.curve,
+    this.builder,
+    this.orientation = Axis.vertical,
   });
 
   @override
   State<CollapsibleWidget> createState() => _CollapsibleWidgetState();
 
-  static Widget defaultAnimationBuilder(BuildContext context, Animation<double> animation, Widget child) => child;
+  static const Duration defaultAnimationDuration = const Duration(microseconds: 300);
+
+  static CollapsibleWidgetBuilder get defaultAnimationBuilder => (Animation<double> animation, Widget child) => child;
 }
 
-class _CollapsibleWidgetState extends State<CollapsibleWidget> with MountedCheck, Logging {
-  late bool expanded = widget.expanded;
-  bool requireExpand = false;
-  bool requireCollapse = false;
-
-  double? targetSize;
-
-  double get rTargetSize => targetSize ?? 0;
-
-  double? actualSize;
-
-  double get rActualSize => actualSize ?? 0;
-
-  double? fixedSize;
-
-  double get rFixedSize => fixedSize ?? 0;
-
-  double childSize = 0;
-
-  double get visiblePercentage => rFixedSize == 0 ? 0 : rActualSize / rFixedSize;
-
-  bool requireAdjust = false;
-
-  Timer? timer;
-  DateTime timestamp = DateTime(0);
-
-  @override
-  void dispose() {
-    timer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(covariant CollapsibleWidget oldWidget) {
-    if (widget.expanded != oldWidget.expanded) {
-      requireExpand = widget.expanded;
-      requireCollapse = !requireExpand;
-      requireAdjust = true;
-    }
-
-    if (oldWidget.child.runtimeType != widget.child.runtimeType || oldWidget.child.key != widget.child.key) {
-      if (expanded) {
-        requireAdjust = true;
-      }
-    }
-
-    super.didUpdateWidget(oldWidget);
-  }
+class _CollapsibleWidgetState extends State<CollapsibleWidget> with MountedCheck {
+  var _animation = .0;
 
   @override
   Widget build(BuildContext context) {
-    var visiblePosition = (rActualSize / max(rFixedSize, rTargetSize)).clamp(0.0, 1.0);
-    // warn('visiblePosition=$visiblePosition');
-    return _CollapsibleRenderObject(
-      key: UniqueKey(),
-      state: this,
-      child: widget.builder(context, AlwaysStoppedAnimation<double>(visiblePosition), widget.child),
+    return Builder(
+      builder: (context) {
+        return (widget.builder ?? CollapsibleWidget.defaultAnimationBuilder).call(
+          AlwaysStoppedAnimation(_animation),
+          _CollapsibleWidget(
+            duration: widget.duration ?? CollapsibleWidget.defaultAnimationDuration,
+            alignment: widget.alignment ?? Alignment.topCenter,
+            curve: widget.curve ?? Curves.linear,
+            clipBehavior: widget.clipBehavior ?? Clip.hardEdge,
+            builder: widget.builder ?? CollapsibleWidget.defaultAnimationBuilder,
+            expanded: widget.expanded,
+            child: widget.child,
+            onAnimationChanged: (value) {
+              _animation = value;
+              markNeedsRebuild();
+            },
+            orientation: widget.orientation,
+          ),
+        );
+      },
     );
-  }
-
-  Size onChildSizeChanged(Size childDrySize) {
-    childSize = childDrySize.height;
-    // warn('childSize = $childSize');
-    if (fixedSize == null) {
-      targetSize = expanded ? childSize : 0.0;
-      actualSize = targetSize;
-    }
-    fixedSize ??= childDrySize.height;
-    if (requireAdjust) {
-      requireAdjust = false;
-      readjust();
-    }
-
-    var visibleSize = rFixedSize * visiblePercentage;
-    // warn('visibleSize = $visibleSize');
-    var size = Size(childDrySize.width, visibleSize);
-    return size;
-  }
-
-  void onTick(_) {
-    var elapsedMsec = DateTime.now().difference(timestamp).inMilliseconds;
-
-    timestamp = DateTime.now();
-
-    var maxSize = max(rTargetSize, rFixedSize);
-    var travelledPx = (elapsedMsec / widget.duration.inMilliseconds) * maxSize;
-    var travelledMultilier = rTargetSize > rFixedSize ? 1 : -1;
-    travelledPx *= travelledMultilier;
-
-    actualSize = clampDouble(rActualSize + travelledPx, 0, maxSize);
-    fixedSize = max(rActualSize, rFixedSize);
-
-    var actualReachedBounds = rActualSize <= 0.0 || rActualSize >= maxSize;
-    var actualReachedTarget = travelledMultilier > 0 ? rActualSize > rTargetSize : rActualSize < rTargetSize;
-
-    if (actualReachedBounds || actualReachedTarget) {
-      expanded = requireExpand;
-      requireCollapse = false;
-      requireExpand = false;
-      fixedSize = targetSize;
-      actualSize = targetSize;
-      // warn('ticker stopped; actual = $rActualSize');
-      widget.onCollapseChanged?.call(expanded);
-
-      timer?.cancel();
-    }
-
-    markNeedsRebuild();
-  }
-
-  void readjust() {
-    // ticker?.dispose();
-    timer?.cancel();
-
-    if (childSize != fixedSize) {
-      targetSize = childSize;
-    }
-
-    if (requireExpand) {
-      requireExpand = false;
-      targetSize = childSize;
-    }
-
-    if (requireCollapse) {
-      requireCollapse = false;
-      targetSize = 0.0;
-    }
-
-    if (targetSize == actualSize) {
-      return;
-    }
-
-    // warn('ticker start; from=$actualSize; to=$targetSize');
-    timestamp = DateTime.now();
-    timer = Timer.periodic(30.milliseconds, onTick);
   }
 }
 
-class _CollapsibleRenderObject extends SingleChildRenderObjectWidget {
-  final _CollapsibleWidgetState state;
+class _CollapsibleWidget extends SingleChildRenderObjectWidget {
+  final bool expanded;
+  final Duration duration;
+  final Alignment alignment;
+  final CollapsibleWidgetBuilder builder;
+  final Clip? clipBehavior;
+  final Curve curve;
+  final ValueChanged<double> onAnimationChanged;
+  final Axis orientation;
 
-  _CollapsibleRenderObject({
-    super.key,
-    required super.child,
-    required this.state,
+  _CollapsibleWidget({
+    super.child,
+    required this.duration,
+    required this.expanded,
+    required this.alignment,
+    required this.builder,
+    required this.curve,
+    this.clipBehavior,
+    required this.onAnimationChanged,
+    required this.orientation,
   });
 
   @override
-  RenderObject createRenderObject(BuildContext context) => _RenderCollapsibleObject(state: state);
+  RenderObject createRenderObject(BuildContext context) {
+    return _RenderCollapsibleWidget(
+      textDirection: Directionality.maybeOf(context),
+      curve: curve,
+      duration: duration,
+      builder: builder,
+      expanded: expanded,
+      clipBehavior: clipBehavior,
+      alignment: alignment,
+      onAnimationChanged: onAnimationChanged,
+      orientation: orientation,
+    );
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderCollapsibleWidget renderObject) {
+    renderObject
+      ..expanded = expanded
+      ..alignment = alignment
+      ..duration = duration
+      ..curve = curve
+      ..textDirection = Directionality.maybeOf(context)
+      ..clipBehavior = clipBehavior ?? Clip.hardEdge
+      ..onAnimationChanged = onAnimationChanged
+      ..orientation = orientation;
+  }
 }
 
-class _RenderCollapsibleObject extends RenderProxyBox {
-  final _CollapsibleWidgetState state;
+class _RenderCollapsibleWidget extends RenderAligningShiftedBox with Logging {
+  ValueChanged<double> onAnimationChanged;
+  bool _expanded;
+  Duration _duration;
+  CollapsibleWidgetBuilder builder;
+  Clip clipBehavior;
+  Curve curve;
+  Axis orientation;
 
-  _RenderCollapsibleObject({
-    RenderBox? child,
-    required this.state,
-  }) : super(child);
+  _RenderCollapsibleWidget({
+    super.textDirection,
+    required bool expanded,
+    required Duration duration,
+    super.alignment,
+    required this.builder,
+    Clip? clipBehavior,
+    required this.curve,
+    required this.onAnimationChanged,
+    required this.orientation,
+  })  : _duration = duration,
+        _expanded = expanded,
+        this.clipBehavior = clipBehavior ?? Clip.hardEdge;
+
+  @override
+  BoxConstraints get constraints => super.constraints as BoxConstraints;
+
+  set expanded(bool value) {
+    if (_expanded != value) {
+      _expanded = value;
+      // warn('expanded changed to $_expanded');
+      requireResize = true;
+      markNeedsLayout();
+      markNeedsSemanticsUpdate();
+    }
+  }
+
+  set duration(Duration value) {
+    _duration = value;
+    markNeedsLayout();
+    markNeedsSemanticsUpdate();
+  }
+
+  Timer? timer;
+  double animationPosition = 0.0;
+  DateTime timestamp = DateTime(0);
+  final SizeTween sizeTween = SizeTween(begin: Size.zero, end: Size.zero);
+  late final CurveTween curveTween = CurveTween(curve: curve);
+  bool hasVisualOverflow = false;
+  Size childSize = Size.zero;
+  Size targetSize = Size.zero;
+  bool requireResize = false;
+
+  Size get _animatedSize => sizeTween.transform(curveTween.transform(animationPosition)) ?? Size.zero;
 
   @override
   void performLayout() {
-    var selfConstraints = constraints;
-    var childDrySize = child?.computeDryLayout(constraints) ?? computeSizeForNoChild(constraints);
-    size = state.onChildSizeChanged(childDrySize);
-    // var childDryHeight = child?.computeDryLayout(constraints).height;
-    // var measured = (child?..layout(selfConstraints, parentUsesSize: true))?.size ?? computeSizeForNoChild(constraints);
-    // print('childRealHeight = ${measured.height}');
-    // size = Size(measured.width, measured.height * heightLimit);
-    selfConstraints = selfConstraints.copyWith(maxHeight: size.height);
-    child?..layout(selfConstraints, parentUsesSize: true);
+    hasVisualOverflow = false;
+    final BoxConstraints constraints = this.constraints;
+    if (constraints.isTight) {
+      // warn('timer cancel; no child');
+      timer?.cancel();
+      size = sizeTween.begin = sizeTween.end = constraints.smallest;
+      child?.layout(constraints);
+      return;
+    }
 
-    // print('performing layout; size  = $size; height limit = ${heightLimit}');
+    child!.layout(constraints, parentUsesSize: true);
+    childSize = child!.size;
+    targetSize = _expanded ? childSize : Size.zero;
+
+    if (sizeTween.end != targetSize || requireResize) {
+      // warn('child size changed = ${sizeTween.end} > ${targetSize}|${_expanded}');
+      sizeTween.begin = _animatedSize;
+      sizeTween.end = debugAdoptSize(targetSize);
+      _restartAnimation();
+    }
+
+    size = constraints.constrain(_animatedSize);
+    alignChild();
+
+    if (size.width < sizeTween.end!.width || size.height < sizeTween.end!.height) {
+      hasVisualOverflow = true;
+    }
+  }
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+
+    markNeedsLayout();
+  }
+
+  @override
+  void detach() {
+    timer?.cancel();
+    super.detach();
+  }
+
+  @override
+  @protected
+  Size computeDryLayout(covariant BoxConstraints constraints) {
+    // warn('compute dry layout');
+    if (child == null || constraints.isTight || !_expanded) {
+      return constraints.smallest;
+    }
+
+    var size = child!.getDryLayout(constraints);
+    return constraints.constrain(size);
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final Rect rect = Offset.zero & size;
+    _clipRectLayer.layer = context.pushClipRect(
+      needsCompositing,
+      offset,
+      rect,
+      super.paint,
+      clipBehavior: clipBehavior,
+      oldLayer: _clipRectLayer.layer,
+    );
+  }
+
+  final LayerHandle<ClipRectLayer> _clipRectLayer = LayerHandle<ClipRectLayer>();
+
+  void _restartAnimation() {
+    requireResize = false;
+    animationPosition = 0.0;
+    timestamp = DateTime.now();
+    timer?.cancel();
+    timer = Timer.periodic(30.milliseconds, recalculate);
+  }
+
+  void recalculate(Timer timer) {
+    var elapsedMsec = DateTime.now().difference(timestamp).inMilliseconds;
+
+    var travelledPercentage = (elapsedMsec / _duration.inMilliseconds);
+    animationPosition = travelledPercentage.clamp(0.0, 1.0);
+    // warn('tick; elapsed=${elapsedMsec}; position=${animationPosition.toStringAsFixed(2)};');
+    if (animationPosition == 0.0 || animationPosition == 1.0) {
+      timer.cancel();
+    }
+
+    var ap = switch (orientation) {
+      Axis.horizontal => _animatedSize.width / max(sizeTween.end!.width, sizeTween.begin!.width),
+      Axis.vertical => _animatedSize.width / max(sizeTween.end!.height, sizeTween.begin!.height),
+    }
+        .clamp(0.0, 1.0);
+    onAnimationChanged(ap);
+    markNeedsLayout();
   }
 }

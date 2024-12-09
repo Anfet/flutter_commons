@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:flutter/widgets.dart';
+
 extension NumberExt on num {
   String get asSigned => this > 0 ? "+$this" : "$this";
 
@@ -33,5 +35,28 @@ extension DoubleExt on double {
 
   double get asRadians {
     return this * pi / 180;
+  }
+}
+
+sealed class NumericUtils {
+  NumericUtils._();
+
+  static double calculateEnteredQuantity(TextEditingController controller, {int maxLength = 8, int maxFraction = 2}) {
+    var amount = (double.tryParse(controller.text.replaceAll(',', '.')) ?? 0);
+    var truncated = amount.truncFraction(maxFraction).abs();
+
+    var fraction = truncated.fraction;
+    var i = truncated.toInt();
+    if ('$i'.length > maxLength) {
+      truncated = (truncated / 10);
+      truncated = truncated.truncateToDouble() + fraction;
+    }
+
+    if ('$amount' != '$truncated' || amount.fraction > truncated.fraction || controller.text.length > '$amount'.length) {
+      var fractionLimit = pow(1, -(maxFraction + 1));
+      controller.text = '${truncated.fraction < fractionLimit ? truncated.toInt() : truncated}';
+    }
+
+    return truncated;
   }
 }
