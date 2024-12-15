@@ -8,11 +8,15 @@ class CustomFormatter {
 
   final String text;
   final String pattern;
-  late final _patternSource = StringSource(pattern);
-  late final _textSource = StringSource(text);
   final bool stripPlaceholdersIfNoText;
 
-  CustomFormatter({required this.text, required this.pattern, this.stripPlaceholdersIfNoText = false});
+  ///starts parsing from end characters. usefull for numbers
+  final bool backwards;
+
+  late final _textSource = StringSource(text, backwards: backwards);
+  late final _patternSource = StringSource(pattern, backwards: backwards);
+
+  CustomFormatter({required this.text, required this.pattern, this.stripPlaceholdersIfNoText = false, this.backwards = false});
 
   String get formatted => _format();
 
@@ -20,12 +24,8 @@ class CustomFormatter {
     String formatted = "";
 
     while (_patternSource.hasMore) {
-      final patternLetter = _patternSource.consume().let(
-            (it) => _PatternLetter(
-              character: it,
-              pattern: it.pattern,
-            ),
-          );
+      var char = _patternSource.consume();
+      final patternLetter = _PatternLetter(character: char, pattern: char.pattern);
 
       if (patternLetter.pattern == _Pattern.direct) {
         if (_textSource.peek == patternLetter.character) {
@@ -36,20 +36,40 @@ class CustomFormatter {
           break;
         }
 
-        formatted += patternLetter.character;
+        if (backwards) {
+          formatted = patternLetter.character + formatted;
+        } else {
+          formatted += patternLetter.character;
+        }
       } else if (patternLetter.pattern == _Pattern.digit) {
-        final sourceLetter = _textSource.consume();
-        final int? digit = int.tryParse(sourceLetter);
-        if (digit == null) {
+        while (_textSource.hasMore) {
+          final sourceLetter = _textSource.consume();
+          final int? digit = int.tryParse(sourceLetter);
+          if (digit == null) {
+            continue;
+          }
+          if (backwards) {
+            formatted = "$digit" + formatted;
+          } else {
+            formatted += "$digit";
+          }
+
           break;
         }
-        formatted += "$digit";
+
+        if (!_textSource.hasMore) {
+          break;
+        }
       } else if (patternLetter.pattern == _Pattern.any) {
         final any = _textSource.consume();
         if (any == Strings.empty) {
           break;
         }
-        formatted += any;
+        if (backwards) {
+          formatted = any + formatted;
+        } else {
+          formatted += any;
+        }
       }
     }
 

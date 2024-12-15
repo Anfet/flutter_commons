@@ -55,7 +55,9 @@ final class Loadable<T> {
 
   Loadable<T> result([T? value]) => Loadable(value, isLoading: isLoading, error: error);
 
-  Loadable<X> change<X>(X value) => Loadable(value, isLoading: isLoading, error: error);
+  Loadable<X> change<X>(X? value) => Loadable(value, isLoading: isLoading, error: error);
+
+  Loadable<X> remap<X>(X? value) => Loadable(value, isLoading: isLoading, error: error);
 
   Loadable<T> clearResult() => Loadable(null, isLoading: isLoading, error: error);
 

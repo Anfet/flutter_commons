@@ -42,7 +42,7 @@ sealed class NumericUtils {
   NumericUtils._();
 
   static double calculateEnteredQuantity(TextEditingController controller, {int maxLength = 8, int maxFraction = 2}) {
-    var amount = (double.tryParse(controller.text.replaceAll(',', '.')) ?? 0);
+    var amount = (double.tryParse(controller.text.replaceAll(',', '.').replaceAll(' ', '')) ?? 0);
     var truncated = amount.truncFraction(maxFraction).abs();
 
     var fraction = truncated.fraction;
