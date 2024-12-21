@@ -15,7 +15,7 @@ class CollapsibleWidget extends StatefulWidget {
   final CollapsibleWidgetBuilder? builder;
   final Clip? clipBehavior;
   final Curve? curve;
-  final Axis orientation;
+  final Axis? orientation;
 
   const CollapsibleWidget({
     super.key,
@@ -26,7 +26,7 @@ class CollapsibleWidget extends StatefulWidget {
     this.clipBehavior,
     this.curve,
     this.builder,
-    this.orientation = Axis.vertical,
+    this.orientation,
   });
 
   @override
@@ -74,7 +74,7 @@ class _CollapsibleWidget extends SingleChildRenderObjectWidget {
   final Clip? clipBehavior;
   final Curve curve;
   final ValueChanged<double> onAnimationChanged;
-  final Axis orientation;
+  final Axis? orientation;
 
   _CollapsibleWidget({
     super.child,
@@ -85,7 +85,7 @@ class _CollapsibleWidget extends SingleChildRenderObjectWidget {
     required this.curve,
     this.clipBehavior,
     required this.onAnimationChanged,
-    required this.orientation,
+    this.orientation,
   });
 
   @override
@@ -124,7 +124,7 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox with Logging {
   CollapsibleWidgetBuilder builder;
   Clip clipBehavior;
   Curve curve;
-  Axis orientation;
+  Axis? orientation;
 
   _RenderCollapsibleWidget({
     super.textDirection,
@@ -135,8 +135,9 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox with Logging {
     Clip? clipBehavior,
     required this.curve,
     required this.onAnimationChanged,
-    required this.orientation,
-  })  : _duration = duration,
+    this.orientation,
+  })
+      : _duration = duration,
         _expanded = expanded,
         this.clipBehavior = clipBehavior ?? Clip.hardEdge;
 
@@ -169,7 +170,18 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox with Logging {
   Size targetSize = Size.zero;
   bool requireResize = false;
 
-  Size get _animatedSize => sizeTween.transform(curveTween.transform(animationPosition)) ?? Size.zero;
+  Size get _animatedSize {
+    var result = sizeTween.transform(curveTween.transform(animationPosition)) ?? Size.zero;
+    if (result == Size.zero) {
+      return result;
+    }
+
+    return switch (orientation) {
+      Axis.horizontal => Size(result.width, targetSize.height),
+      Axis.vertical => Size(targetSize.width, result.height),
+      _ => result,
+    };
+  }
 
   @override
   void performLayout() {
@@ -251,7 +263,10 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox with Logging {
   }
 
   void recalculate(Timer timer) {
-    var elapsedMsec = DateTime.now().difference(timestamp).inMilliseconds;
+    var elapsedMsec = DateTime
+        .now()
+        .difference(timestamp)
+        .inMilliseconds;
 
     var travelledPercentage = (elapsedMsec / _duration.inMilliseconds);
     animationPosition = travelledPercentage.clamp(0.0, 1.0);
@@ -260,9 +275,12 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox with Logging {
       timer.cancel();
     }
 
+    var widthAp = _animatedSize.width / max(sizeTween.end!.width, sizeTween.begin!.width);
+    var heightAp = _animatedSize.height / max(sizeTween.end!.height, sizeTween.begin!.height);
     var ap = switch (orientation) {
-      Axis.horizontal => _animatedSize.width / max(sizeTween.end!.width, sizeTween.begin!.width),
-      Axis.vertical => _animatedSize.width / max(sizeTween.end!.height, sizeTween.begin!.height),
+      Axis.horizontal => widthAp,
+      Axis.vertical => heightAp,
+      _ => max(widthAp, heightAp),
     }
         .clamp(0.0, 1.0);
     onAnimationChanged(ap);
