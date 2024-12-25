@@ -1,6 +1,6 @@
 import 'dart:math';
-
 import 'package:flutter/widgets.dart';
+import 'package:flutter_commons/flutter_commons.dart';
 
 extension NumberExt on num {
   String get asSigned => this > 0 ? "+$this" : "$this";
@@ -41,20 +41,30 @@ extension DoubleExt on double {
 sealed class NumericUtils {
   NumericUtils._();
 
-  static double calculateEnteredQuantity(TextEditingController controller, {int maxLength = 8, int maxFraction = 2}) {
+  static double calculateEnteredQuantity(
+    TextEditingController controller, {
+    int maxLength = 8,
+    int maxFraction = 2,
+    TypedResultCallback<String, String>? onFormat,
+  }) {
     var amount = (double.tryParse(controller.text.replaceAll(',', '.').replaceAll(' ', '')) ?? 0);
     var truncated = amount.truncFraction(maxFraction).abs();
 
     var fraction = truncated.fraction;
     var i = truncated.toInt();
-    if ('$i'.length > maxLength) {
-      truncated = (truncated / 10);
-      truncated = truncated.truncateToDouble() + fraction;
+    var len = '$i'.length;
+    if (len > maxLength) {
+      truncated = double.parse('$i'.substring(0, maxLength));
+    }
+
+    if (maxFraction == 0) {
+      truncated = truncated.truncateToDouble();
     }
 
     if ('$amount' != '$truncated' || amount.fraction > truncated.fraction || controller.text.length > '$amount'.length) {
       var fractionLimit = pow(1, -(maxFraction + 1));
-      controller.text = '${truncated.fraction < fractionLimit ? truncated.toInt() : truncated}';
+      var text = '${truncated.fraction < fractionLimit ? truncated.toInt() : truncated}';
+      controller.text = onFormat?.call(text) ?? text;
     }
 
     return truncated;
