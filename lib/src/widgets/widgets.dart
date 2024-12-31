@@ -8,3 +8,5 @@ export 'digit_keyboard/pin_dots.dart';
 export 'sliders/slider_no_padding.dart';
 export 'sliding_button.dart';
 export 'collapsible_widget.dart';
+export 'sliding_widget.dart';
+export 'revealing_widget.dart';
