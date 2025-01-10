@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+@pragma("vm:prefer-inline")
 Widget EmptyBox() => const SizedBox();
 
 class VSpacer extends StatelessWidget {

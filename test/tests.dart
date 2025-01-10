@@ -14,11 +14,18 @@ void main() {
 
   test(
     'custom formatter backwards',
-        () {
+    () {
       var text = '1234567';
       var result = CustomFormatter(text: text, pattern: '# ### ### ###', backwards: true).formatted;
       print(result);
       assert(result == '1 234 567');
     },
   );
+
+  test('as', () async {
+    var m = {'a': 'b'};
+    var f = Future.value(m);
+    var x11 = await f.map((key, value) => MapEntry(1, 2));
+
+  },);
 }

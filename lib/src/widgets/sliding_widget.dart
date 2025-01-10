@@ -8,6 +8,7 @@ class SlidingWidget extends StatefulWidget {
   final Curve curve;
   final SlidingTransitionBuilder? builder;
   final Duration? delay;
+  final SlidingPosition slidingPosition;
 
   const SlidingWidget({
     super.key,
@@ -17,6 +18,7 @@ class SlidingWidget extends StatefulWidget {
     this.curve = Curves.linear,
     this.builder,
     this.delay,
+    this.slidingPosition = SlidingPosition.start,
   });
 
   @override
@@ -47,7 +49,13 @@ class _SlidingWidgetState extends State<SlidingWidget> with SingleTickerProvider
       ),
       end: Offset.zero,
     ).animate(_animation);
-    (widget.delay ?? Duration.zero).future.then((value) => _animationController.forward());
+    if (widget.slidingPosition == SlidingPosition.start) {
+      (widget.delay ?? Duration.zero).future.then((value) => _animationController.forward());
+    }
+
+    if (widget.slidingPosition == SlidingPosition.end) {
+      _animationController.value = 1.0;
+    }
     super.initState();
   }
 
@@ -55,6 +63,14 @@ class _SlidingWidgetState extends State<SlidingWidget> with SingleTickerProvider
   void dispose() {
     _animationController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant SlidingWidget oldWidget) {
+    if (oldWidget.slidingPosition != SlidingPosition.start && widget.slidingPosition == SlidingPosition.start) {
+      (widget.delay ?? Duration.zero).future.then((value) => _animationController.forward());
+    }
+    super.didUpdateWidget(oldWidget);
   }
 
   @override
@@ -77,6 +93,12 @@ enum SlidingOrientation {
   rightToLeft,
   topToBottom,
   bottomToTop,
+  ;
+}
+
+enum SlidingPosition {
+  start,
+  end,
   ;
 }
 

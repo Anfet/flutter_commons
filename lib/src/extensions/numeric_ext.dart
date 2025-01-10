@@ -50,7 +50,6 @@ sealed class NumericUtils {
     var amount = (double.tryParse(controller.text.replaceAll(',', '.').replaceAll(' ', '')) ?? 0);
     var truncated = amount.truncFraction(maxFraction).abs();
 
-    var fraction = truncated.fraction;
     var i = truncated.toInt();
     var len = '$i'.length;
     if (len > maxLength) {

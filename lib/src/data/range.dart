@@ -21,4 +21,8 @@ class Range<T> {
   T get requireFrom => from!;
 
   T get requireTill => till!;
+
+  bool get hasAnyRange => from != null || till != null;
+
+  bool get hasBothRanges => from != null && till != null;
 }

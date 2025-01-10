@@ -1,6 +1,5 @@
 import 'package:flutter_commons/src/consts.dart';
-import 'package:flutter_commons/src/data/lib/string_source.dart';
-import 'package:flutter_commons/src/extensions/any_ext.dart';
+import 'package:flutter_commons/src/data/string_source.dart';
 
 class CustomFormatter {
   static const digitPlaceholder = '#';
@@ -49,7 +48,7 @@ class CustomFormatter {
             continue;
           }
           if (backwards) {
-            formatted = "$digit" + formatted;
+            formatted = "$digit$formatted";
           } else {
             formatted += "$digit";
           }

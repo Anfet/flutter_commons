@@ -32,7 +32,7 @@ class CollapsibleWidget extends StatefulWidget {
   @override
   State<CollapsibleWidget> createState() => _CollapsibleWidgetState();
 
-  static const Duration defaultAnimationDuration = const Duration(microseconds: 300);
+  static const Duration defaultAnimationDuration = Duration(microseconds: 300);
 
   static CollapsibleWidgetBuilder get defaultAnimationBuilder => (Animation<double> animation, Widget child) => child;
 }
@@ -53,12 +53,12 @@ class _CollapsibleWidgetState extends State<CollapsibleWidget> with MountedCheck
             clipBehavior: widget.clipBehavior ?? Clip.hardEdge,
             builder: widget.builder ?? CollapsibleWidget.defaultAnimationBuilder,
             expanded: widget.expanded,
-            child: widget.child,
             onAnimationChanged: (value) {
               _animation = value;
               markNeedsRebuild();
             },
             orientation: widget.orientation,
+            child: widget.child,
           ),
         );
       },
@@ -76,7 +76,7 @@ class _CollapsibleWidget extends SingleChildRenderObjectWidget {
   final ValueChanged<double> onAnimationChanged;
   final Axis? orientation;
 
-  _CollapsibleWidget({
+  const _CollapsibleWidget({
     super.child,
     required this.duration,
     required this.expanded,
@@ -136,13 +136,10 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox with Logging {
     required this.curve,
     required this.onAnimationChanged,
     this.orientation,
-  })
-      : _duration = duration,
+  })  : _duration = duration,
         _expanded = expanded,
-        this.clipBehavior = clipBehavior ?? Clip.hardEdge;
+        clipBehavior = clipBehavior ?? Clip.hardEdge;
 
-  @override
-  BoxConstraints get constraints => super.constraints as BoxConstraints;
 
   set expanded(bool value) {
     if (_expanded != value) {
@@ -263,10 +260,7 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox with Logging {
   }
 
   void recalculate(Timer timer) {
-    var elapsedMsec = DateTime
-        .now()
-        .difference(timestamp)
-        .inMilliseconds;
+    var elapsedMsec = DateTime.now().difference(timestamp).inMilliseconds;
 
     var travelledPercentage = (elapsedMsec / _duration.inMilliseconds);
     animationPosition = travelledPercentage.clamp(0.0, 1.0);

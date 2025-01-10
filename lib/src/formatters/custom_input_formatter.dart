@@ -13,7 +13,7 @@ class CustomInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
     final somethingWasDeleted = oldValue.text.length > newValue.text.length;
-    var subbed;
+    String subbed;
     if (newValue.text.length < pattern.length) {
       var padded = backwards ? newValue.text.padLeft(pattern.length) : newValue.text.padRight(pattern.length);
       subbed = backwards ? padded.substring(pattern.length - newValue.text.length - 1, pattern.length) : padded.substring(0, pattern.length);

@@ -17,30 +17,26 @@ abstract class StorableProperty<T> {
 }
 
 abstract class StorablePropertyImpl<T> implements StorableProperty<T> {
-  final PropertyStorage _storage;
+  final PropertyStorage storage;
   final String name;
   final ValueSetter<T>? onSave;
 
-  late T _cachedValue;
-
-  @override
-  T get cachedValue => _cachedValue;
+  T get cachedValue;
 
   StorablePropertyImpl(
-    this._storage,
+    this.storage,
     this.name, {
     this.onSave,
   });
 
   @override
   Future<void> delete() async {
-    await _storage.delete(name).then((value) => getValue());
+    await storage.delete(name).then((value) => getValue());
   }
 
   @override
   Future<void> setValue(T val) async {
-    await _storage.set(name, '$val');
-    _cachedValue = val;
+    await storage.set(name, '$val');
     onSave?.call(val);
   }
 
@@ -49,54 +45,106 @@ abstract class StorablePropertyImpl<T> implements StorableProperty<T> {
 }
 
 final class BoolProperty extends StorablePropertyImpl<bool> {
-  BoolProperty(super._storage, super.name, {super.onSave}) {
-    _cachedValue = false;
-  }
+  late bool _cachedValue;
+  final bool defaultValue;
+
+  @override
+  bool get cachedValue => _cachedValue;
+
+  BoolProperty(super.storage, super.name, {super.onSave, this.defaultValue = false}) : _cachedValue = defaultValue;
 
   @override
   FutureOr<bool> getValue() async {
-    _cachedValue = bool.tryParse(await _storage.get(name)) ?? false;
+    if (await storage.exists(name)) {
+      _cachedValue = bool.tryParse(await storage.get(name)) ?? false;
+    } else {
+      _cachedValue = defaultValue;
+    }
     return cachedValue;
+  }
+
+  @override
+  Future<void> setValue(bool val) async {
+    await super.setValue(val);
+    _cachedValue = val;
   }
 }
 
 final class IntProperty extends StorablePropertyImpl<int> {
-  IntProperty(super._storage, super.name, {super.onSave}) {
-    _cachedValue = 0;
-  }
+  @override
+  int get cachedValue => _cachedValue;
+  late int _cachedValue;
+  final int defaultValue;
+
+  IntProperty(super.storage, super.name, {super.onSave, this.defaultValue = 0}) : _cachedValue = defaultValue;
 
   @override
   FutureOr<int> getValue() async {
-    _cachedValue = int.tryParse(await _storage.get(name)) ?? 0;
+    if (await storage.exists(name)) {
+      _cachedValue = int.tryParse(await storage.get(name)) ?? 0;
+    }
     return cachedValue;
+  }
+
+  @override
+  Future<void> setValue(int val) async {
+    await super.setValue(val);
+    _cachedValue = val;
   }
 }
 
 final class DoubleProperty extends StorablePropertyImpl<double> {
-  DoubleProperty(super._storage, super.name, {super.onSave}) {
-    _cachedValue = 0;
-  }
+  @override
+  double get cachedValue => _cachedValue;
+  late double _cachedValue;
+  final double defaultValue;
+
+  DoubleProperty(super.storage, super.name, {super.onSave, this.defaultValue = 0}) : _cachedValue = defaultValue;
 
   @override
   FutureOr<double> getValue() async {
-    _cachedValue = double.tryParse(await _storage.get(name)) ?? 0.0;
+    if (await storage.exists(name)) {
+      _cachedValue = double.tryParse(await storage.get(name)) ?? 0.0;
+    }
+
     return cachedValue;
+  }
+
+  @override
+  Future<void> setValue(double val) async {
+    await super.setValue(val);
+    _cachedValue = val;
   }
 }
 
 final class StringProperty extends StorablePropertyImpl<String> {
-  StringProperty(super._storage, super.name, {super.onSave}) {
-    _cachedValue = '';
-  }
+  @override
+  String get cachedValue => _cachedValue;
+  late String _cachedValue;
+  final String defaultValue;
+
+  StringProperty(super.storage, super.name, {super.onSave, this.defaultValue = ''}) : _cachedValue = defaultValue;
 
   @override
   FutureOr<String> getValue() async {
-    _cachedValue = await _storage.get(name);
+    if (await storage.exists(name)) {
+      _cachedValue = await storage.get(name);
+    }
     return cachedValue;
+  }
+
+  @override
+  Future<void> setValue(String val) async {
+    await super.setValue(val);
+    _cachedValue = val;
   }
 }
 
 class JsonProperty<T> extends StorablePropertyImpl<T> with Logging {
+  @override
+  T get cachedValue => _cachedValue;
+  late T _cachedValue;
+
   final T Function(Map<String, dynamic> json) fromJson;
   final Map<String, dynamic> Function(T data) toJson;
   final T Function() ifNotExist;
@@ -115,7 +163,7 @@ class JsonProperty<T> extends StorablePropertyImpl<T> with Logging {
   @override
   FutureOr<T> getValue() async {
     try {
-      var text = await _storage.get(name);
+      var text = await storage.get(name);
       _cachedValue = fromJson(jsonDecode(text));
     } catch (ex) {
       warn("property read error '$name'", error: ex);
@@ -128,7 +176,7 @@ class JsonProperty<T> extends StorablePropertyImpl<T> with Logging {
   @override
   Future<void> setValue(T val) async {
     var text = jsonEncode(toJson(val));
-    _storage.set(name, text);
+    storage.set(name, text);
     _cachedValue = val;
   }
 }
@@ -137,12 +185,12 @@ class DateTimeProperty extends StorablePropertyImpl<DateTime> with Logging {
   @override
   late DateTime cachedValue = DateTime(0);
 
-  DateTimeProperty(super._storage, super.name);
+  DateTimeProperty(super.storage, super.name);
 
   @override
   FutureOr<DateTime> getValue() async {
     try {
-      var text = await _storage.get(name);
+      var text = await storage.get(name);
       cachedValue = (DateTime.tryParse(text) ?? DateTime(0)).toLocal();
     } catch (ex, stack) {
       warn("property read error '$name'", error: ex, stack: stack);
@@ -154,7 +202,7 @@ class DateTimeProperty extends StorablePropertyImpl<DateTime> with Logging {
   @override
   Future<void> setValue(DateTime val) async {
     var text = val.toUtc().toString();
-    _storage.set(name, text);
+    storage.set(name, text);
     cachedValue = val;
   }
 }

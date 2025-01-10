@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_commons/flutter_commons.dart';
 
 @immutable
 final class Loadable<T> {
@@ -65,7 +66,17 @@ final class Loadable<T> {
 
   Loadable<T> clearError() => Loadable(value, isLoading: isLoading, error: null);
 
+  Loadable<T> clear({bool error = true, bool value = true, bool loading = true}) =>
+      Loadable(value ? null : this.value, isLoading: loading ? false : this.isLoading, error: error ? null : this.error);
+
   T valueOr(T other) => value ?? other;
+
+  ValueKey generateKey({
+    bool includeValue = true,
+    bool includeLoading = true,
+  }) {
+    return ValueKey('${includeLoading ? '$isLoading' : ''};$error;$stack;${includeValue ? '$value' : '$hasValue'}');
+  }
 }
 
 extension LoadableExt<T> on T {
