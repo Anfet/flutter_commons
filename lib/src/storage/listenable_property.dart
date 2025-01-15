@@ -25,4 +25,6 @@ class ListenableProperty<T> with ChangeNotifier implements StorableProperty<T> {
     await child.setValue(val);
     notifyListeners();
   }
+
+  FutureOr<bool> exists() => child.exists();
 }

@@ -14,6 +14,8 @@ abstract class StorableProperty<T> {
   Future<void> setValue(T val);
 
   Future<void> delete();
+
+  FutureOr<bool> exists();
 }
 
 abstract class StorablePropertyImpl<T> implements StorableProperty<T> {
@@ -31,7 +33,8 @@ abstract class StorablePropertyImpl<T> implements StorableProperty<T> {
 
   @override
   Future<void> delete() async {
-    await storage.delete(name).then((value) => getValue());
+    await storage.delete(name);
+    await getValue();
   }
 
   @override
@@ -42,6 +45,8 @@ abstract class StorablePropertyImpl<T> implements StorableProperty<T> {
 
   @override
   String toString() => '$cachedValue';
+
+  FutureOr<bool> exists() => storage.exists(name);
 }
 
 final class BoolProperty extends StorablePropertyImpl<bool> {
@@ -55,7 +60,7 @@ final class BoolProperty extends StorablePropertyImpl<bool> {
 
   @override
   FutureOr<bool> getValue() async {
-    if (await storage.exists(name)) {
+    if (await exists()) {
       _cachedValue = bool.tryParse(await storage.get(name)) ?? false;
     } else {
       _cachedValue = defaultValue;
@@ -82,6 +87,8 @@ final class IntProperty extends StorablePropertyImpl<int> {
   FutureOr<int> getValue() async {
     if (await storage.exists(name)) {
       _cachedValue = int.tryParse(await storage.get(name)) ?? 0;
+    } else {
+      _cachedValue = defaultValue;
     }
     return cachedValue;
   }
@@ -105,6 +112,8 @@ final class DoubleProperty extends StorablePropertyImpl<double> {
   FutureOr<double> getValue() async {
     if (await storage.exists(name)) {
       _cachedValue = double.tryParse(await storage.get(name)) ?? 0.0;
+    } else {
+      _cachedValue = defaultValue;
     }
 
     return cachedValue;
@@ -129,6 +138,8 @@ final class StringProperty extends StorablePropertyImpl<String> {
   FutureOr<String> getValue() async {
     if (await storage.exists(name)) {
       _cachedValue = await storage.get(name);
+    } else {
+      _cachedValue = defaultValue;
     }
     return cachedValue;
   }

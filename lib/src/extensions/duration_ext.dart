@@ -24,6 +24,8 @@ extension DurationExt on Duration {
   Future get wait => Future.delayed(this);
 
   Future get future => Future.delayed(this);
+
+  Duration operator /(double divider) => Duration(milliseconds: this.inMilliseconds ~/ divider);
 }
 
 extension IntForDuration on int {

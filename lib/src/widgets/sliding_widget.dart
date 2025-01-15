@@ -25,7 +25,7 @@ class SlidingWidget extends StatefulWidget {
   State<SlidingWidget> createState() => _SlidingWidgetState();
 }
 
-class _SlidingWidgetState extends State<SlidingWidget> with SingleTickerProviderStateMixin {
+class _SlidingWidgetState extends State<SlidingWidget> with SingleTickerProviderStateMixin, MountedCheck, Logging {
   late final Animation<Offset> _offsetAnimation;
   late final Animation<double> _animation;
   late final AnimationController _animationController;
@@ -49,11 +49,18 @@ class _SlidingWidgetState extends State<SlidingWidget> with SingleTickerProvider
       ),
       end: Offset.zero,
     ).animate(_animation);
+
     if (widget.slidingPosition == SlidingPosition.start) {
-      (widget.delay ?? Duration.zero).future.then((value) => _animationController.forward());
+      _animationController.value = 0.0;
+      (widget.delay ?? Duration.zero).future.then((value) {
+        if (mounted) {
+          _animationController.forward();
+        }
+      });
     }
 
     if (widget.slidingPosition == SlidingPosition.end) {
+      _animationController.stop();
       _animationController.value = 1.0;
     }
     super.initState();
