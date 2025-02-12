@@ -81,7 +81,8 @@ class _PinDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnimatedContainer(
+      duration: 300.milliseconds,
       height: size,
       width: size,
       decoration: BoxDecoration(

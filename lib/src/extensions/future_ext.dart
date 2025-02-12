@@ -1,5 +1,7 @@
 extension SiberianFutureIterableExt<T> on Future<Iterable<T>> {
   Future<List<T>> toList() => then((it) => it.toList());
+
+  Future<Iterable<X>> map<X>(X mapper(T item)) => then((iterable) => iterable.map(mapper));
 }
 
 extension LibFutureMapExt<K, V> on Future<Map<K, V>> {
