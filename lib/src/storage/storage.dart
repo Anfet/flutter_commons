@@ -1,6 +1,7 @@
 export 'storable_property.dart';
 export 'revertable_property.dart';
 export 'listenable_property.dart';
+export 'enum_property.dart';
 
 import 'dart:async';
 
