@@ -9,5 +9,5 @@ export 'pair.dart';
 export 'range.dart';
 export 'string_source.dart';
 export 'lazy.dart';
-export 'app_build_mode.dart';
-export 'app_stores.dart';
+export 'build_variant.dart';
+export 'app_store/app_store.dart' show AppStore;

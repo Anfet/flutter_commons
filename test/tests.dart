@@ -25,7 +25,7 @@ void main() {
   test('as', () async {
     var m = {'a': 'b'};
     var f = Future.value(m);
-    var x11 = await f.map((key, value) => MapEntry(1, 2));
+    var x11 = await f.map((key, value) => const MapEntry(1, 2));
 
   },);
 }

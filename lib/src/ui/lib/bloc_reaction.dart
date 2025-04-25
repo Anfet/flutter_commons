@@ -42,7 +42,7 @@ class BlocReaction<T> {
     return 'BlocReaction{reactionId: $reactionId, _data: $_data, _isConsumed: $_isConsumed}';
   }
 
-  static ShotReaction fire() => ShotReaction(randomizer.nextDouble());
+  static ShotReaction fire() => ShotReaction(random.nextDouble());
 }
 
 extension StringAsReactionExt on String {

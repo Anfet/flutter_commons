@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_commons/flutter_commons.dart';
 
 @immutable
 final class Loadable<T> {

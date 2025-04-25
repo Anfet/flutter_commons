@@ -23,6 +23,7 @@ abstract class StorablePropertyImpl<T> implements StorableProperty<T> {
   final String name;
   final ValueSetter<T>? onSave;
 
+  @override
   T get cachedValue;
 
   StorablePropertyImpl(
@@ -46,6 +47,7 @@ abstract class StorablePropertyImpl<T> implements StorableProperty<T> {
   @override
   String toString() => '$cachedValue';
 
+  @override
   FutureOr<bool> exists() => storage.exists(name);
 }
 

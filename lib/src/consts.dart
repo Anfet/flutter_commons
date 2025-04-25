@@ -17,5 +17,5 @@ class Ints {
 
   static const int maxInt = 0x7fffffff;
 
-  static int randomInt() => randomizer.nextInt(0xffffffff);
+  static int randomInt() => random.nextInt(0xffffffff);
 }

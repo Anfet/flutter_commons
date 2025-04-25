@@ -26,5 +26,6 @@ class ListenableProperty<T> with ChangeNotifier implements StorableProperty<T> {
     notifyListeners();
   }
 
+  @override
   FutureOr<bool> exists() => child.exists();
 }
