@@ -47,7 +47,7 @@ enum AppStore {
       var text = const String.fromEnvironment(storeParamName, defaultValue: 'unknown');
       _publishedStore = AppStore.values.byName(text);
     } else {
-      _publishedStore = await AppStoreResolver().resolve();
+      _publishedStore = await resolveStore();
     }
 
     if (const bool.hasEnvironment(storeUrlParamName)) {
@@ -55,6 +55,6 @@ enum AppStore {
       registerStoreUrl(_publishedStore, _publishedStoreUrl);
     }
 
-    logMessage("Build for '$current'", level: Level.info, tag: 'AppStore');
+    logMessage(current.name, level: Level.debug, tag: 'AppStore');
   }
 }
