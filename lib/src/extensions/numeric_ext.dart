@@ -63,7 +63,9 @@ sealed class NumericUtils {
     if ('$amount' != '$truncated' || amount.fraction > truncated.fraction || controller.text.length > '$amount'.length) {
       var fractionLimit = pow(1, -(maxFraction + 1));
       var text = '${truncated.fraction < fractionLimit ? truncated.toInt() : truncated}';
-      controller.text = onFormat?.call(text) ?? text;
+      var formatted = onFormat?.call(text) ?? text;
+      controller.text = formatted;
+      controller.selection = TextSelection.collapsed(offset: formatted.length);
     }
 
     return truncated;
