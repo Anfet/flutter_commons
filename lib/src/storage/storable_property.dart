@@ -177,10 +177,15 @@ class JsonProperty<T> extends StorablePropertyImpl<T> with Logging {
   FutureOr<T> getValue() async {
     try {
       var text = await storage.get(name);
-      _cachedValue = fromJson(jsonDecode(text));
+      if (text.isEmpty) {
+        _cachedValue = ifNotExist();
+      } else {
+        _cachedValue = fromJson(jsonDecode(text));
+      }
     } catch (ex) {
       warn("property read error '$name'", error: ex);
       _cachedValue = ifNotExist();
+      await setValue(_cachedValue);
     }
 
     return cachedValue;
@@ -189,7 +194,7 @@ class JsonProperty<T> extends StorablePropertyImpl<T> with Logging {
   @override
   Future<void> setValue(T val) async {
     var text = jsonEncode(toJson(val));
-    storage.set(name, text);
+    await storage.set(name, text);
     _cachedValue = val;
   }
 }
@@ -215,7 +220,7 @@ class DateTimeProperty extends StorablePropertyImpl<DateTime> with Logging {
   @override
   Future<void> setValue(DateTime val) async {
     var text = val.toUtc().toString();
-    storage.set(name, text);
+    await storage.set(name, text);
     cachedValue = val;
   }
 }

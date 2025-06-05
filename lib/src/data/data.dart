@@ -11,3 +11,4 @@ export 'string_source.dart';
 export 'lazy.dart';
 export 'build_variant.dart';
 export 'app_store/app_store.dart' show AppStore;
+export 'visible_value.dart';

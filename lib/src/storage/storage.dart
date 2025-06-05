@@ -4,6 +4,7 @@ export 'listenable_property.dart';
 export 'enum_property.dart';
 
 import 'dart:async';
+import 'dart:io';
 
 abstract class PropertyStorage {
   FutureOr<String> get(String name);
@@ -41,3 +42,29 @@ class MemoryStorage implements PropertyStorage {
     values[name] = value;
   }
 }
+
+class FileStorage implements PropertyStorage {
+  final Directory parentDirectory;
+
+  FileStorage({
+    required this.parentDirectory,
+  });
+
+  @override
+  Future<void> delete(String name) async {
+    await File('${parentDirectory.path}/$name').delete();
+  }
+
+  @override
+  FutureOr<bool> exists(String name) => File('${parentDirectory.path}/$name').exists();
+
+  @override
+  Future<void> flush() async {}
+
+  @override
+  FutureOr<String> get(String name) => File('${parentDirectory.path}/$name').readAsString();
+
+  @override
+  Future<void> set(String name, String value) => File('${parentDirectory.path}/$name').writeAsString(value, flush: true);
+}
+
