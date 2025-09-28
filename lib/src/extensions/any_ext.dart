@@ -13,4 +13,6 @@ extension AnyExt<T> on T {
   bool containsIn(Iterable<T> list) => list.contains(this);
 
   bool isEither(Iterable<T> list) => list.contains(this);
+
+  X? takeIfIs<X>() => this is X ? this as X : null;
 }

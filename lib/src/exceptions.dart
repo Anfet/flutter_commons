@@ -35,6 +35,10 @@ class FlowException extends AppException {
   FlowException(super.message);
 }
 
+class SilentFlowException extends FlowException {
+  SilentFlowException() : super('');
+}
+
 class CancelledQueryException extends FlowException {
   CancelledQueryException() : super('');
 

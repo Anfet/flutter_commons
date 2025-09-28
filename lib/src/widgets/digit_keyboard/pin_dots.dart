@@ -82,7 +82,7 @@ class _PinDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      duration: 300.milliseconds,
+      duration: 500.milliseconds,
       height: size,
       width: size,
       decoration: BoxDecoration(
@@ -111,7 +111,7 @@ class PinDotsController extends ChangeNotifier {
   final int pinLength;
 
   final TypedCallback<String> onPinEntered;
-  final TypedCallback<String>? onPinChanged;
+  final VoidCallback? onPinChanged;
   final VoidCallback? onPinsNotMatch;
 
   PinDotsController({
@@ -156,18 +156,25 @@ class PinDotsController extends ChangeNotifier {
   }
 
   void onBackspace() {
-    if (withConfirmation) {
+    if (withConfirmation && confirmation.isNotEmpty) {
       confirmation = confirmation.take(confirmation.length - 1);
     } else if (pin.isNotEmpty) {
       pin = pin.take(pin.length - 1);
     }
+
+    _onChanged();
   }
 
   void _onChanged() {
     notifyListeners();
     if (pin.length == pinLength && (!withConfirmation || confirmation.length == pinLength)) {
-      pin == confirmation ? onPinEntered(pin) : onPinsNotMatch?.call();
-      onPinEntered(pin);
+      if (pin == confirmation || !withConfirmation) {
+        onPinEntered(pin);
+      } else {
+        onPinsNotMatch?.call();
+      }
+    } else {
+      onPinChanged?.call();
     }
   }
 

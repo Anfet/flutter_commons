@@ -17,6 +17,7 @@ export 'src/routing/routing_helpers.dart';
 
 export 'src/utils.dart';
 export 'src/data/data.dart';
+export 'src/enviroment/enviroments.dart';
 export 'src/extensions.dart';
 export 'src/storage/storage.dart';
 

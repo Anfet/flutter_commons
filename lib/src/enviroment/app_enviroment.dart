@@ -12,13 +12,13 @@ class Enviroments {
 }
 
 @immutable
-class Build {
+class AppEnviroment {
   final String enviroment;
   final String host;
 
   bool get isProd => enviroment == "prod";
 
-  const Build({
+  const AppEnviroment({
     required this.enviroment,
     required this.host,
   });
@@ -28,23 +28,23 @@ class Build {
     await property.setValue(value);
   }
 
-  factory Build.from(String text) {
+  factory AppEnviroment.from(String text) {
     try {
       var json = jsonDecode(text);
-      var build = Build(enviroment: json['enviroment'], host: json['host']);
+      var build = AppEnviroment(enviroment: json['enviroment'], host: json['host']);
       return build;
     } catch (ex) {
-      return Build(enviroment: Enviroment.prod.name, host: Enviroments.enviroments[Enviroment.prod]!);
+      return AppEnviroment(enviroment: Enviroment.prod.name, host: Enviroments.enviroments[Enviroment.prod]!);
     }
   }
 
-  static Future<Build> load(StorableProperty<String> property) async {
+  static Future<AppEnviroment> load(StorableProperty<String> property) async {
     var text = await property.getValue();
-    return Build.from(text);
+    return AppEnviroment.from(text);
   }
 
   @override
   String toString() {
-    return 'Build{enviroment: $enviroment, host: $host}';
+    return 'AppEnviroment{enviroment: $enviroment, host: $host}';
   }
 }

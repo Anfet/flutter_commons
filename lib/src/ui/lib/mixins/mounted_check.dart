@@ -1,8 +1,11 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_commons/flutter_commons.dart';
 import 'package:flutter_commons/src/consts.dart';
 
 mixin MountedCheck<S extends StatefulWidget> on State<S> {
   bool _disposed = false;
+
+  bool get isDisposed => _disposed;
 
   @override
   void dispose() {
@@ -21,4 +24,12 @@ mixin MountedCheck<S extends StatefulWidget> on State<S> {
   ///
   /// например, если в результате `await longLastingOp` меняеются данные
   void markNeedsRebuild() => setState(nothing);
+
+  Future ifMounted(dynamic value) async {
+    if (mounted) {
+      return value;
+    }
+
+    throw FlowException('Context not mounted');
+  }
 }
