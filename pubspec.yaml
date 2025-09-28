@@ -16,7 +16,6 @@ dependencies:
   bloc_concurrency: ^0.3.0
   stream_transform: ^2.1.1
   google_api_availability: ^5.0.1
-  google_huawei_availability: ^1.4.0
   flutter_svg: any
   sprintf: any
 
