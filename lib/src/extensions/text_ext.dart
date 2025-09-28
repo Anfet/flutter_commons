@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_commons/src/consts.dart';
 
 class TextUtils {
-  static Size textHeight({
+  static Size textSize({
     required String text,
     required TextStyle style,
     double width = double.infinity,
