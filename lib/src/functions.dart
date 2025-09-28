@@ -16,7 +16,12 @@ typedef TypedResultR2<R1, R2> = (R1, R2) Function();
 typedef AsyncTypedResult<R> = AsyncValueGetter<R>;
 typedef AsyncOrTypedResult<R> = FutureOr<R> Function();
 typedef TypedResultCallback<R, T> = R Function(T value);
+typedef TypedResultCallbackP2<R, P1, P2> = R Function(P1 param1, P2 param2);
+typedef TypedResultCallbackP3<R, P1, P2, P3> = R Function(P1 param1, P2 param2, P3 param3);
+
 typedef AsyncTypedResultCallback<R, T> = Future<R> Function(T value);
+typedef AsyncTypedResultCallbackP2<R, P1, P2> = Future<R> Function(P1 param1, P2 param2);
+typedef AsyncTypedResultCallbackP3<R, P1, P2, P3> = Future<R> Function(P1 param1, P2 param2, P3 param3);
 
 typedef CustomErrorWidgetBuilderFunc<T> = Widget Function(BuildContext context, Object? error);
 

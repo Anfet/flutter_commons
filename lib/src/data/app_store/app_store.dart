@@ -55,6 +55,6 @@ enum AppStore {
       registerStoreUrl(_publishedStore, _publishedStoreUrl);
     }
 
-    logMessage(current.name, level: Level.debug, tag: 'AppStore');
+    logMessage(current.name, tag: 'AppStore');
   }
 }

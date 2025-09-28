@@ -117,7 +117,7 @@ class _CollapsibleWidget extends SingleChildRenderObjectWidget {
   }
 }
 
-class _RenderCollapsibleWidget extends RenderAligningShiftedBox with Logging {
+class _RenderCollapsibleWidget extends RenderAligningShiftedBox {
   ValueChanged<double> onAnimationChanged;
   bool _expanded;
   Duration _duration;
@@ -139,7 +139,6 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox with Logging {
   })  : _duration = duration,
         _expanded = expanded,
         clipBehavior = clipBehavior ?? Clip.hardEdge;
-
 
   set expanded(bool value) {
     if (_expanded != value) {

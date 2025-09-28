@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 @pragma("vm:prefer-inline")
+//ignore: non_constant_identifier_names
 Widget EmptyBox() => const SizedBox();
 
 class VSpacer extends StatelessWidget {
@@ -59,6 +60,25 @@ class SliverBox extends StatelessWidget {
       child: Padding(
         padding: padding ?? EdgeInsets.zero,
         child: child,
+      ),
+    );
+  }
+}
+
+class SliverSpacer extends StatelessWidget {
+  final Axis orientation;
+  final double dimension;
+
+  const SliverSpacer.v(this.dimension, {super.key}) : orientation = Axis.vertical;
+
+  const SliverSpacer.h(this.dimension, {super.key}) : orientation = Axis.horizontal;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverPadding(
+      padding: EdgeInsets.only(
+        top: orientation == Axis.vertical ? dimension : 0.0,
+        left: orientation == Axis.horizontal ? dimension : 0.0,
       ),
     );
   }

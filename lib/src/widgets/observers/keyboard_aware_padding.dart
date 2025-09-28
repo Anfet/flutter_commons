@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_logger/flutter_logger.dart';
+import 'package:flutter_commons/flutter_commons.dart';
 
-class KeyboardAwarePadding extends StatelessWidget {
-  final Widget child;
+class KeyboardPadding extends StatelessWidget {
+  final Widget? child;
 
-  const KeyboardAwarePadding({
+  const KeyboardPadding({
     super.key,
-    required this.child,
+    this.child,
   });
 
   @override
@@ -15,7 +15,7 @@ class KeyboardAwarePadding extends StatelessWidget {
       builder: (context, value, child) {
         return Padding(
           padding: EdgeInsets.only(bottom: value),
-          child: child!,
+          child: child ?? EmptyBox(),
         );
       },
       child: child,
@@ -23,6 +23,10 @@ class KeyboardAwarePadding extends StatelessWidget {
   }
 }
 
+/// Observes bottom inset and rebuilds the contend when it changes
+///
+/// remember that [Scaffold]s [resizeToAvoidBottomInset] must be set to [false] to enable this
+/// widget updates
 class BottomInsetObserver extends StatefulWidget {
   final ValueWidgetBuilder<double> builder;
   final Widget? child;
@@ -37,7 +41,7 @@ class BottomInsetObserver extends StatefulWidget {
   State<BottomInsetObserver> createState() => _BottomInsetObserverState();
 }
 
-class _BottomInsetObserverState extends State<BottomInsetObserver> with WidgetsBindingObserver, Logging {
+class _BottomInsetObserverState extends State<BottomInsetObserver> with WidgetsBindingObserver {
   @override
   void didChangeMetrics() {
     super.didChangeMetrics();

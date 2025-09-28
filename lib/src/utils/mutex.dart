@@ -11,17 +11,20 @@ class Mutex {
     }
 
     assert(completers.isEmpty || completers.allOf((it) => it.isCompleted));
-    completers.add(Completer<T>());
-    try {
-      return await future();
-    } finally {
-      completers.removeLast().complete();
-    }
+    final completer = Completer<T>();
+    completers.add(completer);
+
+    future()
+        .then((value) => completer.complete(value), onError: (ex, stack) => completer.completeError(ex, stack))
+        .whenComplete(() => completers.remove(completer));
+    return completer.future;
   }
 
-  Future future() async {
+  Future whileBusy() async {
     while (completers.isNotEmpty) {
       await completers.first.future;
     }
   }
+
+  bool get isBusy => completers.isNotEmpty;
 }

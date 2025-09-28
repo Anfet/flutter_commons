@@ -82,7 +82,7 @@ class SlidingButton extends StatefulWidget {
   State<SlidingButton> createState() => _SlidingButtonState();
 }
 
-class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Logging, SingleTickerProviderStateMixin {
+class _SlidingButtonState extends State<SlidingButton> with MountedCheck, SingleTickerProviderStateMixin {
   var isTapped = false;
   var isSliding = false;
   var hasSlidedToComplete = false;
@@ -264,7 +264,6 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Loggin
   };
 
   Future runSuccess() async {
-    warn('runSuccess');
     var success = await widget.onSuccess();
     if (!success) {
       await runAnimationToStart();

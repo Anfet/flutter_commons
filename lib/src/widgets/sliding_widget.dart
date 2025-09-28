@@ -25,7 +25,7 @@ class SlidingWidget extends StatefulWidget {
   State<SlidingWidget> createState() => _SlidingWidgetState();
 }
 
-class _SlidingWidgetState extends State<SlidingWidget> with SingleTickerProviderStateMixin, MountedCheck, Logging {
+class _SlidingWidgetState extends State<SlidingWidget> with SingleTickerProviderStateMixin, MountedCheck {
   late final Animation<Offset> _offsetAnimation;
   late final Animation<double> _animation;
   late final AnimationController _animationController;

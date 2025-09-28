@@ -93,7 +93,7 @@ class _PinDot extends StatelessWidget {
   }
 }
 
-class PinDotsController extends ChangeNotifier with Logging {
+class PinDotsController extends ChangeNotifier {
   String _pin = '';
   String _confirmation = '';
 

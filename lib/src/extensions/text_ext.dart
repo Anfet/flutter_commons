@@ -18,7 +18,25 @@ class TextUtils {
     );
 
     painter.layout(maxWidth: width);
-    return painter.size;
+    final boxes = painter.getBoxesForSelection(
+      TextSelection(baseOffset: 0, extentOffset: text.length),
+    );
+
+    if (boxes.isEmpty) return Size.zero;
+
+    double minX = double.infinity;
+    double minY = double.infinity;
+    double maxX = double.negativeInfinity;
+    double maxY = double.negativeInfinity;
+
+    for (final box in boxes) {
+      if (box.left < minX) minX = box.left;
+      if (box.top < minY) minY = box.top;
+      if (box.right > maxX) maxX = box.right;
+      if (box.bottom > maxY) maxY = box.bottom;
+    }
+
+    return Size(maxX - minX, maxY - minY);
   }
 
   static int textLinesApprox({

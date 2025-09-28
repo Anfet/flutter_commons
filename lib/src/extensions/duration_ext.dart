@@ -29,9 +29,9 @@ extension DurationExt on Duration {
 
   Duration operator *(double multiplier) => Duration(milliseconds: (inMilliseconds * multiplier).truncate());
 
-  Duration operator +(Duration other) => Duration(milliseconds: this.inMilliseconds + other.inMilliseconds);
+  Duration operator +(Duration other) => Duration(milliseconds: inMilliseconds + other.inMilliseconds);
 
-  Duration operator -(Duration other) => Duration(milliseconds: this.inMilliseconds - other.inMilliseconds);
+  Duration operator -(Duration other) => Duration(milliseconds: inMilliseconds - other.inMilliseconds);
 }
 
 extension IntForDuration on int {

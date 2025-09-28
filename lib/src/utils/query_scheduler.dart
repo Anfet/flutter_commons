@@ -16,7 +16,7 @@ enum QueryPriority {
   ;
 }
 
-class QueryScheduler with Logging implements Disposable {
+class QueryScheduler implements Disposable {
   bool _isPaused = false;
   bool _isLooping = false;
 
@@ -97,7 +97,6 @@ class QueryScheduler with Logging implements Disposable {
     }
 
     for (var request in requests) {
-      trace('request #${request.id} dropped');
       request.completer.completeError(CancelledQueryException());
     }
   }
@@ -108,16 +107,11 @@ class QueryScheduler with Logging implements Disposable {
     String? tag,
     QueryFailCallback? onFail,
   }) {
-    if (_isPaused) {
-      warn('scheduler is paused; request will be added in queue');
-    }
-
     QueryRequest<T> rq = QueryRequest<T>(
       request: request,
       tag: tag,
       onFail: onFail ?? this.onFail,
     );
-    trace('scheduling request #${rq.id} / ${priority.name}');
     if (priority == QueryPriority.immediate) {
       _execute(rq);
     } else {
@@ -146,7 +140,6 @@ class QueryScheduler with Logging implements Disposable {
     Loadable result = const Loadable.loading();
     while (request.canTry) {
       try {
-        trace('executing request #${request.id}; r${request.tries}');
         request.tries++;
         result = result.result(await request.request());
         break;

@@ -1,9 +1,15 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_commons/src/data/app_store/app_store.dart';
 import 'package:google_api_availability/google_api_availability.dart';
+import 'package:google_huawei_availability/google_huawei_availability.dart';
 
 Future<AppStore> resolveStore() async {
+  if (kIsWeb) {
+    return AppStore.web;
+  }
+
   if (Platform.isIOS) {
     return AppStore.ios;
   }
@@ -13,10 +19,10 @@ Future<AppStore> resolveStore() async {
     return AppStore.google;
   }
 
-  // var isHuawei = await GoogleHuaweiAvailability.isHuaweiServiceAvailable ?? false;
-  // if (isHuawei) {
-  //   return AppStore.huawei;
-  // }
+  var isHuawei = await GoogleHuaweiAvailability.isHuaweiServiceAvailable ?? false;
+  if (isHuawei) {
+    return AppStore.huawei;
+  }
 
   return AppStore.other;
 }

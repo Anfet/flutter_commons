@@ -1,13 +1,17 @@
+//ignore_for_file: prefer_function_declarations_over_variables
 import 'randomizer.dart';
 
-const nbsp = ' ';
-final void Function() nothing = () {};
+final nothing = () {};
+final noop = () {};
+final noopP1 = (_) {};
+final noopP2 = (_, __) {};
 
 class Strings {
   Strings._();
 
   static const String empty = "";
   static const String space = " ";
+  static const nbsp = ' ';
 }
 
 class Ints {

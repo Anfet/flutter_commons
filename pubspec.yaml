@@ -1,6 +1,6 @@
 name: flutter_commons
 description: Core package
-version: 1.0.20+20
+version: 1.0.23+23
 publish_to: 'none'
 homepage: https://github.com/Anfet/flutter_commons.git
 
@@ -16,13 +16,15 @@ dependencies:
   bloc_concurrency: ^0.3.0
   stream_transform: ^2.1.1
   google_api_availability: ^5.0.1
+  google_huawei_availability: ^1.4.0
+  flutter_svg: any
+  sprintf: any
 
   flutter_logger:
     git:
       url: https://github.com/Anfet/flutter_logger.git
-      ref: 'release/0.0.3'
+      ref: 'release/0.0.5'
 
-  sprintf: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

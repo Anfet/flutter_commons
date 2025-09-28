@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_logger/flutter_logger.dart';
 
 import 'storage.dart';
 
@@ -153,7 +152,7 @@ final class StringProperty extends StorablePropertyImpl<String> {
   }
 }
 
-class JsonProperty<T> extends StorablePropertyImpl<T> with Logging {
+class JsonProperty<T> extends StorablePropertyImpl<T>  {
   @override
   T get cachedValue => _cachedValue;
   late T _cachedValue;
@@ -183,7 +182,6 @@ class JsonProperty<T> extends StorablePropertyImpl<T> with Logging {
         _cachedValue = fromJson(jsonDecode(text));
       }
     } catch (ex) {
-      warn("property read error '$name'", error: ex);
       _cachedValue = ifNotExist();
       await setValue(_cachedValue);
     }
@@ -199,7 +197,7 @@ class JsonProperty<T> extends StorablePropertyImpl<T> with Logging {
   }
 }
 
-class DateTimeProperty extends StorablePropertyImpl<DateTime> with Logging {
+class DateTimeProperty extends StorablePropertyImpl<DateTime>   {
   @override
   late DateTime cachedValue = DateTime(0);
 
@@ -210,8 +208,8 @@ class DateTimeProperty extends StorablePropertyImpl<DateTime> with Logging {
     try {
       var text = await storage.get(name);
       cachedValue = (DateTime.tryParse(text) ?? DateTime(0)).toLocal();
-    } catch (ex, stack) {
-      warn("property read error '$name'", error: ex, stack: stack);
+    } catch (ex) {
+      //mute
     }
 
     return cachedValue;

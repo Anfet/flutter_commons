@@ -6,7 +6,7 @@ export 'enum_property.dart';
 import 'dart:async';
 import 'dart:io';
 
-abstract class PropertyStorage {
+abstract interface class PropertyStorage {
   FutureOr<String> get(String name);
 
   Future<void> set(String name, String value);
@@ -16,6 +16,8 @@ abstract class PropertyStorage {
   Future<void> flush();
 
   Future<void> delete(String name);
+
+  Future<void> clear();
 }
 
 class MemoryStorage implements PropertyStorage {
@@ -40,6 +42,11 @@ class MemoryStorage implements PropertyStorage {
   @override
   Future<void> set(String name, String value) async {
     values[name] = value;
+  }
+
+  @override
+  Future<void> clear() async {
+    values.clear();
   }
 }
 
@@ -66,5 +73,13 @@ class FileStorage implements PropertyStorage {
 
   @override
   Future<void> set(String name, String value) => File('${parentDirectory.path}/$name').writeAsString(value, flush: true);
-}
 
+  @override
+  Future<void> clear() async {
+    try {
+      await parentDirectory.delete(recursive: true);
+    } catch (_) {
+      //mute
+    }
+  }
+}

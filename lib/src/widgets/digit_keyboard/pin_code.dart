@@ -92,7 +92,7 @@ class PinCode extends StatelessWidget {
   }
 }
 
-class PinCodeController extends ChangeNotifier with Logging {
+class PinCodeController extends ChangeNotifier {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
 
@@ -127,8 +127,7 @@ class PinCodeController extends ChangeNotifier with Logging {
     String pin = '',
     bool isEnabled = true,
     this.onPinChanged,
-  })
-      : _pin = pin,
+  })  : _pin = pin,
         _isEnabled = isEnabled {
     _controller.text = _pin;
   }

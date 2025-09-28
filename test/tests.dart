@@ -1,4 +1,3 @@
-import 'package:flutter_commons/flutter_commons.dart';
 import 'package:flutter_commons/src/utils/mutex.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -21,27 +20,31 @@ void main() async {
       // The first lock should keep the mutex locked for 5 seconds.
       mutex.lock(() async {
         print('Locked 1');
-        await Future.delayed(Duration(seconds: 2));
+        await Future.delayed(const Duration(seconds: 2));
         print('Unlocked 1');
       });
+
+      await mutex.whileBusy();
 
       // The second lock shouldn't invoke the methods inside until the first mutex
       // completes the execution (which should happen after the 5 seconds have
       // passed).
       mutex.lock(() async {
         print('Locked 2');
-        await Future.delayed(Duration(seconds: 2));
+        await Future.delayed(const Duration(seconds: 2));
         print('Unlocked 2');
       });
+
+      await mutex.whileBusy();
 
       // The third lock should acquire the lock after the first two awaits are done.
       mutex.lock(() async {
         print('Locked 3');
-        await Future.delayed(Duration(seconds: 2));
+        await Future.delayed(const Duration(seconds: 2));
         print('Unlocked 3');
       });
 
-      await mutex.future();
+      await mutex.whileBusy();
     },
   );
 }

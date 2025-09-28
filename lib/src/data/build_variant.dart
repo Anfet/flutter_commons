@@ -31,6 +31,6 @@ enum BuildVariant {
       _buildVariant = kDebugMode ? BuildVariant.developer : BuildVariant.release;
     }
 
-    logMessage(buildVariant.name, level: Level.debug, tag: 'BuildVariant');
+    logMessage(buildVariant.name, tag: 'BuildVariant');
   }
 }
