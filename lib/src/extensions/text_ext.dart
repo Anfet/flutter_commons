@@ -2,7 +2,28 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_commons/src/consts.dart';
 
 class TextUtils {
+
   static Size textSize({
+    required String text,
+    required TextStyle style,
+    double width = double.infinity,
+    int? maxLines,
+    TextDirection textDirection = TextDirection.ltr,
+    TextScaler textScaler = TextScaler.noScaling,
+  }) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      maxLines: maxLines,
+      textScaler: textScaler,
+      textDirection: textDirection,
+    );
+
+    painter.layout(maxWidth: width);
+
+    return painter.size;
+  }
+
+  static Size textBoundingBoxSize({
     required String text,
     required TextStyle style,
     double width = double.infinity,
