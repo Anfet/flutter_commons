@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show SynchronousFuture, compute;
 import 'package:flutter/material.dart';
 
-class Base64ImageWidget extends StatefulWidget {
+class Base64ImageWidget extends StatelessWidget {
   final String imageEncoded;
   final BoxFit boxFit;
 
@@ -15,64 +15,33 @@ class Base64ImageWidget extends StatefulWidget {
   });
 
   @override
-  State<Base64ImageWidget> createState() => _Base64ImageWidgetState();
-}
-
-class _Base64ImageWidgetState extends State<Base64ImageWidget> {
-  late Base64ImageProvider _provider;
-  late String imageEncoded = widget.imageEncoded;
-
-  @override
-  void initState() {
-    _provider = Base64ImageProvider(imageEncoded);
-    super.initState();
-  }
-
-  void update() {
-    if (imageEncoded != widget.imageEncoded) {
-      imageEncoded = widget.imageEncoded;
-      _provider.update(imageEncoded);
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant Base64ImageWidget oldWidget) {
-    update();
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Image(
-      image: _provider,
+      image: Base64ImageProvider(imageEncoded),
       gaplessPlayback: true,
-      fit: widget.boxFit,
+      fit: boxFit,
     );
   }
 }
 
 class Base64ImageProvider extends ImageProvider<Base64ImageProvider> {
-  final _completer = YuvImageStreamCompleter();
+  final String encoded;
 
-  Base64ImageProvider([String? encoded]) {
-    if (encoded?.isNotEmpty == true) {
-      update(encoded ?? '');
-    }
+  Base64ImageProvider(this.encoded);
+
+  @override
+  Future<Base64ImageProvider> obtainKey(ImageConfiguration configuration) {
+    return SynchronousFuture<Base64ImageProvider>(this);
   }
 
-  void update(String encoded) => _completer.update(encoded);
-
   @override
-  Future<Base64ImageProvider> obtainKey(ImageConfiguration configuration) => SynchronousFuture(this);
+  ImageStreamCompleter loadImage(Base64ImageProvider key, ImageDecoderCallback decode) {
+    return OneFrameImageStreamCompleter(_loadAsync(key, decode));
+  }
 
-  @override
-  ImageStreamCompleter loadImage(Base64ImageProvider key, ImageDecoderCallback decode) => _completer;
-}
-
-class YuvImageStreamCompleter extends ImageStreamCompleter {
-  void update(String encoded) async {
+  Future<ImageInfo> _loadAsync(Base64ImageProvider key, ImageDecoderCallback decode) async {
     var bytes = await compute<String, Uint8List>((encoded) => base64Decode(encoded), encoded);
     var image = await decodeImageFromList(bytes);
-    setImage(ImageInfo(image: image));
+    return ImageInfo(image: image);
   }
 }

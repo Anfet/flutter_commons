@@ -1,6 +1,6 @@
 name: flutter_commons
 description: Core package
-version: 1.0.23+23
+version: 1.0.24+24
 publish_to: 'none'
 homepage: https://github.com/Anfet/flutter_commons.git
 
@@ -13,10 +13,7 @@ dependencies:
 
   provider: ^6.1.4
   flutter_bloc: ^9.1.0
-  bloc_concurrency: ^0.3.0
-  stream_transform: ^2.1.1
-  google_api_availability: ^5.0.1
-  flutter_svg: any
+  flutter_svg: ^2.1.0
   sprintf: any
 
   flutter_logger:

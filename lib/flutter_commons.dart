@@ -3,7 +3,6 @@ library flutter_commons;
 export 'package:flutter_logger/flutter_logger.dart';
 export 'package:sprintf/sprintf.dart';
 export 'package:bloc/bloc.dart';
-export 'package:bloc_concurrency/bloc_concurrency.dart';
 export 'package:flutter_bloc/flutter_bloc.dart';
 
 
