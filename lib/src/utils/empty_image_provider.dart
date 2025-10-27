@@ -18,7 +18,7 @@ class EmptyImageProvider extends ImageProvider<EmptyImageProvider> {
 
   Future<ImageInfo> _loadAsync(EmptyImageProvider key, ImageDecoderCallback decode) async {
     final recorder = ui.PictureRecorder();
-    // final canvas = Canvas(recorder);
+    final canvas = Canvas(recorder);
     final picture = recorder.endRecording();
     final image = await picture.toImage(1, 1);
     return ImageInfo(image: image);
