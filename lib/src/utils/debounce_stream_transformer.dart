@@ -11,7 +11,7 @@ class DebounceStreamTransformer<T> extends StreamTransformerBase<T, T> {
 
   @override
   Stream<T> bind(Stream<T> stream) {
-    _controller = StreamController<T>.broadcast();
+    _controller = StreamController<T>();
     stream.listen(_onEvent, onError: _controller?.addError, onDone: _controller?.close);
     return _controller!.stream;
   }
