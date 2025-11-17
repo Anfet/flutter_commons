@@ -57,7 +57,7 @@ class PinCode extends StatelessWidget {
                     autofocus: autofocus,
                     enabled: pinCodeController._isEnabled,
                     maxLines: 1,
-                    scrollPadding: EdgeInsets.only(bottom: (height ?? 0.0) + (bottomPadding ?? 0.0)),
+                    scrollPadding: EdgeInsets.only(bottom: bottomPadding ?? 0.0),
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
