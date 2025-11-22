@@ -25,7 +25,7 @@ extension StringExt on String {
     return false;
   }
 
-  String capFirstLetter() => replaceRange(0, 1, this[0].toUpperCase());
+  String capFirstLetter() => this.isEmpty ? '' : replaceRange(0, 1, this[0].toUpperCase());
 
   String get stripInvalidCharsForPhoneNumber => replaceAll(RegExp('[ +\\-()]'), '');
 
