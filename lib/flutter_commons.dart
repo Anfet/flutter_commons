@@ -5,7 +5,6 @@ export 'package:sprintf/sprintf.dart';
 export 'package:bloc/bloc.dart';
 export 'package:flutter_bloc/flutter_bloc.dart';
 
-
 export 'src/consts.dart';
 export 'src/exceptions.dart';
 export 'src/formatters/custom_formatter.dart';
@@ -25,3 +24,4 @@ export 'src/theming/theming.dart';
 
 export 'src/ui/ui.dart';
 export 'src/widgets/widgets.dart';
+export 'src/keyboard_utils.dart';
