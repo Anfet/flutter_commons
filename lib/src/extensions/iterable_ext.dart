@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 extension IterableExt<T> on Iterable<T> {
@@ -146,4 +147,8 @@ extension IterableExt<T> on Iterable<T> {
     }
     return count;
   }
+
+  List<X> mapList<X>(X mapper(T value)) => map(mapper).toList();
+
+  Future<List<X>> mapListAsync<X>(FutureOr<X> mapper(T value)) => asyncMap<X>((it) async => mapper(it)).then((i) => i.toList());
 }

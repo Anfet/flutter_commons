@@ -9,9 +9,10 @@ final noopP2 = (_, __) {};
 class Strings {
   Strings._();
 
-  static const String empty = "";
-  static const String space = " ";
+  static const empty = "";
+  static const space = " ";
   static const nbsp = ' ';
+  static const bullet = '•';
 }
 
 class Ints {

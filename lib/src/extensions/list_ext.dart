@@ -77,7 +77,7 @@ extension ListExt<T> on List<T> {
     return result;
   }
 
-  List<T> multiSortBy(List<SortFunc<T>> sort, {bool asc = true}) {
+  List<T> multiSortBy(List<SortFunc<T>> sort) {
     List<T> result = clone();
 
     result.sort((a, b) {
@@ -90,10 +90,6 @@ extension ListExt<T> on List<T> {
       }
       return result;
     });
-
-    if (!asc) {
-      return result.reversed.toList();
-    }
 
     return result;
   }
@@ -142,15 +138,7 @@ extension ListExt<T> on List<T> {
     return result;
   }
 
-  List<T> replaceEach(T Function(T it) mapper) {
-    final result = <T>[];
-    for (var i = 0; i < length; i++) {
-      var item = this[i];
-      item = mapper(item);
-      this[i] = item;
-    }
-    return result;
-  }
+  List<T> replaceEach(T Function(T it) mapper) => map(mapper).toList();
 
   List<T> replaceAt(int index, T Function(T old) mapper) {
     var result = clone();

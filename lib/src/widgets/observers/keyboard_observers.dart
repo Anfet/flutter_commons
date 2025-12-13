@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_commons/flutter_commons.dart';
 import 'package:provider/provider.dart';
@@ -49,6 +51,10 @@ class KeyboardVisibilityObserver extends StatefulWidget {
 
   @override
   State<KeyboardVisibilityObserver> createState() => _KeyboardVisibilityObserverState();
+
+  static StreamController<KeyboardVisibility> _controller = StreamController.broadcast();
+
+  static Stream<KeyboardVisibility> get stream => _controller.stream;
 }
 
 class _KeyboardVisibilityObserverState extends State<KeyboardVisibilityObserver> with WidgetsBindingObserver, Logging {
@@ -82,10 +88,14 @@ class _KeyboardVisibilityObserverState extends State<KeyboardVisibilityObserver>
     var visibility =
         KeyboardVisibility(isVisible: percentPadding > 0.0, absolutePadding: context.mediaQuery.viewInsets.bottom, percentPadding: percentPadding);
 
-    return Provider.value(
-      value: visibility,
-      child: widget.child,
-      updateShouldNotify: (previous, current) => true,
-    );
+    try {
+      return Provider.value(
+        value: visibility,
+        child: widget.child,
+        updateShouldNotify: (previous, current) => true,
+      );
+    } finally {
+      KeyboardVisibilityObserver._controller.add(visibility);
+    }
   }
 }
