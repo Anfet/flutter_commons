@@ -70,7 +70,7 @@ extension IterableExt<T> on Iterable<T> {
     }
   }
 
-  Future<Iterable<X>> asyncMap<X>(Future<X> Function(T it) mapper) async {
+  Future<Iterable<X>> asyncMap<X>(FutureOr<X> Function(T it) mapper) async {
     final result = <X>[];
     for (final value in this) {
       X out = await mapper(value);

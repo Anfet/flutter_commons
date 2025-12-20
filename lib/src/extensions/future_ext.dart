@@ -1,9 +1,13 @@
+import 'dart:async';
+
+import 'package:flutter_commons/src/extensions/iterable_ext.dart';
+
 extension SiberianFutureIterableExt<T> on Future<Iterable<T>> {
   Future<List<T>> toList() => then((it) => it.toList());
 
   Future<Iterable<X>> map<X>(X Function(T item) mapper) => then((iterable) => iterable.map(mapper));
 
-  Future<List<X>> mapList<X>(X Function(T item) mapper) => then((iterable) => iterable.map(mapper).toList());
+  Future<List<X>> mapList<X>(FutureOr<X> Function(T item) mapper) => then((i) => i.asyncMap(mapper)).toList();
 
   Future<T?> get firstOrNull => then((iterable) => iterable.firstOrNull);
 

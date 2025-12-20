@@ -3,7 +3,7 @@ import 'package:flutter_commons/src/exceptions.dart';
 
 T require<T>(T? obj) {
   if (obj == null) {
-    throw RequireException('required obj is null');
+    throw RequireException('required obj (${T.runtimeType}) is null');
   }
 
   return obj;

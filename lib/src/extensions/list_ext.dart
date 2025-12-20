@@ -145,4 +145,17 @@ extension ListExt<T> on List<T> {
     result[index] = mapper(result[index]);
     return result;
   }
+
+  List<T> swap(int oldIndex, int newIndex) {
+    var result = clone();
+    result.swapThis(oldIndex, newIndex);
+    return result;
+  }
+
+  void swapThis(int oldIndex, int newIndex) {
+    var a = this[oldIndex];
+    var b = this[newIndex];
+    this[oldIndex] = b;
+    this[newIndex] = a;
+  }
 }
