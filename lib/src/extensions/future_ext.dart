@@ -7,7 +7,9 @@ extension SiberianFutureIterableExt<T> on Future<Iterable<T>> {
 
   Future<Iterable<X>> map<X>(X Function(T item) mapper) => then((iterable) => iterable.map(mapper));
 
-  Future<List<X>> mapList<X>(FutureOr<X> Function(T item) mapper) => then((i) => i.asyncMap(mapper)).toList();
+  Future<List<X>> mapList<X>(FutureOr<X> Function(T it) mapper) => then((i) => i.asyncMap(mapper)).toList();
+
+  Future<List<T>> filter(bool Function(T it) test) => then((list) => list.filter(test));
 
   Future<T?> get firstOrNull => then((iterable) => iterable.firstOrNull);
 

@@ -7,11 +7,23 @@ final class Loadable<T> {
   final Object? error;
   final StackTrace? stack;
 
+  T get rv => value!;
+
+  T? get v => v;
+
   T get requireValue => value!;
 
   Object get requireError => error!;
 
+  Object get re => error!;
+
+  Object? get e => error;
+
   StackTrace get requireStacktrace => stack ?? StackTrace.current;
+
+  StackTrace get rst => requireStacktrace;
+
+  StackTrace? get st => stack;
 
   bool get hasError => error != null;
 
