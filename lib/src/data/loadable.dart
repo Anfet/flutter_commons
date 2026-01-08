@@ -68,22 +68,23 @@ final class Loadable<T> {
     return 'Loadable{${isLoading ? 'loading' : 'idle'}, ${value == null ? 'nothing' : value.runtimeType}, error: ${error ?? ''}}';
   }
 
-  Loadable<T> loading() => Loadable(value, isLoading: true, error: error);
+  Loadable<T> loading() => Loadable(value, isLoading: true, error: error, defaultBuilder: defaultBuilder, stack: stack);
 
-  Loadable<T> idle() => Loadable(value, isLoading: false, error: error);
+  Loadable<T> idle() => Loadable(value, isLoading: false, error: error, defaultBuilder: defaultBuilder, stack: stack);
 
-  Loadable<T> result([T? value]) => Loadable(value, isLoading: isLoading, error: error);
+  Loadable<T> result([T? value]) => Loadable(value, isLoading: isLoading, error: error, defaultBuilder: defaultBuilder, stack: stack);
 
-  Loadable<X> change<X>(X? value) => Loadable(value, isLoading: isLoading, error: error);
+  Loadable<X> change<X>(X? value, {ValueGetter<X>? defaultBuilder}) =>
+      Loadable(value, isLoading: isLoading, error: error, defaultBuilder: defaultBuilder, stack: stack);
 
-  Loadable<T> clearResult() => Loadable(null, isLoading: isLoading, error: error);
+  Loadable<T> clearResult() => Loadable(null, isLoading: isLoading, error: error, defaultBuilder: defaultBuilder, stack: stack);
 
-  Loadable<T> fail(Object ex, [StackTrace? stack]) => Loadable(value, isLoading: isLoading, error: ex, stack: stack);
+  Loadable<T> fail(Object ex, [StackTrace? stack]) => Loadable(value, isLoading: isLoading, error: ex, stack: stack, defaultBuilder: defaultBuilder);
 
-  Loadable<T> clearError() => Loadable(value, isLoading: isLoading, error: null);
+  Loadable<T> clearError() => Loadable(value, isLoading: isLoading, error: null, defaultBuilder: defaultBuilder, stack: stack);
 
-  Loadable<T> clear({bool error = true, bool value = true, bool loading = true}) =>
-      Loadable(value ? null : this.value, isLoading: loading ? false : this.isLoading, error: error ? null : this.error);
+  Loadable<T> clear({bool error = true, bool value = true, bool loading = true}) => Loadable(value ? null : this.value,
+      isLoading: loading ? false : this.isLoading, error: error ? null : this.error, defaultBuilder: defaultBuilder, stack: stack);
 
   T valueOr(T other) => value ?? other;
 
@@ -92,6 +93,22 @@ final class Loadable<T> {
     bool includeLoading = true,
   }) {
     return ValueKey('${includeLoading ? '$isLoading' : ''};$error;$stack;${includeValue ? '$value' : '$hasValue'}');
+  }
+
+  Loadable copyWith({
+    bool? isLoading,
+    T? value,
+    Object? error,
+    StackTrace? stack,
+    ValueGetter<T>? defaultBuilder,
+  }) {
+    return Loadable(
+      value ?? this._value,
+      isLoading: isLoading ?? this.isLoading,
+      error: error ?? this.error,
+      stack: stack ?? this.stack,
+      defaultBuilder: defaultBuilder ?? this.defaultBuilder,
+    );
   }
 }
 
