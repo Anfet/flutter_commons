@@ -1,17 +1,22 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_commons/flutter_commons.dart';
 
 @immutable
 final class Loadable<T> {
   final bool isLoading;
-  final T? value;
+  final T? _value;
   final Object? error;
   final StackTrace? stack;
 
-  T get rv => value!;
+  final ValueGetter<T>? defaultBuilder;
 
-  T? get v => v;
+  T? get value => _value;
 
-  T get requireValue => value!;
+  T? get v => _value ?? defaultBuilder?.call();
+
+  T get requireValue => require(v);
+
+  T get rv => requireValue;
 
   Object get requireError => error!;
 
@@ -33,27 +38,29 @@ final class Loadable<T> {
 
   bool get isWorking => isLoading;
 
-  const Loadable.idle()
+  const Loadable.idle({this.defaultBuilder})
       : isLoading = false,
-        value = null,
+        _value = null,
         error = null,
         stack = null;
 
-  const Loadable.loading()
+  const Loadable.loading({this.defaultBuilder})
       : isLoading = true,
-        value = null,
+        _value = null,
         error = null,
         stack = null;
 
   const Loadable.error(this.error, [this.stack])
       : isLoading = false,
-        value = null;
+        _value = null,
+        defaultBuilder = null;
 
   const Loadable(
-    this.value, {
+    this._value, {
     this.isLoading = false,
     this.error,
     this.stack,
+    this.defaultBuilder,
   });
 
   @override
@@ -68,8 +75,6 @@ final class Loadable<T> {
   Loadable<T> result([T? value]) => Loadable(value, isLoading: isLoading, error: error);
 
   Loadable<X> change<X>(X? value) => Loadable(value, isLoading: isLoading, error: error);
-
-  Loadable<X> remap<X>(X? value) => Loadable(value, isLoading: isLoading, error: error);
 
   Loadable<T> clearResult() => Loadable(null, isLoading: isLoading, error: error);
 
