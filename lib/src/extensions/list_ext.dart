@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'iterable_ext.dart';
 
 typedef SortFunc<T> = int Function(T a, T b);
@@ -157,5 +159,31 @@ extension ListExt<T> on List<T> {
     var b = this[newIndex];
     this[oldIndex] = b;
     this[newIndex] = a;
+  }
+
+  List<T> takeCount(int count, {bool remove = false}) {
+    if (count == 0) {
+      return [];
+    }
+
+    var canTake = min(this.length, count);
+    var result = this.sublist(0, canTake);
+    if (remove) {
+      this.removeRange(0, canTake);
+    }
+    return result;
+  }
+
+  List<T> takeLastCount(int count, {bool remove = false}) {
+    if (count == 0) {
+      return [];
+    }
+
+    var canTake = min(this.length, count);
+    var result = this.sublist(length - canTake, length);
+    if (remove) {
+      this.removeRange(length - canTake, length);
+    }
+    return result;
   }
 }
