@@ -99,13 +99,17 @@ extension IterableExt<T> on Iterable<T> {
     return result;
   }
 
-  Iterable<T> distinct([bool Function(T it)? test]) {
+  Iterable<T> distinct([dynamic Function(T it)? test]) {
     Set<T> result = {};
+    Set tests = {};
     for (final value in this) {
-      var testResult = test?.call(value) ?? true;
-      if (testResult) {
-        result.add(value);
+      var testValue = test?.call(value);
+      if (testValue != null && tests.contains(testValue)) {
+        continue;
       }
+
+      tests.add(testValue);
+      result.add(value);
     }
     return result;
   }
