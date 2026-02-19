@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:flutter_commons/src/data/data.dart';
+
 import 'iterable_ext.dart';
 
 typedef SortFunc<T> = int Function(T a, T b);
@@ -186,4 +188,19 @@ extension ListExt<T> on List<T> {
     }
     return result;
   }
+
+  List<T> swapItems(int oldIndex, int newIndex) {
+    var result = clone();
+    result.swapSync(oldIndex, newIndex);
+    return result;
+  }
+
+  void swapSync(int oldIndex, int newIndex) {
+    var a = this[oldIndex];
+    var b = this[newIndex];
+    this[oldIndex] = b;
+    this[newIndex] = a;
+  }
+
+  List<Maybe<T>> toMaybe() => mapList((it) => Maybe(it));
 }

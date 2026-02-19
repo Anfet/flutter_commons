@@ -20,6 +20,10 @@ extension SiberianFutureIterableExt<T> on Future<Iterable<T>> {
   Future<T> get last => then((iterable) => iterable.last);
 }
 
+extension LibFutureExt<T> on Future<T?> {
+  Future<T> ifNull(FutureOr<T> other) => then((value) async => value ?? (await other));
+}
+
 extension LibFutureMapExt<K, V> on Future<Map<K, V>> {
   Future<Map<K1, V1>> map<K1, V1>(MapEntry<K1, V1> Function(K key, V value) convert) => then((value) => value.map(convert));
 

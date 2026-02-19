@@ -12,7 +12,6 @@ export 'src/formatters/custom_input_formatter.dart';
 export 'src/functions.dart';
 export 'src/mappers.dart';
 export 'src/randomizer.dart';
-export 'src/routing/routing_helpers.dart';
 
 export 'src/utils.dart';
 export 'src/data/data.dart';

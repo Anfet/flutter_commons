@@ -14,5 +14,5 @@ extension GlobalKeyExt<T extends State<StatefulWidget>> on GlobalKey<T> {
 
   T get requireState => require(currentState);
 
-  BuildContext get requireContext => require(requireContext);
+  BuildContext get requireContext => require(currentContext);
 }

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter_commons/src/data/data.dart';
+
 extension IterableExt<T> on Iterable<T> {
   bool isFirst(T item) => firstOrNull == item;
 
@@ -180,4 +182,6 @@ extension IterableExt<T> on Iterable<T> {
   List<X> mapList<X>(X mapper(T value)) => map(mapper).toList();
 
   Future<List<X>> mapListAsync<X>(FutureOr<X> mapper(T value)) => asyncMap<X>((it) async => mapper(it)).then((i) => i.toList());
+
+  Iterable<Maybe<T>> toMaybe() => map((it) => Maybe(it));
 }

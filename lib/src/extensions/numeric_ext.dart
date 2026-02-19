@@ -16,6 +16,10 @@ extension IntExt on int {
   int get kb => this * 1024;
 
   int get mb => kb * 1024;
+
+  int get descending => this * -1;
+
+  int get desc => descending;
 }
 
 extension DoubleExt on double {

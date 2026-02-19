@@ -11,7 +11,7 @@ class Maybe<T> {
 
   T get rv => value!;
 
-  T? get v => v;
+  T? get v => value;
 
   bool get hasValue => value != null;
 

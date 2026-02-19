@@ -46,9 +46,11 @@ class PagedLoader<T> {
         _pages.putIfAbsent(_page, () => result);
       }
 
+      itemsNotifier.value = items;
       lceNotifier.value = Loadable(items, isLoading: false);
       return (result, _endReached);
     } catch (ex, stack) {
+      itemsNotifier.value = items;
       lceNotifier.value = Loadable(items, isLoading: false, error: ex, stack: stack);
     }
 

@@ -78,26 +78,29 @@ class QueryScheduler implements Disposable {
 
     if (tags.isEmpty && ids.isEmpty) {
       requests = Map.of(_requests).values.fold([], (previousValue, element) => [...previousValue, ...element]);
-      _requests.clear();
-      return;
-    }
-
-    var keys = _keysWithRequests;
-    for (var key in keys) {
-      var list = _requests[key] ?? [];
-      list.removeWhere(
-        (request) {
-          var doRemove = tags.contains(request.tag) || ids.contains(request.id);
-          if (doRemove) {
-            requests.add(request);
-          }
-          return doRemove;
-        },
-      );
+      for (var priority in QueryPriority.values) {
+        _requests[priority]?.clear();
+      }
+    } else {
+      var keys = _keysWithRequests;
+      for (var key in keys) {
+        var list = _requests[key] ?? [];
+        list.removeWhere(
+          (request) {
+            var doRemove = tags.contains(request.tag) || ids.contains(request.id);
+            if (doRemove) {
+              requests.add(request);
+            }
+            return doRemove;
+          },
+        );
+      }
     }
 
     for (var request in requests) {
-      request.completer.completeError(CancelledQueryException());
+      if (!request.completer.isCompleted) {
+        request.completer.completeError(CancelledQueryException());
+      }
     }
   }
 

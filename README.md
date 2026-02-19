@@ -1,39 +1,80 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# flutter_commons
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages). 
+Core shared Flutter package with reusable utilities, UI primitives, data models, extensions, and lightweight infrastructure helpers.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages). 
--->
+## What is included
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+- UI helpers and widgets (`SlidingButton`, digit keyboard, animation wrappers, spacers)
+- BLoC-oriented UI base classes and mixins
+- Utility abstractions (`Mutex`, `QueryScheduler`, `PagedLoader`)
+- Data wrappers (`Loadable`, `Maybe`, `Range`, `Pair`, etc.)
+- Storage properties for primitive and JSON values
+- Extension methods for common Dart/Flutter types
+- Theming and routing helpers
 
-## Features
+## Installation
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+Internal package (currently `publish_to: none`), add as a dependency from your mono-repo or git source.
 
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
-
-## Usage
-
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
-
-```dart
-const like = 'sample';
+```yaml
+dependencies:
+  flutter_commons:
+    git:
+      url: https://github.com/Anfet/flutter_commons.git
+      ref: release/1.0.27
 ```
 
-## Additional information
+## Quick start
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+Import the main entrypoint:
+
+```dart
+import 'package:flutter_commons/flutter_commons.dart';
+```
+
+### `Mutex` example
+
+```dart
+final mutex = Mutex();
+
+await mutex.lock(() async {
+  // critical section
+});
+```
+
+### `PagedLoader` example
+
+```dart
+final loader = PagedLoader<String>(
+  itemsPerPage: 20,
+  onDemand: (page, perPage) async => fetchItems(page, perPage),
+);
+
+await loader.loadNextPage();
+final currentItems = loader.items;
+```
+
+### `QueryScheduler` example
+
+```dart
+final scheduler = QueryScheduler();
+
+final request = scheduler.get<String>(
+  () async => loadData(),
+  priority: QueryPriority.normal,
+  tag: 'profile',
+);
+
+final value = await request;
+```
+
+## Development
+
+- Run analyzer: `dart analyze`
+- Run tests: `flutter test`
+
+Note: test files must follow `*_test.dart` naming to be discovered by Flutter test runner.
+
+## License
+
+See `LICENSE`.
