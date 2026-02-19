@@ -9,6 +9,10 @@ class Maybe<T> {
 
   T get requireValue => value!;
 
+  T get rv => value!;
+
+  T? get v => value;
+
   bool get hasValue => value != null;
 
   @override

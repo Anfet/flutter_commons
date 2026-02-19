@@ -21,7 +21,17 @@ extension DurationExt on Duration {
     }
   }
 
-  Future get wait => Future.delayed(this);
+  Future get future => Future.delayed(this);
+
+  Future get wait => future;
+
+  Duration operator /(double divider) => Duration(milliseconds: inMilliseconds ~/ divider);
+
+  Duration operator *(double multiplier) => Duration(milliseconds: (inMilliseconds * multiplier).truncate());
+
+  Duration operator +(Duration other) => Duration(milliseconds: inMilliseconds + other.inMilliseconds);
+
+  Duration operator -(Duration other) => Duration(milliseconds: inMilliseconds - other.inMilliseconds);
 }
 
 extension IntForDuration on int {
@@ -32,4 +42,8 @@ extension IntForDuration on int {
   Duration get minutes => Duration(minutes: this);
 
   Duration get hours => Duration(hours: this);
+
+  Duration get days => Duration(days: this);
+
+  Duration get weeks => Duration(days: this * 7);
 }

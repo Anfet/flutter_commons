@@ -3,6 +3,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 extension StringExt on String {
+
+  String? takeIfNotEmpty() => trim().isEmpty ? null : this;
+
   String get onlyNumbers => RegExp("[0-9]").allMatches(this).map((e) => substring(e.start, e.end)).join("");
 
   String take(int chars) {
@@ -25,7 +28,7 @@ extension StringExt on String {
     return false;
   }
 
-  String capFirstLetter() => replaceRange(0, 1, this[0].toUpperCase());
+  String capFirstLetter() => this.isEmpty ? '' : replaceRange(0, 1, this[0].toUpperCase());
 
   String get stripInvalidCharsForPhoneNumber => replaceAll(RegExp('[ +\\-()]'), '');
 
@@ -56,5 +59,16 @@ extension StringExt on String {
     }
 
     return result;
+  }
+
+  bool get isValidEmail {
+    var email = this.trim();
+    if (email.isEmpty) {
+      return false;
+    }
+    return RegExp(
+      //r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$',
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    ).hasMatch(email);
   }
 }

@@ -1,3 +1,7 @@
+import 'dart:math';
+
+import 'package:flutter_commons/src/data/data.dart';
+
 import 'iterable_ext.dart';
 
 typedef SortFunc<T> = int Function(T a, T b);
@@ -77,7 +81,7 @@ extension ListExt<T> on List<T> {
     return result;
   }
 
-  List<T> multiSortBy(List<SortFunc<T>> sort, {bool asc = true}) {
+  List<T> multiSortBy(List<SortFunc<T>> sort) {
     List<T> result = clone();
 
     result.sort((a, b) {
@@ -90,10 +94,6 @@ extension ListExt<T> on List<T> {
       }
       return result;
     });
-
-    if (!asc) {
-      return result.reversed.toList();
-    }
 
     return result;
   }
@@ -142,13 +142,65 @@ extension ListExt<T> on List<T> {
     return result;
   }
 
-  List<T> replaceEach(T mapper(T it)) {
-    final result = <T>[];
-    for (var i = 0; i < length; i++) {
-      var item = this[i];
-      item = mapper(item);
-      this[i] = item;
+  List<T> replaceEach(T Function(T it) mapper) => map(mapper).toList();
+
+  List<T> replaceAt(int index, T Function(T old) mapper) {
+    var result = clone();
+    result[index] = mapper(result[index]);
+    return result;
+  }
+
+  List<T> swap(int oldIndex, int newIndex) {
+    var result = clone();
+    result.swapThis(oldIndex, newIndex);
+    return result;
+  }
+
+  void swapThis(int oldIndex, int newIndex) {
+    var a = this[oldIndex];
+    var b = this[newIndex];
+    this[oldIndex] = b;
+    this[newIndex] = a;
+  }
+
+  List<T> takeCount(int count, {bool remove = false}) {
+    if (count == 0) {
+      return [];
+    }
+
+    var canTake = min(this.length, count);
+    var result = this.sublist(0, canTake);
+    if (remove) {
+      this.removeRange(0, canTake);
     }
     return result;
   }
+
+  List<T> takeLastCount(int count, {bool remove = false}) {
+    if (count == 0) {
+      return [];
+    }
+
+    var canTake = min(this.length, count);
+    var result = this.sublist(length - canTake, length);
+    if (remove) {
+      this.removeRange(length - canTake, length);
+    }
+    return result;
+  }
+
+  List<T> swapItems(int oldIndex, int newIndex) {
+    var result = clone();
+    result.swapSync(oldIndex, newIndex);
+    return result;
+  }
+
+  void swapSync(int oldIndex, int newIndex) {
+    var a = this[oldIndex];
+    var b = this[newIndex];
+    this[oldIndex] = b;
+    this[newIndex] = a;
+  }
+
+  List<Maybe<T>> toMaybe() => mapList((it) => Maybe(it));
 }

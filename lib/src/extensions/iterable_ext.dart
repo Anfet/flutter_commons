@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'dart:math';
+
+import 'package:flutter_commons/src/data/data.dart';
 
 extension IterableExt<T> on Iterable<T> {
   bool isFirst(T item) => firstOrNull == item;
@@ -69,7 +72,7 @@ extension IterableExt<T> on Iterable<T> {
     }
   }
 
-  Future<Iterable<X>> asyncMap<X>(Future<X> Function(T it) mapper) async {
+  Future<Iterable<X>> asyncMap<X>(FutureOr<X> Function(T it) mapper) async {
     final result = <X>[];
     for (final value in this) {
       X out = await mapper(value);
@@ -98,46 +101,75 @@ extension IterableExt<T> on Iterable<T> {
     return result;
   }
 
-  Iterable<T> distinct([bool Function(T it)? test]) {
+  Iterable<T> distinct([dynamic Function(T it)? test]) {
     Set<T> result = {};
+    Set tests = {};
     for (final value in this) {
-      var testResult = test?.call(value) ?? true;
-      if (testResult) {
-        result.add(value);
+      var testValue = test?.call(value);
+      if (testValue != null && tests.contains(testValue)) {
+        continue;
       }
+
+      tests.add(testValue);
+      result.add(value);
     }
     return result;
   }
 
-  num maxOf(num Function(T it) test, {num? orElse}) {
+  num maxOf([num Function(T it)? test, num? orElse]) {
+    // assert(T is num || T is double || T is int || test != null, 'T must be num|int|double or test is required');
     num? x;
     for (final val in this) {
-      x ??= test(val);
-      x = max(x, test(val));
+      num t;
+      if (val is num || val is int || val is double) {
+        t = val as num;
+      } else {
+        t = test!.call(val);
+      }
+
+      x ??= val as num;
+      x = max(x, t);
     }
 
     return x ?? orElse ?? 0;
   }
 
-  num minOf(num Function(T it) test, {num? orElse}) {
+  num minOf([num Function(T it)? test, num? orElse]) {
+    // assert(T is num || T is double || T is int || test != null, 'T must be num|int|double or test is required');
     num? x;
     for (final val in this) {
-      x ??= test(val);
-      x = min(x, test(val));
+      num t;
+      if (val is num || val is int || val is double) {
+        t = val as num;
+      } else {
+        t = test!.call(val);
+      }
+
+      x ??= val as num;
+      x = min(x, t);
     }
 
     return x ?? orElse ?? 0;
   }
 
-  num sumOf(num Function(T it) test) {
+  num sumOf([num Function(T it)? test]) {
     num x = 0;
     for (final val in this) {
-      x += test(val);
+      // assert(val is num || val is double || val is int || test != null, 'T must be num|int|double or test is required');
+      if (val is num || val is int || val is double) {
+        x += val as num;
+      } else {
+        x += test!.call(val);
+      }
     }
     return x;
   }
 
-  int count(bool Function(T it) test) {
+  int count([bool Function(T it)? test]) {
+    if (test == null) {
+      return length;
+    }
+
     var count = 0;
     for (final val in this) {
       if (test(val)) {
@@ -146,4 +178,10 @@ extension IterableExt<T> on Iterable<T> {
     }
     return count;
   }
+
+  List<X> mapList<X>(X mapper(T value)) => map(mapper).toList();
+
+  Future<List<X>> mapListAsync<X>(FutureOr<X> mapper(T value)) => asyncMap<X>((it) async => mapper(it)).then((i) => i.toList());
+
+  Iterable<Maybe<T>> toMaybe() => map((it) => Maybe(it));
 }

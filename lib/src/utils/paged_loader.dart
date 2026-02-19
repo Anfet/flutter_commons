@@ -3,7 +3,7 @@ import 'package:flutter_commons/flutter_commons.dart';
 
 typedef PagedLoaderCallback<T> = Future<List<T>> Function(int page, int itemsPerPage);
 
-class PagedLoader<T> with Logging {
+class PagedLoader<T> {
   final ValueNotifier<List<T>> itemsNotifier = ValueNotifier([]);
   final ValueNotifier<Loadable<List<T>>> lceNotifier = ValueNotifier(const Loadable([]));
 
@@ -24,7 +24,6 @@ class PagedLoader<T> with Logging {
   final Map<int, List<T>> _pages = {};
 
   void clear() {
-    trace('clearing paged loader');
     _pages.clear();
     _page = initialPage - 1;
     _endReached = false;
@@ -34,14 +33,12 @@ class PagedLoader<T> with Logging {
 
   Future<(List<T> items, bool endReached)> loadNextPage() async {
     if (_endReached || isLoading) {
-      trace('load next page denied; already loading');
       return (<T>[], _endReached);
     }
 
     lceNotifier.value = Loadable(items, isLoading: true);
     try {
       var loadingPage = _page + 1;
-      trace("loading page '$loadingPage'");
       var result = await onDemand(loadingPage, itemsPerPage);
       _endReached = result.isEmpty || result.length < itemsPerPage;
       if (result.isNotEmpty) {
@@ -49,11 +46,11 @@ class PagedLoader<T> with Logging {
         _pages.putIfAbsent(_page, () => result);
       }
 
+      itemsNotifier.value = items;
       lceNotifier.value = Loadable(items, isLoading: false);
-      trace("items returned '${result.length}'; end reached = ${_endReached ? 'true' : 'false'}");
       return (result, _endReached);
     } catch (ex, stack) {
-      warn("page '${_page + 1}' load error", error: ex, stack: stack);
+      itemsNotifier.value = items;
       lceNotifier.value = Loadable(items, isLoading: false, error: ex, stack: stack);
     }
 

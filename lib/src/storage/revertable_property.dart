@@ -45,4 +45,7 @@ class RevertableProperty<T> implements StorableProperty<T> {
 
     _initialValue = await getValue();
   }
+
+  @override
+  FutureOr<bool> exists() => child.exists();
 }

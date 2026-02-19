@@ -2,16 +2,20 @@ import 'dart:math';
 
 import 'package:flutter_commons/src/exceptions.dart';
 
-
 class StringSource {
   int _pos = 0;
   final String text;
+  final bool backwards;
 
-  StringSource(this.text);
+  StringSource(this.text, {this.backwards = false}) {
+    if (backwards) {
+      _pos = text.length - 1;
+    }
+  }
 
   String get value => text;
 
-  String get remaining => text.substring(_pos);
+  String get remaining => backwards ? text.substring(0, _pos + 1) : text.substring(_pos);
 
   String get peek => hasMore ? text[_pos] : "";
 
@@ -19,9 +23,9 @@ class StringSource {
 
   int get position => _pos;
 
-  void rewind() => _pos = 0;
+  void rewind() => _pos = backwards ? (text.length - 1) : 0;
 
-  String get _nextChar => text[_pos++];
+  String get _nextChar => text[backwards ? _pos-- : _pos++];
 
   String consume({int count = 1}) {
     final takeAmount = min(count, remaining.length);
@@ -33,8 +37,15 @@ class StringSource {
       return _nextChar;
     }
 
-    final result = text.substring(_pos, takeAmount);
-    _pos += takeAmount;
+    String result;
+    if (backwards) {
+      result = text.substring(text.length - 1 - takeAmount, text.length - 1);
+      _pos -= takeAmount;
+      return result;
+    } else {
+      result = text.substring(_pos, takeAmount);
+      _pos += takeAmount;
+    }
     return result;
   }
 

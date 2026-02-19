@@ -1,9 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_commons/flutter_commons.dart';
-import 'package:flutter_commons/src/data/lib/disposable.dart';
-import 'package:flutter_commons/src/exceptions.dart';
-import 'package:flutter_logger/flutter_logger.dart';
 
 typedef QueryFailCallback<T> = FutureOr<QueryRetry> Function(QueryRequest<T> request, Object exception, int retries);
 
@@ -19,7 +16,7 @@ enum QueryPriority {
   ;
 }
 
-class QueryScheduler with Logging implements Disposable {
+class QueryScheduler implements Disposable {
   bool _isPaused = false;
   bool _isLooping = false;
 
@@ -81,27 +78,29 @@ class QueryScheduler with Logging implements Disposable {
 
     if (tags.isEmpty && ids.isEmpty) {
       requests = Map.of(_requests).values.fold([], (previousValue, element) => [...previousValue, ...element]);
-      _requests.clear();
-      return;
-    }
-
-    var keys = _keysWithRequests;
-    for (var key in keys) {
-      var list = _requests[key] ?? [];
-      list.removeWhere(
-        (request) {
-          var doRemove = tags.contains(request.tag) || ids.contains(request.id);
-          if (doRemove) {
-            requests.add(request);
-          }
-          return doRemove;
-        },
-      );
+      for (var priority in QueryPriority.values) {
+        _requests[priority]?.clear();
+      }
+    } else {
+      var keys = _keysWithRequests;
+      for (var key in keys) {
+        var list = _requests[key] ?? [];
+        list.removeWhere(
+          (request) {
+            var doRemove = tags.contains(request.tag) || ids.contains(request.id);
+            if (doRemove) {
+              requests.add(request);
+            }
+            return doRemove;
+          },
+        );
+      }
     }
 
     for (var request in requests) {
-      trace('request #${request.id} dropped');
-      request.completer.completeError(CancelledQueryException());
+      if (!request.completer.isCompleted) {
+        request.completer.completeError(CancelledQueryException());
+      }
     }
   }
 
@@ -111,16 +110,11 @@ class QueryScheduler with Logging implements Disposable {
     String? tag,
     QueryFailCallback? onFail,
   }) {
-    if (_isPaused) {
-      warn('scheduler is paused; request will be added in queue');
-    }
-
     QueryRequest<T> rq = QueryRequest<T>(
       request: request,
       tag: tag,
       onFail: onFail ?? this.onFail,
     );
-    trace('scheduling request #${rq.id} / ${priority.name}');
     if (priority == QueryPriority.immediate) {
       _execute(rq);
     } else {
@@ -149,7 +143,6 @@ class QueryScheduler with Logging implements Disposable {
     Loadable result = const Loadable.loading();
     while (request.canTry) {
       try {
-        trace('executing request #${request.id}; r${request.tries}');
         request.tries++;
         result = result.result(await request.request());
         break;

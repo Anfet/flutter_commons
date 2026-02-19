@@ -10,14 +10,20 @@ class PinCode extends StatelessWidget {
   final int maxLength;
   final PinCodeController pinCodeController;
   final PinCodeBuilder builder;
-  final double? spacing;
+  final double spacing;
+  final bool autofocus;
+  final double height;
+  final double? bottomPadding;
 
   const PinCode({
     super.key,
     this.maxLength = _kDefaultMaxPinLength,
     required this.pinCodeController,
     required this.builder,
-    this.spacing,
+    required this.height,
+    this.spacing = 8,
+    this.autofocus = true,
+    this.bottomPadding,
   });
 
   @override
@@ -27,18 +33,16 @@ class PinCode extends StatelessWidget {
         Feedback.forTap(context);
         pinCodeController._focusNode.requestFocus();
       },
-      child: IntrinsicHeight(
+      child: SizedBox(
+        height: height,
         child: Stack(
           alignment: Alignment.topCenter,
           children: [
             AbsorbPointer(
-              child: Visibility(
-                visible: false,
-                maintainState: true,
-                maintainSize: true,
-                maintainAnimation: true,
-                maintainInteractivity: true,
-                child: SizedBox.shrink(
+              child: Opacity(
+                opacity: 0.0,
+                child: SizedBox(
+                  height: height,
                   child: TextField(
                     onChanged: (value) {
                       pinCodeController.pin = value;
@@ -50,10 +54,10 @@ class PinCode extends StatelessWidget {
                     decoration: const InputDecoration.collapsed(hintText: '').copyWith(isDense: false),
                     style: const TextStyle(fontSize: 1),
                     autocorrect: false,
-                    autofocus: false,
+                    autofocus: autofocus,
                     enabled: pinCodeController._isEnabled,
                     maxLines: 1,
-                    scrollPadding: EdgeInsets.zero,
+                    scrollPadding: EdgeInsets.only(bottom: bottomPadding ?? 0.0),
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
@@ -78,7 +82,7 @@ class PinCode extends StatelessWidget {
                   children: SeparatedList.builder(
                     List.generate(maxLength, (index) => pinCodeController.pin.ensureLength(maxLength)[index]),
                     builder: (index, item, list) => builder(context, item),
-                    separatorBuilder: (index, item, list) => const Spacer(), //spacing == 0 ? null : (index, item, list) => HSpacer(spacing),
+                    separatorBuilder: (index, item, list) => HSpacer(spacing),
                   ),
                 );
               },
@@ -90,7 +94,7 @@ class PinCode extends StatelessWidget {
   }
 }
 
-class PinCodeController extends ChangeNotifier with Logging {
+class PinCodeController extends ChangeNotifier {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
 
@@ -122,7 +126,7 @@ class PinCodeController extends ChangeNotifier with Logging {
   }
 
   PinCodeController({
-    required String pin,
+    String pin = '',
     bool isEnabled = true,
     this.onPinChanged,
   })  : _pin = pin,

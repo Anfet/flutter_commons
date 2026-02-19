@@ -1,24 +1,18 @@
 import 'package:flutter/widgets.dart';
 
+@pragma("vm:prefer-inline")
+//ignore: non_constant_identifier_names
+Widget EmptyBox() => const SizedBox();
+
 class VSpacer extends StatelessWidget {
   final double height;
   final Color? color;
   final EdgeInsets padding;
 
   @override
-  Widget build(BuildContext context) => Container(
-        height: height,
-        width: 1,
-        color: color,
-        margin: padding,
-      );
+  Widget build(BuildContext context) => Container(height: height, width: 1, color: color, margin: padding);
 
-  const VSpacer(
-    this.height, {
-    super.key,
-    this.color,
-    this.padding = EdgeInsets.zero,
-  });
+  const VSpacer(this.height, {super.key, this.color, this.padding = EdgeInsets.zero});
 }
 
 class HSpacer extends StatelessWidget {
@@ -27,19 +21,9 @@ class HSpacer extends StatelessWidget {
   final EdgeInsets padding;
 
   @override
-  Widget build(BuildContext context) => Container(
-        width: width,
-        height: 1,
-        color: color,
-        margin: padding,
-      );
+  Widget build(BuildContext context) => Container(width: width, height: 1, color: color, margin: padding);
 
-  const HSpacer(
-    this.width, {
-    super.key,
-    this.color,
-    this.padding = EdgeInsets.zero,
-  });
+  const HSpacer(this.width, {super.key, this.color, this.padding = EdgeInsets.zero});
 }
 
 class NavbarSpacer extends StatelessWidget {
@@ -58,7 +42,44 @@ class NavbarSpacer extends StatelessWidget {
   }
 }
 
-enum _NavbarPosition {
-  top,
-  bottom,
+enum _NavbarPosition { top, bottom }
+
+class SliverBox extends StatelessWidget {
+  final Widget? child;
+  final EdgeInsets? padding;
+
+  const SliverBox({
+    super.key,
+    this.child,
+    this.padding,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: padding ?? EdgeInsets.zero,
+        child: child,
+      ),
+    );
+  }
+}
+
+class SliverSpacer extends StatelessWidget {
+  final Axis orientation;
+  final double dimension;
+
+  const SliverSpacer.v(this.dimension, {super.key}) : orientation = Axis.vertical;
+
+  const SliverSpacer.h(this.dimension, {super.key}) : orientation = Axis.horizontal;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverPadding(
+      padding: EdgeInsets.only(
+        top: orientation == Axis.vertical ? dimension : 0.0,
+        left: orientation == Axis.horizontal ? dimension : 0.0,
+      ),
+    );
+  }
 }
