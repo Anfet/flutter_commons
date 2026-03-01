@@ -4,10 +4,18 @@ import 'package:flutter_commons/flutter_commons.dart';
 
 extension CompleterExt<T> on Completer<T> {
   Completer<T> fromFuture(Future<T> future) {
-    final completer = Completer<T>();
-    future.then((value) => completer.complete(value)).onError(
-          (error, stackTrace) => completer.completeError(error ?? FlowException("No error on error"), stackTrace),
-        );
-    return completer;
+    future.then(
+      (value) {
+        if (!isCompleted) {
+          complete(value);
+        }
+      },
+      onError: (error, stackTrace) {
+        if (!isCompleted) {
+          completeError(error ?? FlowException("No error on error"), stackTrace);
+        }
+      },
+    );
+    return this;
   }
 }

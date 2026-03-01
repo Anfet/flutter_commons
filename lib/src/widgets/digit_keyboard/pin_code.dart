@@ -6,6 +6,7 @@ const _kDefaultMaxPinLength = 4;
 
 typedef PinCodeBuilder = Widget Function(BuildContext context, String char);
 
+/// Public class PinCode.
 class PinCode extends StatelessWidget {
   final int maxLength;
   final PinCodeController pinCodeController;
@@ -94,6 +95,7 @@ class PinCode extends StatelessWidget {
   }
 }
 
+/// Public class PinCodeController.
 class PinCodeController extends ChangeNotifier {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();

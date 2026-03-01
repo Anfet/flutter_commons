@@ -1,6 +1,7 @@
-import 'package:flutter_commons/src/data/lazy.dart';
+// ignore_for_file: avoid_print
+ 
 import 'package:flutter_commons/src/extensions/list_ext.dart';
-import 'package:flutter_commons/src/utils/mutex.dart';
+import 'package:flutter_commons/src/utils/concurrent/mutex.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() async {

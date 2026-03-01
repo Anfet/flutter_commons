@@ -1,10 +1,11 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_commons/flutter_commons.dart';
+import 'package:flutter_commons/src/logging.dart';
 
 AppBuildVariant _appBuildVariant = AppBuildVariant.developer;
 
 AppBuildVariant get appBuildVariant => _appBuildVariant;
 
+/// Public enum AppBuildVariant.
 enum AppBuildVariant {
   developer(20),
   internal(10),

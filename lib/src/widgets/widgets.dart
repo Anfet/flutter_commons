@@ -11,7 +11,7 @@ export 'appearing_widget.dart';
 export 'enabling.dart';
 export 'enricher.dart';
 export 'flashing.dart';
-export 'base64_image_widget.dart';
+export 'images/base64_image_widget.dart';
 export 'svg_icon.dart';
 export 'scroll_focusable.dart';
 

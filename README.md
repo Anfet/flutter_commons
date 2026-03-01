@@ -1,80 +1,89 @@
 # flutter_commons
 
-Core shared Flutter package with reusable utilities, UI primitives, data models, extensions, and lightweight infrastructure helpers.
+Core Flutter package with reusable widgets, utils, extensions, and UI infrastructure.
 
-## What is included
+## Status
 
-- UI helpers and widgets (`SlidingButton`, digit keyboard, animation wrappers, spacers)
-- BLoC-oriented UI base classes and mixins
-- Utility abstractions (`Mutex`, `QueryScheduler`, `PagedLoader`)
-- Data wrappers (`Loadable`, `Maybe`, `Range`, `Pair`, etc.)
-- Storage properties for primitive and JSON values
-- Extension methods for common Dart/Flutter types
-- Theming and routing helpers
+- Type: internal package (`publish_to: none`)
+- Dart SDK: `>=3.10.0 <4.0.0`
+- Main entrypoint: `lib/flutter_commons.dart`
 
-## Installation
+## Project goals
 
-Internal package (currently `publish_to: none`), add as a dependency from your mono-repo or git source.
+- Reuse common UI and utility code across apps
+- Keep business projects thinner and easier to maintain
+- Provide stable primitives for widgets, data/state wrappers, and helpers
 
-```yaml
-dependencies:
-  flutter_commons:
-    git:
-      url: https://github.com/Anfet/flutter_commons.git
-      ref: release/1.0.27
-```
+## Package structure
+
+- `lib/src/widgets` - reusable widgets and UI primitives
+- `lib/src/ui` - bloc-oriented UI base classes and mixins
+- `lib/src/utils` - async/control-flow and infrastructure helpers
+- `lib/src/extensions` - extension methods for Dart/Flutter types
+- `lib/src/data` - value wrappers and data primitives
+- `lib/src/storage` - persistent property abstractions
+- `lib/src/theming` - theming helpers
+- `test` - tests (currently minimal)
 
 ## Quick start
-
-Import the main entrypoint:
 
 ```dart
 import 'package:flutter_commons/flutter_commons.dart';
 ```
 
-### `Mutex` example
+### Mutex example
 
 ```dart
 final mutex = Mutex();
-
 await mutex.lock(() async {
   // critical section
 });
 ```
 
-### `PagedLoader` example
+### PagedLoader example
 
 ```dart
-final loader = PagedLoader<String>(
+final loader = PagedLoader<String, void>(
   itemsPerPage: 20,
-  onDemand: (page, perPage) async => fetchItems(page, perPage),
+  onDemand: (page, perPage, [arguments]) async => fetchItems(page, perPage),
 );
 
-await loader.loadNextPage();
-final currentItems = loader.items;
+await loader.loadPage();
+final items = loader.items;
 ```
 
-### `QueryScheduler` example
+## Local development
 
-```dart
-final scheduler = QueryScheduler();
-
-final request = scheduler.get<String>(
-  () async => loadData(),
-  priority: QueryPriority.normal,
-  tag: 'profile',
-);
-
-final value = await request;
-```
-
-## Development
-
-- Run analyzer: `dart analyze`
+- Analyze: `flutter analyze`
 - Run tests: `flutter test`
+- Outdated deps: `flutter pub outdated`
 
-Note: test files must follow `*_test.dart` naming to be discovered by Flutter test runner.
+Note: Flutter discovers only files matching `*_test.dart`.
+
+## Current priorities
+
+- Stabilize widget lifecycle behavior
+- Improve test coverage for animation and interaction widgets
+- Remove deprecated API usages
+
+## Backlog template
+
+Use this section to append tasks gradually.
+
+- [ ] Add widget tests for `SlidingWidget`, `CollapsibleWidget`, `RevealingWidget`
+- [ ] Add semantics coverage for keyboard/buttons
+- [ ] Document each public widget with usage snippet
+
+## Contribution notes
+
+- Keep APIs backward-compatible when possible
+- Prefer small, focused PRs
+- Run `flutter analyze` before opening PR
 
 ## License
 
 See `LICENSE`.
+
+## Documentation
+
+- Project docs index: `docs/README.md`

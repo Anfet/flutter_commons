@@ -3,6 +3,7 @@ import 'package:flutter_commons/flutter_commons.dart';
 
 typedef ThemeWidgetBuilder<T extends CustomTheme> = Widget Function(BuildContext context, T theme);
 
+/// Public class ThemeBuilder.
 class ThemeBuilder<T extends CustomTheme> extends StatelessWidget {
   final ThemeWidgetBuilder<T> builder;
 

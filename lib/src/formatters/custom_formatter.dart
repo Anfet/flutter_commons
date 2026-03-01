@@ -1,6 +1,7 @@
 import 'package:flutter_commons/src/consts.dart';
 import 'package:flutter_commons/src/data/string_source.dart';
 
+/// Public class CustomFormatter.
 class CustomFormatter {
   static const digitPlaceholder = '#';
   static const anyPlaceholder = '_';

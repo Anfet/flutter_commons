@@ -20,6 +20,7 @@ abstract interface class PropertyStorage {
   Future<void> clear();
 }
 
+/// Public class MemoryStorage.
 class MemoryStorage implements PropertyStorage {
   final Map<String, String> values = {};
 
@@ -50,6 +51,7 @@ class MemoryStorage implements PropertyStorage {
   }
 }
 
+/// Public class FileStorage.
 class FileStorage implements PropertyStorage {
   final Directory parentDirectory;
 
@@ -59,7 +61,11 @@ class FileStorage implements PropertyStorage {
 
   @override
   Future<void> delete(String name) async {
-    await File('${parentDirectory.path}/$name').delete();
+    try {
+      await File('${parentDirectory.path}/$name').delete();
+    } catch (_) {
+      // ignore missing/inaccessible file on delete
+    }
   }
 
   @override
@@ -72,12 +78,16 @@ class FileStorage implements PropertyStorage {
   FutureOr<String> get(String name) => File('${parentDirectory.path}/$name').readAsString();
 
   @override
-  Future<void> set(String name, String value) => File('${parentDirectory.path}/$name').writeAsString(value, flush: true);
+  Future<void> set(String name, String value) async {
+    await parentDirectory.create(recursive: true);
+    await File('${parentDirectory.path}/$name').writeAsString(value, flush: true);
+  }
 
   @override
   Future<void> clear() async {
     try {
       await parentDirectory.delete(recursive: true);
+      await parentDirectory.create(recursive: true);
     } catch (_) {
       //mute
     }

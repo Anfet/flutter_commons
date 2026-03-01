@@ -28,11 +28,11 @@ extension StringExt on String {
     return false;
   }
 
-  String capFirstLetter() => this.isEmpty ? '' : replaceRange(0, 1, this[0].toUpperCase());
+  String capFirstLetter() => isEmpty ? '' : replaceRange(0, 1, this[0].toUpperCase());
 
   String get stripInvalidCharsForPhoneNumber => replaceAll(RegExp('[ +\\-()]'), '');
 
-  String get stripNewLines => replaceAll(r"\n", "");
+  String get stripNewLines => replaceAll(RegExp(r'[\r\n]'), '');
 
   String trimSplash() => replaceAll(RegExp(r'[/\\]'), "");
 
@@ -62,7 +62,7 @@ extension StringExt on String {
   }
 
   bool get isValidEmail {
-    var email = this.trim();
+    var email = trim();
     if (email.isEmpty) {
       return false;
     }

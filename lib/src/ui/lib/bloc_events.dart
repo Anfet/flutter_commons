@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 abstract interface class BlocEvent {}
 
 @immutable
+/// Public class BlocEvents.
 class BlocEvents {
   const BlocEvents._();
 
@@ -11,6 +12,7 @@ class BlocEvents {
 }
 
 @immutable
+/// Public class OnInit.
 class OnInit implements BlocEvent {
   final Object? arguments;
 

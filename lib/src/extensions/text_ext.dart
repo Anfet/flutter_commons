@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_commons/src/consts.dart';
 
+/// Public class TextUtils.
 class TextUtils {
   static Size textSpanSize({
     required TextSpan span,

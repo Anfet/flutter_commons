@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Public class InkButton.
 class InkButton extends StatelessWidget {
   final EdgeInsets? padding;
   final VoidCallback? onTap;

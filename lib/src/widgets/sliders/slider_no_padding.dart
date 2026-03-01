@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Public class EdgeToEdgeTrackShape.
 class EdgeToEdgeTrackShape extends RoundedRectSliderTrackShape {
   // Override getPreferredRect to adjust the track's dimensions
   @override

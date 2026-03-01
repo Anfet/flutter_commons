@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_commons/flutter_commons.dart';
 
+/// Public class RevertableProperty.
 class RevertableProperty<T> implements StorableProperty<T> {
   T? _value;
 

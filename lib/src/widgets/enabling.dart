@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_commons/flutter_commons.dart';
 
+/// Public class Enabling.
 class Enabling extends StatelessWidget {
   final Widget child;
   final bool enabled;

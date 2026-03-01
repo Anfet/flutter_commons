@@ -1,3 +1,4 @@
+/// Splits and merges overlapping integer ranges with associated payload data.
 class RangeSplitter {
   final List<SplitterRange> _ranges = [];
 
@@ -7,6 +8,7 @@ class RangeSplitter {
     _ranges.add(SplitterRange(from, till, listOfData));
   }
 
+  /// Adds a range and merges payloads in intersection segments.
   void add(int from, int till, List<Object?> listOfData) {
     var range = SplitterRange(from, till, listOfData);
 
@@ -57,7 +59,7 @@ class RangeSplitter {
       if (range.from < r.from) {
         //начало раньше
         var prefix = SplitterRange(range.from, r.from, range.listOfData);
-        _ranges.insert(idx - 1, prefix);
+        _ranges.insert(idx, prefix);
         range = range.copyWith(from: r.from);
         continue;
       }
@@ -85,6 +87,7 @@ class RangeSplitter {
   }
 }
 
+/// A half-open integer range `[from, till)` with associated payload list.
 class SplitterRange {
   final int from;
   final int till;

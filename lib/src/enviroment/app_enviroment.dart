@@ -3,8 +3,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_commons/src/storage/storable_property.dart';
 
+/// Public enum Enviroment.
 enum Enviroment { dev, stage, prod, custom }
 
+/// Public class Enviroments.
 class Enviroments {
   Enviroments._();
 
@@ -12,6 +14,7 @@ class Enviroments {
 }
 
 @immutable
+/// Public class AppEnviroment.
 class AppEnviroment {
   final String enviroment;
   final String host;

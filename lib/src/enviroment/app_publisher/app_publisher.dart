@@ -1,8 +1,9 @@
-import 'package:flutter_commons/flutter_commons.dart';
+import 'package:flutter_commons/src/logging.dart';
 import 'impl/store_resolver_stub.dart'
     if (dart.library.html) './impl/store_resolver_web.dart'
     if (dart.library.io) './impl/store_resolver_other.dart';
 
+/// Public enum AppPublisher.
 enum AppPublisher {
   unknown,
   ios,

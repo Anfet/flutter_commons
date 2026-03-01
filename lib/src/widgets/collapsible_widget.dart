@@ -7,6 +7,7 @@ import 'package:flutter_commons/flutter_commons.dart';
 
 typedef CollapsibleWidgetBuilder = Widget Function(Animation<double> animation, Widget child);
 
+/// Public class CollapsibleWidget.
 class CollapsibleWidget extends StatefulWidget {
   final Widget child;
   final bool expanded;
@@ -32,7 +33,7 @@ class CollapsibleWidget extends StatefulWidget {
   @override
   State<CollapsibleWidget> createState() => _CollapsibleWidgetState();
 
-  static const Duration defaultAnimationDuration = Duration(microseconds: 300);
+  static const Duration defaultAnimationDuration = Duration(milliseconds: 300);
 
   static CollapsibleWidgetBuilder get defaultAnimationBuilder => (Animation<double> animation, Widget child) => child;
 }
@@ -123,7 +124,7 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox {
   Duration _duration;
   CollapsibleWidgetBuilder builder;
   Clip clipBehavior;
-  Curve curve;
+  Curve _curve;
   Axis? orientation;
 
   _RenderCollapsibleWidget({
@@ -133,11 +134,13 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox {
     super.alignment,
     required this.builder,
     Clip? clipBehavior,
-    required this.curve,
+    required Curve curve,
     required this.onAnimationChanged,
     this.orientation,
   })  : _duration = duration,
         _expanded = expanded,
+        _curve = curve,
+        curveTween = CurveTween(curve: curve),
         clipBehavior = clipBehavior ?? Clip.hardEdge;
 
   set expanded(bool value) {
@@ -156,11 +159,21 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox {
     markNeedsSemanticsUpdate();
   }
 
+  set curve(Curve value) {
+    if (_curve != value) {
+      _curve = value;
+      curveTween = CurveTween(curve: value);
+      requireResize = true;
+      markNeedsLayout();
+      markNeedsSemanticsUpdate();
+    }
+  }
+
   Timer? timer;
   double animationPosition = 0.0;
   DateTime timestamp = DateTime(0);
   final SizeTween sizeTween = SizeTween(begin: Size.zero, end: Size.zero);
-  late final CurveTween curveTween = CurveTween(curve: curve);
+  CurveTween curveTween;
   bool hasVisualOverflow = false;
   Size childSize = Size.zero;
   Size targetSize = Size.zero;

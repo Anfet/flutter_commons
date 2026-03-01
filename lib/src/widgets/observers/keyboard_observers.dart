@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_commons/flutter_commons.dart';
 import 'package:provider/provider.dart';
 
+/// Public class KeyboardVisibility.
 class KeyboardVisibility {
   final bool isVisible;
   final double absolutePadding;
@@ -21,6 +22,7 @@ class KeyboardVisibility {
   }
 }
 
+/// Public class KeyboardVisibilityBuilder.
 class KeyboardVisibilityBuilder extends StatelessWidget {
   final ValueWidgetBuilder<KeyboardVisibility>? builder;
   final Widget? child;
@@ -44,6 +46,7 @@ class KeyboardVisibilityBuilder extends StatelessWidget {
   }
 }
 
+/// Public class KeyboardVisibilityObserver.
 class KeyboardVisibilityObserver extends StatefulWidget {
   final Widget child;
 
@@ -52,12 +55,12 @@ class KeyboardVisibilityObserver extends StatefulWidget {
   @override
   State<KeyboardVisibilityObserver> createState() => _KeyboardVisibilityObserverState();
 
-  static StreamController<KeyboardVisibility> _controller = StreamController.broadcast();
+  static final StreamController<KeyboardVisibility> _controller = StreamController.broadcast();
 
   static Stream<KeyboardVisibility> get stream => _controller.stream;
 }
 
-class _KeyboardVisibilityObserverState extends State<KeyboardVisibilityObserver> with WidgetsBindingObserver, Logging {
+class _KeyboardVisibilityObserverState extends State<KeyboardVisibilityObserver> with WidgetsBindingObserver {
   Size? _originalSize;
 
   @override

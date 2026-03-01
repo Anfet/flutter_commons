@@ -7,6 +7,7 @@ typedef StringReaction = BlocReaction<String>;
 
 typedef ShotReaction = BlocReaction<dynamic>;
 
+/// Public class BlocReaction.
 class BlocReaction<T> {
   final int reactionId = ++_rid;
 

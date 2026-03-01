@@ -7,23 +7,34 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_commons/src/extensions/numeric_ext.dart';
 
+/// Image provider that reads and decodes image bytes from a local [File].
 class FileImageProvider extends ImageProvider<FileImageProvider> {
+  /// Source image file.
   final File file;
 
+  /// Creates an image provider for [file].
   FileImageProvider(this.file);
 
   @override
+  /// Returns this provider synchronously as the cache key.
   Future<FileImageProvider> obtainKey(ImageConfiguration configuration) {
     return SynchronousFuture<FileImageProvider>(this);
   }
 
   @override
+  /// Starts async loading and decoding of image bytes from [file].
   ImageStreamCompleter loadImage(FileImageProvider key, ImageDecoderCallback decode) {
     final streamController = StreamController<ImageChunkEvent>();
     final codecCompleter = Completer<ui.Codec>();
 
     _loadAsync(key, decode, streamController, codecCompleter).catchError((ex, stack) {
       PaintingBinding.instance.imageCache.evict(key);
+      if (!codecCompleter.isCompleted) {
+        codecCompleter.completeError(ex, stack);
+      }
+      if (!streamController.isClosed) {
+        streamController.close();
+      }
     });
 
     return MultiFrameImageStreamCompleter(
@@ -68,10 +79,12 @@ class FileImageProvider extends ImageProvider<FileImageProvider> {
   }
 
   @override
+  /// Compares providers by file path.
   bool operator ==(Object other) {
     return other is FileImageProvider && other.file.path == file.path;
   }
 
   @override
+  /// Hashes provider by file path.
   int get hashCode => file.path.hashCode;
 }

@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter_commons/src/data/data.dart';
+import 'package:flutter_commons/src/exceptions.dart';
 
 import 'iterable_ext.dart';
 
@@ -9,13 +10,25 @@ typedef SortFunc<T> = int Function(T a, T b);
 extension ListExt<T> on List<T> {
   List<T> clone() => List.of(this);
 
-  T nextOrLast(T it) => isLast(it) ? it : (elementAt(indexOf(it) + 1));
+  T nextOrLast(T it) {
+    final index = _indexOfOrThrow(it);
+    return index >= length - 1 ? it : this[index + 1];
+  }
 
-  T nextOrFirst(T it) => isLast(it) ? first : (elementAt(indexOf(it) + 1));
+  T nextOrFirst(T it) {
+    final index = _indexOfOrThrow(it);
+    return index >= length - 1 ? first : this[index + 1];
+  }
 
-  T priorOrFirst(T it) => isFirst(it) ? it : (elementAt(indexOf(it) - 1));
+  T priorOrFirst(T it) {
+    final index = _indexOfOrThrow(it);
+    return index <= 0 ? it : this[index - 1];
+  }
 
-  T priorOrLast(T it) => isFirst(it) ? last : (elementAt(indexOf(it) - 1));
+  T priorOrLast(T it) {
+    final index = _indexOfOrThrow(it);
+    return index <= 0 ? last : this[index - 1];
+  }
 
   List<T> toggle(T it) {
     final result = List.of(this);
@@ -109,7 +122,7 @@ extension ListExt<T> on List<T> {
   }
 
   List<T> sortedBy(SortFunc<T> sf) {
-    var result = this.clone();
+    var result = clone();
     result.sort(sf);
     return result;
   }
@@ -123,7 +136,7 @@ extension ListExt<T> on List<T> {
   }
 
   List<List<T>> splitBy(int amount) {
-    var copy = this.clone();
+    var copy = clone();
     List<List<T>> result = [];
 
     while (copy.isNotEmpty) {
@@ -168,10 +181,10 @@ extension ListExt<T> on List<T> {
       return [];
     }
 
-    var canTake = min(this.length, count);
-    var result = this.sublist(0, canTake);
+    var canTake = min(length, count);
+    var result = sublist(0, canTake);
     if (remove) {
-      this.removeRange(0, canTake);
+      removeRange(0, canTake);
     }
     return result;
   }
@@ -181,10 +194,10 @@ extension ListExt<T> on List<T> {
       return [];
     }
 
-    var canTake = min(this.length, count);
-    var result = this.sublist(length - canTake, length);
+    var canTake = min(length, count);
+    var result = sublist(length - canTake, length);
     if (remove) {
-      this.removeRange(length - canTake, length);
+      removeRange(length - canTake, length);
     }
     return result;
   }
@@ -203,4 +216,17 @@ extension ListExt<T> on List<T> {
   }
 
   List<Maybe<T>> toMaybe() => mapList((it) => Maybe(it));
+
+  int _indexOfOrThrow(T it) {
+    if (isEmpty) {
+      throw ListIsEmptyException();
+    }
+
+    final index = indexOf(it);
+    if (index < 0) {
+      throw IllegalArgumentException('Item "$it" is not in the list');
+    }
+
+    return index;
+  }
 }

@@ -5,6 +5,7 @@ import 'lib/custom_theme.dart';
 export 'lib/custom_theme.dart';
 export 'lib/theme_builder.dart';
 
+/// Public class Theming.
 class Theming {
   Theming._();
 

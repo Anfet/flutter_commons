@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_commons/flutter_commons.dart';
 
+/// Public class SlidingWidget.
 class SlidingWidget extends StatefulWidget {
   final SlidingOrientation orientation;
   final Widget child;
@@ -26,37 +27,18 @@ class SlidingWidget extends StatefulWidget {
 }
 
 class _SlidingWidgetState extends State<SlidingWidget> with SingleTickerProviderStateMixin, MountedCheck {
-  late final Animation<Offset> _offsetAnimation;
-  late final Animation<double> _animation;
+  late Animation<Offset> _offsetAnimation;
+  late Animation<double> _animation;
   late final AnimationController _animationController;
 
   @override
   void initState() {
     _animationController = AnimationController(vsync: this, duration: widget.duration);
-    _animation = CurvedAnimation(parent: _animationController, curve: widget.curve);
-    _offsetAnimation = Tween<Offset>(
-      begin: Offset(
-        widget.orientation == SlidingOrientation.leftToRight
-            ? -1
-            : widget.orientation == SlidingOrientation.rightToLeft
-                ? 1
-                : 0,
-        widget.orientation == SlidingOrientation.topToBottom
-            ? -1
-            : widget.orientation == SlidingOrientation.bottomToTop
-                ? 1
-                : 0,
-      ),
-      end: Offset.zero,
-    ).animate(_animation);
+    _rebuildAnimations();
 
     if (widget.slidingPosition == SlidingPosition.start) {
       _animationController.value = 0.0;
-      (widget.delay ?? Duration.zero).future.then((value) {
-        if (mounted) {
-          _animationController.forward();
-        }
-      });
+      _forwardWithDelay();
     }
 
     if (widget.slidingPosition == SlidingPosition.end) {
@@ -74,8 +56,22 @@ class _SlidingWidgetState extends State<SlidingWidget> with SingleTickerProvider
 
   @override
   void didUpdateWidget(covariant SlidingWidget oldWidget) {
+    if (oldWidget.duration != widget.duration) {
+      _animationController.duration = widget.duration;
+    }
+
+    if (oldWidget.curve != widget.curve || oldWidget.orientation != widget.orientation) {
+      _rebuildAnimations();
+    }
+
+    if (oldWidget.slidingPosition != widget.slidingPosition && widget.slidingPosition == SlidingPosition.end) {
+      _animationController.stop();
+      _animationController.value = 1.0;
+    }
+
     if (oldWidget.slidingPosition != SlidingPosition.start && widget.slidingPosition == SlidingPosition.start) {
-      (widget.delay ?? Duration.zero).future.then((value) => _animationController.forward());
+      _animationController.value = 0.0;
+      _forwardWithDelay();
     }
     super.didUpdateWidget(oldWidget);
   }
@@ -93,8 +89,38 @@ class _SlidingWidgetState extends State<SlidingWidget> with SingleTickerProvider
       child: widget.child,
     );
   }
+
+  void _rebuildAnimations() {
+    _animation = CurvedAnimation(parent: _animationController, curve: widget.curve);
+    _offsetAnimation = Tween<Offset>(
+      begin: _beginOffset,
+      end: Offset.zero,
+    ).animate(_animation);
+  }
+
+  void _forwardWithDelay() {
+    (widget.delay ?? Duration.zero).future.then((value) {
+      if (mounted) {
+        _animationController.forward();
+      }
+    });
+  }
+
+  Offset get _beginOffset => Offset(
+        widget.orientation == SlidingOrientation.leftToRight
+            ? -1
+            : widget.orientation == SlidingOrientation.rightToLeft
+                ? 1
+                : 0,
+        widget.orientation == SlidingOrientation.topToBottom
+            ? -1
+            : widget.orientation == SlidingOrientation.bottomToTop
+                ? 1
+                : 0,
+      );
 }
 
+/// Public enum SlidingOrientation.
 enum SlidingOrientation {
   leftToRight,
   rightToLeft,
@@ -103,6 +129,7 @@ enum SlidingOrientation {
   ;
 }
 
+/// Public enum SlidingPosition.
 enum SlidingPosition {
   start,
   end,

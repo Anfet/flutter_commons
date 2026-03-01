@@ -6,6 +6,7 @@ final noop = () {};
 final noopP1 = (_) {};
 final noopP2 = (_, __) {};
 
+/// Public class Strings.
 class Strings {
   Strings._();
 
@@ -15,6 +16,7 @@ class Strings {
   static const bullet = '•';
 }
 
+/// Public class Ints.
 class Ints {
   Ints._();
 

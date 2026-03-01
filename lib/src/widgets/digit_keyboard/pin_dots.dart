@@ -3,18 +3,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_commons/flutter_commons.dart';
 
-const _defaultPinLength = 4;
-const _defaultPinSize = 16.0;
+const _defaultPinLength = 4; 
 
+/// Builder for a single pin dot at [index].
 typedef PinDotBuilder = Widget Function(BuildContext context, int index);
 
 @immutable
+/// Colors used by [PinDots] for different pin states.
 class PinDotTheme {
+  /// Color for entered symbols.
   final Color enteredColor;
+
+  /// Color for empty symbols.
   final Color unenteredColor;
+
+  /// Color used when confirmation succeeds.
   final Color successColor;
+
+  /// Color used when confirmation fails.
   final Color errorColor;
 
+  /// Creates a complete pin dot color theme.
   const PinDotTheme({
     required this.enteredColor,
     required this.unenteredColor,
@@ -23,11 +32,18 @@ class PinDotTheme {
   });
 }
 
+/// Visual indicator that shows pin entry progress using dots.
 class PinDots extends StatelessWidget {
+  /// Number of dots to display.
   final int pinLength;
+
+  /// Horizontal gap between dots.
   final double spacing;
+
+  /// Builds individual dot widgets.
   late final PinDotBuilder pinBuilder;
 
+  /// Creates dots with a custom [pinBuilder].
   PinDots.builder({
     super.key,
     this.pinLength = _defaultPinLength,
@@ -35,6 +51,7 @@ class PinDots extends StatelessWidget {
     this.spacing = 0,
   });
 
+  /// Creates default circular dots from entered [pin] value.
   PinDots({
     super.key,
     required String pin,
@@ -57,6 +74,7 @@ class PinDots extends StatelessWidget {
   }
 
   @override
+  /// Builds a row of dot widgets with separators.
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -93,27 +111,42 @@ class _PinDot extends StatelessWidget {
   }
 }
 
+/// Controller for managing pin and confirmation input state.
 class PinDotsController extends ChangeNotifier {
   String _pin = '';
   String _confirmation = '';
 
+  /// Current pin value.
   String get pin => _pin;
 
+  /// Current pin confirmation value.
   String get confirmation => _confirmation;
 
+  /// Whether [pin] reached [pinLength].
   bool get isPinEntered => pin.length == pinLength;
 
+  /// Whether [confirmation] reached [pinLength].
   bool get isConfirmationEntered => confirmation.length == pinLength;
 
+  /// Whether entered values are complete and match.
   bool get isPinMatched => isPinEntered && (!withConfirmation || (isConfirmationEntered && pin == confirmation));
 
+  /// Whether confirmation mode is enabled.
   final bool withConfirmation;
+
+  /// Maximum pin length.
   final int pinLength;
 
+  /// Called when pin entry is complete and valid.
   final TypedCallback<String> onPinEntered;
+
+  /// Called when pin state changes but input is not complete yet.
   final VoidCallback? onPinChanged;
+
+  /// Called when pin and confirmation are complete but do not match.
   final VoidCallback? onPinsNotMatch;
 
+  /// Creates a pin controller with optional initial values.
   PinDotsController({
     String initialPin = '',
     String initialConfirmation = '',
@@ -125,6 +158,7 @@ class PinDotsController extends ChangeNotifier {
   })  : _pin = initialPin,
         _confirmation = initialConfirmation;
 
+  /// Updates [pin] with automatic truncation to [pinLength].
   set pin(String value) {
     var stripped = value.take(pinLength);
     if (stripped != _pin) {
@@ -133,6 +167,7 @@ class PinDotsController extends ChangeNotifier {
     }
   }
 
+  /// Updates [confirmation] with automatic truncation to [pinLength].
   set confirmation(String value) {
     var stripped = value.take(pinLength);
     if (_confirmation != stripped) {
@@ -141,12 +176,14 @@ class PinDotsController extends ChangeNotifier {
     }
   }
 
+  /// Clears both pin and confirmation values.
   void clear() {
     _confirmation = '';
     _pin = '';
     _onChanged();
   }
 
+  /// Appends a digit to pin or confirmation depending on current state.
   void onDigitEntered(int digit) {
     if (pin.length < pinLength) {
       pin += '$digit';
@@ -155,6 +192,7 @@ class PinDotsController extends ChangeNotifier {
     }
   }
 
+  /// Removes one digit from confirmation or pin.
   void onBackspace() {
     if (withConfirmation && confirmation.isNotEmpty) {
       confirmation = confirmation.take(confirmation.length - 1);
@@ -178,7 +216,9 @@ class PinDotsController extends ChangeNotifier {
     }
   }
 
+  /// Returns pin digit at [index] or empty string if missing.
   String pinDigit(int index) => index < pin.length ? pin[index] : '';
 
+  /// Returns confirmation digit at [index] or empty string if missing.
   String confirmationDigit(int index) => index < confirmation.length ? confirmation[index] : '';
 }

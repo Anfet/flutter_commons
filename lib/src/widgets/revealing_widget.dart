@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 
+/// Public class RevealingWidget.
 class RevealingWidget extends StatefulWidget {
   final Widget child;
   final Duration duration;
@@ -39,6 +40,20 @@ class _RevealingWidgetState extends State<RevealingWidget> with SingleTickerProv
   }
 
   @override
+  void didUpdateWidget(covariant RevealingWidget oldWidget) {
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?.removeListener(controllerListener);
+      widget.controller?.addListener(controllerListener);
+    }
+
+    if (oldWidget.duration != widget.duration) {
+      _controller.duration = widget.duration;
+    }
+
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _animation,
@@ -68,6 +83,7 @@ class _RevealingWidgetState extends State<RevealingWidget> with SingleTickerProv
   }
 }
 
+/// Public class AppearingController.
 class AppearingController with ChangeNotifier {
   void restartAnimation() => notifyListeners();
 }

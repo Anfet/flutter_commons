@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 const _kDigitPlaceholderWidth = 96.0;
 const _kDigitHeight = 80.0;
 
+/// Public class DigitKeyboard.
 class DigitKeyboard extends StatelessWidget {
   final ValueSetter<String> onTap;
   final VoidCallback onTapBackspace;

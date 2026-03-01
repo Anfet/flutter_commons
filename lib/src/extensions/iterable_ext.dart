@@ -26,7 +26,9 @@ extension IterableExt<T> on Iterable<T> {
   Out? firstNotNullOr<Out>(Out? Function(T it) map, {Out? defaultValue}) {
     for (final item in this) {
       final result = map(item);
-      if (item != null) return result;
+      if (result != null) {
+        return result;
+      }
     }
     return defaultValue;
   }
@@ -102,15 +104,16 @@ extension IterableExt<T> on Iterable<T> {
   }
 
   Iterable<T> distinct([dynamic Function(T it)? test]) {
-    Set<T> result = {};
-    Set tests = {};
+    final result = <T>[];
+    final seen = <dynamic>{};
+
     for (final value in this) {
-      var testValue = test?.call(value);
-      if (testValue != null && tests.contains(testValue)) {
+      final key = test != null ? test(value) : value;
+      if (seen.contains(key)) {
         continue;
       }
 
-      tests.add(testValue);
+      seen.add(key);
       result.add(value);
     }
     return result;
@@ -127,7 +130,7 @@ extension IterableExt<T> on Iterable<T> {
         t = test!.call(val);
       }
 
-      x ??= val as num;
+      x ??= t;
       x = max(x, t);
     }
 
@@ -145,7 +148,7 @@ extension IterableExt<T> on Iterable<T> {
         t = test!.call(val);
       }
 
-      x ??= val as num;
+      x ??= t;
       x = min(x, t);
     }
 
@@ -179,9 +182,9 @@ extension IterableExt<T> on Iterable<T> {
     return count;
   }
 
-  List<X> mapList<X>(X mapper(T value)) => map(mapper).toList();
+  List<X> mapList<X>(X Function(T value) mapper) => map(mapper).toList();
 
-  Future<List<X>> mapListAsync<X>(FutureOr<X> mapper(T value)) => asyncMap<X>((it) async => mapper(it)).then((i) => i.toList());
+  Future<List<X>> mapListAsync<X>(FutureOr<X> Function(T value) mapper) => asyncMap<X>((it) async => mapper(it)).then((i) => i.toList());
 
   Iterable<Maybe<T>> toMaybe() => map((it) => Maybe(it));
 }

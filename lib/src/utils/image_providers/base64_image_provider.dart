@@ -1,40 +1,24 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show SynchronousFuture, compute;
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
-class Base64ImageWidget extends StatelessWidget {
-  final String imageEncoded;
-  final BoxFit boxFit;
-
-  const Base64ImageWidget({
-    super.key,
-    required this.imageEncoded,
-    this.boxFit = BoxFit.none,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Image(
-      image: Base64ImageProvider(imageEncoded),
-      gaplessPlayback: true,
-      fit: boxFit,
-    );
-  }
-}
-
+/// Image provider that decodes a Base64-encoded image string.
 class Base64ImageProvider extends ImageProvider<Base64ImageProvider> {
+  /// Raw Base64-encoded image payload.
   final String encoded;
 
+  /// Creates an image provider for [encoded].
   Base64ImageProvider(this.encoded);
 
   @override
+  /// Returns this provider synchronously as the cache key.
   Future<Base64ImageProvider> obtainKey(ImageConfiguration configuration) {
     return SynchronousFuture<Base64ImageProvider>(this);
   }
 
   @override
+  /// Loads and decodes image bytes from [encoded].
   ImageStreamCompleter loadImage(Base64ImageProvider key, ImageDecoderCallback decode) {
     return OneFrameImageStreamCompleter(_loadAsync(key, decode));
   }

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import 'storage.dart';
 
+/// Public abstract class StorableProperty.
 abstract class StorableProperty<T> {
   T get cachedValue;
 
@@ -17,6 +18,7 @@ abstract class StorableProperty<T> {
   FutureOr<bool> exists();
 }
 
+/// Public abstract class StorablePropertyImpl.
 abstract class StorablePropertyImpl<T> implements StorableProperty<T> {
   final PropertyStorage storage;
   final String name;
@@ -62,7 +64,7 @@ final class BoolProperty extends StorablePropertyImpl<bool> {
   @override
   FutureOr<bool> getValue() async {
     if (await exists()) {
-      _cachedValue = bool.tryParse(await storage.get(name)) ?? false;
+      _cachedValue = bool.tryParse(await storage.get(name)) ?? defaultValue;
     } else {
       _cachedValue = defaultValue;
     }
@@ -87,7 +89,7 @@ final class IntProperty extends StorablePropertyImpl<int> {
   @override
   FutureOr<int> getValue() async {
     if (await storage.exists(name)) {
-      _cachedValue = int.tryParse(await storage.get(name)) ?? 0;
+      _cachedValue = int.tryParse(await storage.get(name)) ?? defaultValue;
     } else {
       _cachedValue = defaultValue;
     }
@@ -112,7 +114,7 @@ final class DoubleProperty extends StorablePropertyImpl<double> {
   @override
   FutureOr<double> getValue() async {
     if (await storage.exists(name)) {
-      _cachedValue = double.tryParse(await storage.get(name)) ?? 0.0;
+      _cachedValue = double.tryParse(await storage.get(name)) ?? defaultValue;
     } else {
       _cachedValue = defaultValue;
     }
@@ -152,6 +154,7 @@ final class StringProperty extends StorablePropertyImpl<String> {
   }
 }
 
+/// Public class JsonProperty.
 class JsonProperty<T> extends StorablePropertyImpl<T>  {
   @override
   T get cachedValue => _cachedValue;
@@ -197,6 +200,7 @@ class JsonProperty<T> extends StorablePropertyImpl<T>  {
   }
 }
 
+/// Public class DateTimeProperty.
 class DateTimeProperty extends StorablePropertyImpl<DateTime>   {
   @override
   late DateTime cachedValue = DateTime(0);

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_commons/flutter_commons.dart';
 
 typedef ListenableValueMapper<T> = FutureOr<Any> Function(T value);
+/// Public mixin BlocListenables.
 mixin BlocListenables<S, E> on Bloc<S, E> {
   final List<Cancellable> _subscriptions = [];
 

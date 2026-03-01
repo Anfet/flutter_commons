@@ -4,6 +4,7 @@ import 'package:flutter_commons/flutter_commons.dart';
 
 typedef QueryFailCallback<T> = FutureOr<QueryRetry> Function(QueryRequest<T> request, Object exception, int retries);
 
+/// Priority levels used by [QueryScheduler].
 enum QueryPriority {
   immediate,
   critical,
@@ -16,6 +17,7 @@ enum QueryPriority {
   ;
 }
 
+/// Sequential request scheduler with priority queues and retry support.
 class QueryScheduler implements Disposable {
   bool _isPaused = false;
   bool _isLooping = false;
@@ -34,11 +36,13 @@ class QueryScheduler implements Disposable {
     }
   }
 
+  /// Starts processing queued requests.
   void start() {
     _isPaused = false;
     _loop();
   }
 
+  /// Pauses processing loop.
   void pause() => _isPaused = true;
 
   @override
@@ -73,6 +77,9 @@ class QueryScheduler implements Disposable {
     }
   }
 
+  /// Drops queued requests optionally filtered by [tags] or [ids].
+  ///
+  /// Dropped requests are completed with [CancelledQueryException].
   void drop({final Iterable<String> tags = const [], final Iterable<int> ids = const []}) {
     List<QueryRequest> requests = [];
 
@@ -104,6 +111,7 @@ class QueryScheduler implements Disposable {
     }
   }
 
+  /// Enqueues a request and returns a handle that can be awaited or filtered.
   QueryRequest<T> enqueue<T>(
     AsyncValueGetter<T> request, {
     QueryPriority priority = QueryPriority.low,
@@ -125,6 +133,7 @@ class QueryScheduler implements Disposable {
     return rq;
   }
 
+  /// Enqueues a request and returns its future result.
   Future<T> get<T>(
     AsyncValueGetter<T> request, {
     QueryPriority priority = QueryPriority.low,
@@ -151,7 +160,6 @@ class QueryScheduler implements Disposable {
         final retryResult = await request.onFail?.call(request, ex, request.tries);
         switch (retryResult) {
           case QueryRetry.retry:
-            request.maxRetries++;
             continue;
           case QueryRetry.reschedule:
           case QueryRetry.drop:
@@ -177,6 +185,7 @@ class QueryScheduler implements Disposable {
   }
 }
 
+/// A queued request entry managed by [QueryScheduler].
 class QueryRequest<T> {
   static int requestId = 0;
   static int defaultRetries = 3;

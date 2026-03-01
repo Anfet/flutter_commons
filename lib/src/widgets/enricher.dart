@@ -3,6 +3,7 @@ import 'package:flutter_commons/flutter_commons.dart';
 
 typedef TextEnricherSpanBuilder = InlineSpan Function(String text);
 
+/// Public class TextEnricher.
 class TextEnricher {
   TextEnricher._();
 

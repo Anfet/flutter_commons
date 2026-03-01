@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_commons/flutter_commons.dart';
 
+/// Public class ListenableProperty.
 class ListenableProperty<T> with ChangeNotifier implements StorableProperty<T> {
   final StorableProperty<T> child;
 

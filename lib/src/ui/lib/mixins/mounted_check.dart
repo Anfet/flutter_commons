@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_commons/flutter_commons.dart';
-import 'package:flutter_commons/src/consts.dart';
 
+/// Public mixin MountedCheck.
 mixin MountedCheck<S extends StatefulWidget> on State<S> {
   bool _disposed = false;
 
