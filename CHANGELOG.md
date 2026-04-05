@@ -21,6 +21,7 @@
 
 ### Changes
 
+- Added `RangeJoiner` for merging bounded ranges with a custom comparator callback.
 - `SlidingButton` improvements:
   - Added guard against `onSuccess` re-entry while previous callback is pending.
   - Added semantics defaults (`label`, `hint`, progress `value`) and API for custom semantics text.

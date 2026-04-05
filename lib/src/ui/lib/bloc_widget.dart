@@ -51,7 +51,7 @@ abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>
   }
 
   Widget _childBuilder(context) => BlocConsumer<B, S>(
-        bloc: bloc,
+        bloc: _providedBloc ?? _createdBloc,
         listener: (context, state) => onReactions(context, _previous, state),
         listenWhen: (previous, current) {
           _previous = previous;

@@ -86,4 +86,24 @@ void main() {
       expect(splitter.ranges.any((r) => r.from == 5), isTrue);
     });
   });
+
+  group('RangeJoiner', () {
+    test('merges overlapping bounded ranges', () {
+      final joiner = RangeJoiner<int>(compare: (left, right) => left.compareTo(right));
+
+      joiner.add(const Range.from(from: 10, till: 20));
+      joiner.add(const Range.from(from: 15, till: 25));
+
+      expect(joiner.ranges, [const Range.from(from: 10, till: 25)]);
+    });
+
+    test('merges touching bounded ranges', () {
+      final joiner = RangeJoiner<int>(compare: (left, right) => left.compareTo(right));
+
+      joiner.add(const Range.from(from: 10, till: 20));
+      joiner.add(const Range.from(from: 20, till: 30));
+
+      expect(joiner.ranges, [const Range.from(from: 10, till: 30)]);
+    });
+  });
 }
