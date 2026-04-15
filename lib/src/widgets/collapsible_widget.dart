@@ -43,26 +43,21 @@ class _CollapsibleWidgetState extends State<CollapsibleWidget> with MountedCheck
 
   @override
   Widget build(BuildContext context) {
-    return Builder(
-      builder: (context) {
-        return (widget.builder ?? CollapsibleWidget.defaultAnimationBuilder).call(
-          AlwaysStoppedAnimation(_animation),
-          _CollapsibleWidget(
-            duration: widget.duration ?? CollapsibleWidget.defaultAnimationDuration,
-            alignment: widget.alignment ?? Alignment.topCenter,
-            curve: widget.curve ?? Curves.linear,
-            clipBehavior: widget.clipBehavior ?? Clip.hardEdge,
-            builder: widget.builder ?? CollapsibleWidget.defaultAnimationBuilder,
-            expanded: widget.expanded,
-            onAnimationChanged: (value) {
-              _animation = value;
-              markNeedsRebuild();
-            },
-            orientation: widget.orientation,
-            child: widget.child,
-          ),
-        );
-      },
+    return (widget.builder ?? CollapsibleWidget.defaultAnimationBuilder).call(
+      AlwaysStoppedAnimation(_animation),
+      _CollapsibleWidget(
+        duration: widget.duration ?? CollapsibleWidget.defaultAnimationDuration,
+        alignment: widget.alignment ?? Alignment.topCenter,
+        curve: widget.curve ?? Curves.linear,
+        clipBehavior: widget.clipBehavior ?? Clip.hardEdge,
+        expanded: widget.expanded,
+        onAnimationChanged: (value) {
+          _animation = value;
+          markNeedsRebuild();
+        },
+        orientation: widget.orientation,
+        child: widget.child,
+      ),
     );
   }
 }
@@ -71,7 +66,6 @@ class _CollapsibleWidget extends SingleChildRenderObjectWidget {
   final bool expanded;
   final Duration duration;
   final Alignment alignment;
-  final CollapsibleWidgetBuilder builder;
   final Clip? clipBehavior;
   final Curve curve;
   final ValueChanged<double> onAnimationChanged;
@@ -82,7 +76,6 @@ class _CollapsibleWidget extends SingleChildRenderObjectWidget {
     required this.duration,
     required this.expanded,
     required this.alignment,
-    required this.builder,
     required this.curve,
     this.clipBehavior,
     required this.onAnimationChanged,
@@ -95,7 +88,6 @@ class _CollapsibleWidget extends SingleChildRenderObjectWidget {
       textDirection: Directionality.maybeOf(context),
       curve: curve,
       duration: duration,
-      builder: builder,
       expanded: expanded,
       clipBehavior: clipBehavior,
       alignment: alignment,
@@ -122,26 +114,25 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox {
   ValueChanged<double> onAnimationChanged;
   bool _expanded;
   Duration _duration;
-  CollapsibleWidgetBuilder builder;
-  Clip clipBehavior;
+  Clip _clipBehavior;
   Curve _curve;
-  Axis? orientation;
+  Axis? _orientation;
 
   _RenderCollapsibleWidget({
     super.textDirection,
     required bool expanded,
     required Duration duration,
     super.alignment,
-    required this.builder,
     Clip? clipBehavior,
     required Curve curve,
     required this.onAnimationChanged,
-    this.orientation,
+    Axis? orientation,
   })  : _duration = duration,
         _expanded = expanded,
         _curve = curve,
         curveTween = CurveTween(curve: curve),
-        clipBehavior = clipBehavior ?? Clip.hardEdge;
+        _clipBehavior = clipBehavior ?? Clip.hardEdge,
+        _orientation = orientation;
 
   set expanded(bool value) {
     if (_expanded != value) {
@@ -154,9 +145,11 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox {
   }
 
   set duration(Duration value) {
-    _duration = value;
-    markNeedsLayout();
-    markNeedsSemanticsUpdate();
+    if (_duration != value) {
+      _duration = value;
+      markNeedsLayout();
+      markNeedsSemanticsUpdate();
+    }
   }
 
   set curve(Curve value) {
@@ -166,6 +159,20 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox {
       requireResize = true;
       markNeedsLayout();
       markNeedsSemanticsUpdate();
+    }
+  }
+
+  set clipBehavior(Clip value) {
+    if (_clipBehavior != value) {
+      _clipBehavior = value;
+      markNeedsPaint();
+    }
+  }
+
+  set orientation(Axis? value) {
+    if (_orientation != value) {
+      _orientation = value;
+      markNeedsLayout();
     }
   }
 
@@ -185,11 +192,22 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox {
       return result;
     }
 
-    return switch (orientation) {
+    return switch (_orientation) {
       Axis.horizontal => Size(result.width, targetSize.height),
       Axis.vertical => Size(targetSize.width, result.height),
       _ => result,
     };
+  }
+
+  double get _animationPercent {
+    final widthAp = _animatedSize.width / max(sizeTween.end!.width, sizeTween.begin!.width);
+    final heightAp = _animatedSize.height / max(sizeTween.end!.height, sizeTween.begin!.height);
+    return switch (_orientation) {
+      Axis.horizontal => widthAp,
+      Axis.vertical => heightAp,
+      _ => max(widthAp, heightAp),
+    }
+        .clamp(0.0, 1.0);
   }
 
   @override
@@ -233,6 +251,7 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox {
   @override
   void detach() {
     timer?.cancel();
+    timer = null;
     super.detach();
   }
 
@@ -256,7 +275,7 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox {
       offset,
       rect,
       super.paint,
-      clipBehavior: clipBehavior,
+      clipBehavior: _clipBehavior,
       oldLayer: _clipRectLayer.layer,
     );
   }
@@ -265,31 +284,45 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox {
 
   void _restartAnimation() {
     requireResize = false;
+    timer?.cancel();
+    timer = null;
+
+    if (_duration.inMicroseconds <= 0) {
+      animationPosition = 1.0;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        onAnimationChanged(_animationPercent);
+      });
+      return;
+    }
+
     animationPosition = 0.0;
     timestamp = DateTime.now();
-    timer?.cancel();
     timer = Timer.periodic(30.milliseconds, recalculate);
   }
 
   void recalculate(Timer timer) {
-    var elapsedMsec = DateTime.now().difference(timestamp).inMilliseconds;
+    if (_duration.inMicroseconds <= 0) {
+      timer.cancel();
+      this.timer = null;
+      animationPosition = 1.0;
+      markNeedsLayout();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        onAnimationChanged(_animationPercent);
+      });
+      return;
+    }
 
-    var travelledPercentage = (elapsedMsec / _duration.inMilliseconds);
+    final elapsedMicros = DateTime.now().difference(timestamp).inMicroseconds;
+
+    final travelledPercentage = elapsedMicros / _duration.inMicroseconds;
     animationPosition = travelledPercentage.clamp(0.0, 1.0);
     // warn('tick; elapsed=${elapsedMsec}; position=${animationPosition.toStringAsFixed(2)};');
     if (animationPosition == 0.0 || animationPosition == 1.0) {
       timer.cancel();
+      this.timer = null;
     }
 
-    var widthAp = _animatedSize.width / max(sizeTween.end!.width, sizeTween.begin!.width);
-    var heightAp = _animatedSize.height / max(sizeTween.end!.height, sizeTween.begin!.height);
-    var ap = switch (orientation) {
-      Axis.horizontal => widthAp,
-      Axis.vertical => heightAp,
-      _ => max(widthAp, heightAp),
-    }
-        .clamp(0.0, 1.0);
-    onAnimationChanged(ap);
+    onAnimationChanged(_animationPercent);
     markNeedsLayout();
   }
 }
