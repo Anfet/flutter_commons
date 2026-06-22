@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_commons/flutter_commons.dart';
 
@@ -7,8 +9,7 @@ abstract class BlocWidget<S extends BlocState, B extends Bloc<BlocEvent, S>> ext
 }
 
 /// Public abstract class BlocWidgetState.
-abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>, W extends BlocWidget<S, B>> extends State<W>
-    with MountedCheck {
+abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>, W extends BlocWidget<S, B>> extends State<W> with MountedCheck {
   Widget buildContent(BuildContext context, S state);
 
   @protected
@@ -44,10 +45,19 @@ abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>
     }
   }
 
+  final Completer<B> _blocCreated = Completer();
+
+  Future<B> get blocCreated => _blocCreated.future;
+
+  bool get didCreateBloc => _blocCreated.isCompleted;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _providedBloc = onProvideBloc(context);
+    if (_providedBloc != null) {
+      _blocCreated.complete(_providedBloc);
+    }
   }
 
   Widget _childBuilder(context) => BlocConsumer<B, S>(
@@ -73,6 +83,7 @@ abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>
               _createdBloc = require(onCreateBloc(context));
               final args = context.routeArguments;
               bloc.add(BlocEvents.init(arguments: args));
+              _blocCreated.complete(bloc);
               return bloc;
             },
             lazy: false,

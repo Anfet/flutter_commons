@@ -13,7 +13,7 @@ class Maybe<T> {
   const Maybe.nothing() : value = null;
 
   /// Returns wrapped value or [other] fallback.
-  T or(T other) => value ?? other;
+  T? or(T? other) => value ?? other;
 
   /// Non-null value accessor.
   T get requireValue => value!;

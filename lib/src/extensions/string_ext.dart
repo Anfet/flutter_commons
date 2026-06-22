@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 extension StringExt on String {
-
   String? takeIfNotEmpty() => trim().isEmpty ? null : this;
 
   String get onlyNumbers => RegExp("[0-9]").allMatches(this).map((e) => substring(e.start, e.end)).join("");
@@ -71,4 +70,12 @@ extension StringExt on String {
       r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
     ).hasMatch(email);
   }
+
+  int toInt({int ifNull = 0}) => tryInt() ?? ifNull;
+
+  int? tryInt() => int.tryParse(this);
+
+  double toDouble({double ifNull = 0.9}) => tryDouble() ?? ifNull;
+
+  double? tryDouble() => double.tryParse(this);
 }

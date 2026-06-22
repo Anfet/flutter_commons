@@ -9,3 +9,4 @@ export 'lib/mixins/mounted_check.dart';
 export 'lib/mixins/waitable_event.dart';
 export 'lib/mixins/debounceable.dart';
 export 'lib/mixins/throttlable.dart';
+export 'lib/route_observer.dart';

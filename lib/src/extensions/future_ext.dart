@@ -20,8 +20,23 @@ extension SiberianFutureIterableExt<T> on Future<Iterable<T>> {
   Future<T> get last => then((iterable) => iterable.last);
 }
 
-extension LibFutureExt<T> on Future<T?> {
+extension LibFutureNullableExt<T> on Future<T?> {
   Future<T> ifNull(FutureOr<T> other) => then((value) async => value ?? (await other));
+}
+
+extension LibFutureExt<T> on Future<T> {
+  Future<T> atLeast(Duration minimumDuration) async {
+    Stopwatch clock = Stopwatch()..start();
+    try {
+      T result = await this;
+      return result;
+    } finally {
+      var elapsed = clock.elapsed;
+      if (elapsed < minimumDuration) {
+        await (elapsed - minimumDuration);
+      }
+    }
+  }
 }
 
 extension LibFutureMapExt<K, V> on Future<Map<K, V>> {

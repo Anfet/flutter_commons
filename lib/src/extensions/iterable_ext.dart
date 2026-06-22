@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter_commons/flutter_commons.dart';
 import 'package:flutter_commons/src/data/data.dart';
 
 extension IterableExt<T> on Iterable<T> {
@@ -37,7 +38,9 @@ extension IterableExt<T> on Iterable<T> {
 
   T? get lastOrNull => isEmpty ? null : last;
 
-  T get randomElement => elementAt(Random().nextInt(length));
+  T get randomElement => elementAt(random.nextInt(length));
+
+  T? get randomOrNull => isEmpty ? null : elementAt(Random().nextInt(length));
 
   bool anyOf(bool Function(T it) test) {
     for (var element in this) {

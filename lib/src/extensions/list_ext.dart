@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter_commons/flutter_commons.dart';
 import 'package:flutter_commons/src/data/data.dart';
 import 'package:flutter_commons/src/exceptions.dart';
 
@@ -8,6 +9,8 @@ import 'iterable_ext.dart';
 typedef SortFunc<T> = int Function(T a, T b);
 
 extension ListExt<T> on List<T> {
+  int get randomIndex => isEmpty ? throw StateError('List is empty') : random.nextInt(length);
+
   List<T> clone() => List.of(this);
 
   T nextOrLast(T it) {
@@ -165,15 +168,8 @@ extension ListExt<T> on List<T> {
 
   List<T> swap(int oldIndex, int newIndex) {
     var result = clone();
-    result.swapThis(oldIndex, newIndex);
+    result.swapIt(oldIndex, newIndex);
     return result;
-  }
-
-  void swapThis(int oldIndex, int newIndex) {
-    var a = this[oldIndex];
-    var b = this[newIndex];
-    this[oldIndex] = b;
-    this[newIndex] = a;
   }
 
   List<T> takeCount(int count, {bool remove = false}) {
@@ -202,13 +198,7 @@ extension ListExt<T> on List<T> {
     return result;
   }
 
-  List<T> swapItems(int oldIndex, int newIndex) {
-    var result = clone();
-    result.swapSync(oldIndex, newIndex);
-    return result;
-  }
-
-  void swapSync(int oldIndex, int newIndex) {
+  void swapIt(int oldIndex, int newIndex) {
     var a = this[oldIndex];
     var b = this[newIndex];
     this[oldIndex] = b;

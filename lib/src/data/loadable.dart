@@ -128,6 +128,9 @@ final class Loadable<T> {
   /// Returns stored value or [other] fallback.
   T valueOr(T other) => value ?? other;
 
+  /// Returns stored value or [other] fallback.
+  T or(T other) => value ?? other;
+
   /// Builds a [ValueKey] reflecting current state.
   ValueKey generateKey({
     bool includeValue = true,
