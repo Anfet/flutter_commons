@@ -1,3 +1,7 @@
+## 1.0.29+0 - 2026-08-21
+
+- Added `HoveredDecorator` optional `scale` parameter, folding the portal-local `HoverScale` widget's scale-on-hover behavior into `HoveredDecorator` so a single widget covers both decoration-swap and scale hover effects.
+
 ## 1.0.28+0 - 2026-03-01
 
 ### Breaking Changes

@@ -1,5 +1,6 @@
 export 'spacers.dart';
 export 'ink_button.dart';
+export 'hovered_decorator.dart';
 
 export 'sliders/slider_no_padding.dart';
 export 'sliding_button.dart';
