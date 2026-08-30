@@ -1,3 +1,7 @@
+## 1.0.30+0 - 2026-08-31
+
+- Added `InkButton` optional `border` parameter. `InkButton` clips to `Clip.hardEdge`, so a border drawn by wrapping it in a decorated container is shaved off at the corners, and the wrapper has to repeat `borderRadius` and keep the two in sync by hand. Passing a `BorderSide` now builds a `RoundedRectangleBorder` shape that paints and clips the outline together. Existing call sites are unaffected: without a `border` the widget still uses `borderRadius` exactly as before.
+
 ## 1.0.29+0 - 2026-08-21
 
 - Added `HoveredDecorator` optional `scale` parameter, folding the portal-local `HoverScale` widget's scale-on-hover behavior into `HoveredDecorator` so a single widget covers both decoration-swap and scale hover effects.
