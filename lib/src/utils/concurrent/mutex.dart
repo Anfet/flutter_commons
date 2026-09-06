@@ -1,35 +1,37 @@
 import 'dart:async';
 
-import 'package:flutter_commons/flutter_commons.dart';
-
 /// A simple async mutex that serializes access to critical sections.
 class Mutex {
-  /// Queue of active and waiting lock holders.
-  final List<Completer> completers = [];
+  Future<void> _tail = Future<void>.value();
+  var _pendingLocks = 0;
 
   /// Runs [future] exclusively after previous locks are completed.
-  Future<T> lock<T>(Future<T> Function() future) async {
-    while (completers.isNotEmpty) {
-      await completers.first.future;
+  Future<T> lock<T>(Future<T> Function() future) {
+    final previousRelease = _tail;
+    final release = Completer<void>();
+    _tail = release.future;
+    _pendingLocks++;
+
+    return _run(previousRelease, future, release);
+  }
+
+  Future<T> _run<T>(
+    Future<void> previousRelease,
+    Future<T> Function() future,
+    Completer<void> release,
+  ) async {
+    try {
+      await previousRelease;
+      return await Future<T>.sync(future);
+    } finally {
+      _pendingLocks--;
+      release.complete();
     }
-
-    assert(completers.isEmpty || completers.allOf((it) => it.isCompleted));
-    final completer = Completer<T>();
-    completers.add(completer);
-
-    Future<T>.sync(future)
-        .then((value) => completer.complete(value), onError: (ex, stack) => completer.completeError(ex, stack))
-        .whenComplete(() => completers.remove(completer));
-    return completer.future;
   }
 
   /// Waits until there are no active lock owners.
-  Future whileBusy() async {
-    while (completers.isNotEmpty) {
-      await completers.first.future;
-    }
-  }
+  Future<void> whileBusy() => _tail;
 
   /// Whether the mutex currently has active or queued work.
-  bool get isBusy => completers.isNotEmpty;
+  bool get isBusy => _pendingLocks > 0;
 }

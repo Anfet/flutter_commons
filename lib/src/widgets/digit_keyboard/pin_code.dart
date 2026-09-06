@@ -5,6 +5,7 @@ import 'package:flutter_commons/flutter_commons.dart';
 const _kDefaultMaxPinLength = 4;
 
 typedef PinCodeBuilder = Widget Function(BuildContext context, String char);
+typedef PinCodeProgressBuilder = String Function(BuildContext context, int entered, int total);
 
 /// Public class PinCode.
 class PinCode extends StatelessWidget {
@@ -15,6 +16,9 @@ class PinCode extends StatelessWidget {
   final bool autofocus;
   final double height;
   final double? bottomPadding;
+  final String? semanticLabel;
+  final String? semanticHint;
+  final PinCodeProgressBuilder? progressBuilder;
 
   const PinCode({
     super.key,
@@ -25,72 +29,100 @@ class PinCode extends StatelessWidget {
     this.spacing = 8,
     this.autofocus = true,
     this.bottomPadding,
+    this.semanticLabel,
+    this.semanticHint,
+    this.progressBuilder,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Feedback.forTap(context);
-        pinCodeController._focusNode.requestFocus();
-      },
-      child: SizedBox(
-        height: height,
-        child: Stack(
-          alignment: Alignment.topCenter,
-          children: [
-            AbsorbPointer(
-              child: Opacity(
-                opacity: 0.0,
-                child: SizedBox(
-                  height: height,
-                  child: TextField(
-                    onChanged: (value) {
-                      pinCodeController.pin = value;
-                      if (value.length == maxLength) {
-                        pinCodeController._focusNode.unfocus();
-                      }
-                    },
-                    controller: pinCodeController._controller,
-                    decoration: const InputDecoration.collapsed(hintText: '').copyWith(isDense: false),
-                    style: const TextStyle(fontSize: 1),
-                    autocorrect: false,
-                    autofocus: autofocus,
-                    enabled: pinCodeController._isEnabled,
-                    maxLines: 1,
-                    scrollPadding: EdgeInsets.only(bottom: bottomPadding ?? 0.0),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
-                    maxLengthEnforcement: MaxLengthEnforcement.enforced,
-                    maxLength: maxLength,
-                    focusNode: pinCodeController._focusNode,
-                    onTapOutside: (event) {
-                      FocusManager.instance.primaryFocus?.unfocus();
-                    },
-                  ),
+    return ListenableBuilder(
+      listenable: Listenable.merge([pinCodeController, pinCodeController._focusNode]),
+      builder: (context, child) {
+        final entered = pinCodeController.pin.length.clamp(0, maxLength);
+        return Semantics(
+          container: true,
+          textField: true,
+          enabled: pinCodeController.isEnabled,
+          focusable: pinCodeController.isEnabled,
+          focused: pinCodeController._focusNode.hasFocus,
+          label: semanticLabel ?? 'PIN code',
+          hint: semanticHint ?? 'Enter your PIN code',
+          value: progressBuilder?.call(context, entered, maxLength) ?? '$entered of $maxLength digits entered',
+          onTap: pinCodeController.isEnabled ? pinCodeController._focusNode.requestFocus : null,
+          child: ExcludeSemantics(
+            child: GestureDetector(
+              onTap: pinCodeController.isEnabled
+                  ? () {
+                      Feedback.forTap(context);
+                      pinCodeController._focusNode.requestFocus();
+                    }
+                  : null,
+              child: SizedBox(
+                height: height,
+                child: Stack(
+                  alignment: Alignment.topCenter,
+                  children: [
+                    AbsorbPointer(
+                      child: Opacity(
+                        opacity: 0.0,
+                        child: SizedBox(
+                          height: height,
+                          child: ExcludeSemantics(
+                            child: TextField(
+                              onChanged: (value) {
+                                pinCodeController.pin = value;
+                                if (value.length == maxLength) {
+                                  pinCodeController._focusNode.unfocus();
+                                }
+                              },
+                              controller: pinCodeController._controller,
+                              decoration: const InputDecoration.collapsed(hintText: '').copyWith(isDense: false),
+                              style: const TextStyle(fontSize: 1),
+                              autocorrect: false,
+                              autofocus: autofocus,
+                              enabled: pinCodeController.isEnabled,
+                              maxLines: 1,
+                              scrollPadding: EdgeInsets.only(bottom: bottomPadding ?? 0.0),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                              maxLength: maxLength,
+                              focusNode: pinCodeController._focusNode,
+                              onTapOutside: (event) {
+                                FocusManager.instance.primaryFocus?.unfocus();
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    ExcludeSemantics(
+                      child: ListenableBuilder(
+                        listenable: Listenable.merge([pinCodeController, pinCodeController._controller]),
+                        builder: (context, child) {
+                          return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: SeparatedList.builder(
+                              List.generate(maxLength, (index) => pinCodeController.pin.ensureLength(maxLength)[index]),
+                              builder: (index, item, list) => builder(context, item),
+                              separatorBuilder: (index, item, list) => HSpacer(spacing),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            ListenableBuilder(
-              listenable: Listenable.merge([pinCodeController, pinCodeController._controller]),
-              builder: (context, child) {
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: SeparatedList.builder(
-                    List.generate(maxLength, (index) => pinCodeController.pin.ensureLength(maxLength)[index]),
-                    builder: (index, item, list) => builder(context, item),
-                    separatorBuilder: (index, item, list) => HSpacer(spacing),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -118,6 +150,7 @@ class PinCodeController extends ChangeNotifier {
         _controller.text = value;
       }
 
+      notifyListeners();
       onPinChanged?.call(_pin);
     }
   }
@@ -131,8 +164,8 @@ class PinCodeController extends ChangeNotifier {
     String pin = '',
     bool isEnabled = true,
     this.onPinChanged,
-  })  : _pin = pin,
-        _isEnabled = isEnabled {
+  }) : _pin = pin,
+       _isEnabled = isEnabled {
     _controller.text = _pin;
   }
 

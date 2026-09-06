@@ -17,6 +17,17 @@ class KeyboardVisibility {
   });
 
   @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is KeyboardVisibility &&
+          isVisible == other.isVisible &&
+          absolutePadding == other.absolutePadding &&
+          percentPadding == other.percentPadding;
+
+  @override
+  int get hashCode => Object.hash(isVisible, absolutePadding, percentPadding);
+
+  @override
   String toString() {
     return 'KeyboardVisibility{isVisible: $isVisible, absolutePadding: $absolutePadding, percentPadding: $percentPadding}';
   }
@@ -36,6 +47,7 @@ class KeyboardVisibilityBuilder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<KeyboardVisibility>(
+      child: child,
       builder: (BuildContext context, KeyboardVisibility visibility, Widget? child) {
         return Padding(
           padding: EdgeInsets.only(bottom: visibility.absolutePadding),
@@ -61,7 +73,7 @@ class KeyboardVisibilityObserver extends StatefulWidget {
 }
 
 class _KeyboardVisibilityObserverState extends State<KeyboardVisibilityObserver> with WidgetsBindingObserver {
-  Size? _originalSize;
+  KeyboardVisibility? _visibility;
 
   @override
   void initState() {
@@ -77,28 +89,41 @@ class _KeyboardVisibilityObserverState extends State<KeyboardVisibilityObserver>
 
   @override
   void didChangeMetrics() {
-    setState(() {
-      _originalSize = context.mediaQuery.size;
-    });
     super.didChangeMetrics();
+    _updateVisibility();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateVisibility();
   }
 
   @override
   Widget build(BuildContext context) {
-    _originalSize ??= context.mediaQuery.size;
-    var percentPadding = _originalSize!.height == 0 ? 0.0 : (context.mediaQuery.viewInsets.bottom / _originalSize!.height);
+    return Provider.value(
+      value: _visibility!,
+      child: widget.child,
+      updateShouldNotify: (previous, current) => previous != current,
+    );
+  }
 
-    var visibility =
-        KeyboardVisibility(isVisible: percentPadding > 0.0, absolutePadding: context.mediaQuery.viewInsets.bottom, percentPadding: percentPadding);
-
-    try {
-      return Provider.value(
-        value: visibility,
-        child: widget.child,
-        updateShouldNotify: (previous, current) => true,
-      );
-    } finally {
-      KeyboardVisibilityObserver._controller.add(visibility);
+  void _updateVisibility() {
+    final mediaQuery = context.mediaQuery;
+    final height = mediaQuery.size.height;
+    final percentPadding = height == 0.0 ? 0.0 : mediaQuery.viewInsets.bottom / height;
+    final visibility = KeyboardVisibility(
+      isVisible: percentPadding > 0.0,
+      absolutePadding: mediaQuery.viewInsets.bottom,
+      percentPadding: percentPadding,
+    );
+    if (_visibility == visibility) {
+      return;
+    }
+    _visibility = visibility;
+    KeyboardVisibilityObserver._controller.add(visibility);
+    if (mounted) {
+      setState(() {});
     }
   }
 }

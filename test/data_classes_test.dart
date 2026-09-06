@@ -34,6 +34,18 @@ void main() {
       expect(value.tryTake, isNull);
       expect(() => value.value = 'later', throwsA(anyOf(isA<StateError>(), isA<AssertionError>())));
     });
+
+    test('explicit-null construction is distinct from unset', () {
+      final unset = FinalValue<String?>();
+      final explicitNull = FinalValue<String?>.withValue(null);
+
+      expect(unset.isSet, isFalse);
+      expect(explicitNull.isSet, isTrue);
+      expect(explicitNull.value, isNull);
+      expect(unset, isNot(equals(explicitNull)));
+      expect(unset.hashCode, isNot(equals(explicitNull.hashCode)));
+      expect(() => explicitNull.value = 'later', throwsA(anyOf(isA<StateError>(), isA<AssertionError>())));
+    });
   });
 
   group('Lazy', () {
@@ -47,6 +59,90 @@ void main() {
       expect(lazy(), 42);
       expect(lazy(), 42);
       expect(calls, 1);
+    });
+
+    test('initializes nullable values once even when the result is null', () {
+      var calls = 0;
+      final lazy = Lazy<String?>(() {
+        calls++;
+        return null;
+      });
+
+      expect(lazy(), isNull);
+      expect(lazy(), isNull);
+      expect(calls, 1);
+    });
+  });
+
+  group('Loadable', () {
+    test('copyWith preserves nullable fields when omitted', () {
+      final stack = StackTrace.fromString('original');
+      final source = Loadable<int?>(7, isLoading: true, error: 'failure', stack: stack, defaultBuilder: () => 9);
+
+      final copy = source.copyWith();
+
+      expect(copy.value, 7);
+      expect(copy.isLoading, isTrue);
+      expect(copy.error, 'failure');
+      expect(copy.stack, same(stack));
+      expect(copy.defaultBuilder?.call(), 9);
+    });
+
+    test('copyWith assigns values including explicit null', () {
+      final source = Loadable<int?>(7, isLoading: true, error: 'failure', stack: StackTrace.current, defaultBuilder: () => 9);
+
+      final copy = source.copyWith(value: null, error: null, stack: null, defaultBuilder: null);
+
+      expect(copy.value, isNull);
+      expect(copy.error, isNull);
+      expect(copy.stack, isNull);
+      expect(copy.defaultBuilder, isNull);
+    });
+
+    test('copyWith clears fields with the public clear sentinel', () {
+      final source = Loadable<int?>(7, isLoading: true, error: 'failure', stack: StackTrace.current, defaultBuilder: () => 9);
+
+      final copy = source.copyWith(
+        value: Loadable.clearValue,
+        error: Loadable.clearValue,
+        stack: Loadable.clearValue,
+        defaultBuilder: Loadable.clearValue,
+      );
+
+      expect(copy.value, isNull);
+      expect(copy.error, isNull);
+      expect(copy.stack, isNull);
+      expect(copy.defaultBuilder, isNull);
+    });
+
+    test('clearError clears the error and its stack together', () {
+      final source = Loadable<int?>(7, error: StateError('failure'), stack: StackTrace.current);
+
+      final cleared = source.clearError();
+
+      expect(cleared.error, isNull);
+      expect(cleared.stack, isNull);
+      expect(cleared.value, 7);
+    });
+
+    test('clear removes the error and its stack by default', () {
+      final source = Loadable<int?>(7, error: StateError('failure'), stack: StackTrace.current);
+
+      final cleared = source.clear();
+
+      expect(cleared.error, isNull);
+      expect(cleared.stack, isNull);
+    });
+
+    test('clear preserves the error and its stack when error is false', () {
+      final error = StateError('failure');
+      final stack = StackTrace.current;
+      final source = Loadable<int?>(7, error: error, stack: stack);
+
+      final cleared = source.clear(error: false);
+
+      expect(cleared.error, same(error));
+      expect(cleared.stack, same(stack));
     });
   });
 

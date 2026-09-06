@@ -16,6 +16,8 @@ void main() {
     double successThreshold = .7,
     SlidingButtonColorBuilder? trackBackgroundColorBuilder,
     SlidingButtonWidgetBuilder? trackSuccessBuilder,
+    bool enabled = true,
+    bool isInteractable = true,
   }) {
     return MaterialApp(
       home: Scaffold(
@@ -30,6 +32,8 @@ void main() {
                   thumbWidth: thumbWidth,
                   slidingDuration: slidingDuration,
                   successThreshold: successThreshold,
+                  enabled: enabled,
+                  isInteractable: isInteractable,
                   trackBackgroundColorBuilder: trackBackgroundColorBuilder,
                   trackSuccessBuilder: trackSuccessBuilder,
                   onSuccess: onSuccess,
@@ -69,6 +73,48 @@ void main() {
     );
     expect(semanticsWidget.properties.button, isTrue);
     expect(semanticsWidget.properties.enabled, isTrue);
+  });
+
+  testWidgets('applies initial fixed and progressed values without calling success', (tester) async {
+    final fixedValue = ValueNotifier<SlidingValue?>(const SlidingValue.fixed(value: 0.4));
+    final fixedPercent = ValueNotifier<double>(0.0);
+    var fixedSuccessCalls = 0;
+
+    await tester.pumpWidget(
+      host(
+        valueNotifier: fixedValue,
+        percentNotifier: fixedPercent,
+        onSuccess: () async {
+          fixedSuccessCalls++;
+          return true;
+        },
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(fixedPercent.value, closeTo(0.4, 0.02));
+    expect(fixedSuccessCalls, 0);
+
+    await tester.pumpWidget(const SizedBox());
+
+    final progressedValue = ValueNotifier<SlidingValue?>(const SlidingValue.progressed(value: 0.8));
+    final progressedPercent = ValueNotifier<double>(0.0);
+    var progressedSuccessCalls = 0;
+
+    await tester.pumpWidget(
+      host(
+        valueNotifier: progressedValue,
+        percentNotifier: progressedPercent,
+        onSuccess: () async {
+          progressedSuccessCalls++;
+          return true;
+        },
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(progressedPercent.value, closeTo(1.0, 0.02));
+    expect(progressedSuccessCalls, 0);
   });
 
   testWidgets('stops active animation when thumb is pressed', (tester) async {
@@ -136,6 +182,204 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  testWidgets('does not use its controller after disposal while success is pending', (tester) async {
+    final valueNotifier = ValueNotifier<SlidingValue?>(null);
+    final percentNotifier = ValueNotifier<double>(0.0);
+    final completion = Completer<bool>();
+
+    await tester.pumpWidget(
+      host(
+        valueNotifier: valueNotifier,
+        percentNotifier: percentNotifier,
+        onSuccess: () => completion.future,
+      ),
+    );
+
+    valueNotifier.value = const SlidingValue.fixed(value: 1.0);
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(const SizedBox());
+
+    completion.complete(false);
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('reports callback errors without an unhandled asynchronous error', (tester) async {
+    final valueNotifier = ValueNotifier<SlidingValue?>(null);
+    final percentNotifier = ValueNotifier<double>(0.0);
+    final previousOnError = FlutterError.onError;
+    final reportedErrors = <FlutterErrorDetails>[];
+    FlutterError.onError = reportedErrors.add;
+    addTearDown(() => FlutterError.onError = previousOnError);
+
+    await tester.pumpWidget(
+      host(
+        valueNotifier: valueNotifier,
+        percentNotifier: percentNotifier,
+        onSuccess: () async => throw StateError('callback failure'),
+      ),
+    );
+
+    valueNotifier.value = const SlidingValue.fixed(value: 1.0);
+    await tester.pumpAndSettle();
+
+    expect(reportedErrors.single.exception, isA<StateError>());
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('pointer cancellation returns the thumb to start without success', (tester) async {
+    final valueNotifier = ValueNotifier<SlidingValue?>(null);
+    final percentNotifier = ValueNotifier<double>(0.0);
+    var successCalls = 0;
+
+    await tester.pumpWidget(
+      host(
+        valueNotifier: valueNotifier,
+        percentNotifier: percentNotifier,
+        onSuccess: () async {
+          successCalls++;
+          return true;
+        },
+      ),
+    );
+
+    final listenerTopLeft = tester.getTopLeft(find.byType(SlidingButton));
+    final gesture = await tester.startGesture(Offset(listenerTopLeft.dx + 10, listenerTopLeft.dy + 10));
+    await gesture.moveTo(Offset(listenerTopLeft.dx + width - 10, listenerTopLeft.dy + 10));
+    await gesture.cancel();
+    await tester.pumpAndSettle();
+
+    expect(percentNotifier.value, closeTo(0.0, 0.02));
+    expect(successCalls, 0);
+  });
+
+  testWidgets('disabled transitions update semantics and block activation', (tester) async {
+    final valueNotifier = ValueNotifier<SlidingValue?>(null);
+    final percentNotifier = ValueNotifier<double>(0.0);
+    var successCalls = 0;
+
+    await tester.pumpWidget(
+      host(
+        valueNotifier: valueNotifier,
+        percentNotifier: percentNotifier,
+        onSuccess: () async {
+          successCalls++;
+          return true;
+        },
+      ),
+    );
+
+    final listenerTopLeft = tester.getTopLeft(find.byType(SlidingButton));
+    final gesture = await tester.startGesture(Offset(listenerTopLeft.dx + 10, listenerTopLeft.dy + 10));
+    await gesture.moveTo(Offset(listenerTopLeft.dx + width / 2, listenerTopLeft.dy + 10));
+
+    await tester.pumpWidget(
+      host(
+        valueNotifier: valueNotifier,
+        percentNotifier: percentNotifier,
+        onSuccess: () async {
+          successCalls++;
+          return true;
+        },
+        enabled: false,
+      ),
+    );
+
+    final semantics = tester.widget<Semantics>(
+      find.byWidgetPredicate((widget) => widget is Semantics && widget.properties.label == 'Slide button'),
+    );
+    expect(semantics.properties.enabled, isFalse);
+    expect(semantics.properties.onTap, isNull);
+
+    await tester.pumpWidget(
+      host(
+        valueNotifier: valueNotifier,
+        percentNotifier: percentNotifier,
+        onSuccess: () async {
+          successCalls++;
+          return true;
+        },
+      ),
+    );
+    await gesture.moveTo(Offset(listenerTopLeft.dx + width - 10, listenerTopLeft.dy + 10));
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    expect(successCalls, 0);
+  });
+
+  testWidgets('accessible activation confirms the action once', (tester) async {
+    final valueNotifier = ValueNotifier<SlidingValue?>(null);
+    final percentNotifier = ValueNotifier<double>(0.0);
+    var successCalls = 0;
+
+    await tester.pumpWidget(
+      host(
+        valueNotifier: valueNotifier,
+        percentNotifier: percentNotifier,
+        onSuccess: () async {
+          successCalls++;
+          return true;
+        },
+      ),
+    );
+
+    final semantics = tester.widget<Semantics>(
+      find.byWidgetPredicate((widget) => widget is Semantics && widget.properties.label == 'Slide button'),
+    );
+    expect(semantics.properties.onTap, isNotNull);
+    semantics.properties.onTap!();
+    await tester.pumpAndSettle();
+
+    expect(percentNotifier.value, closeTo(1.0, 0.02));
+    expect(successCalls, 1);
+  });
+
+  testWidgets('completed success cannot be activated from semantics until reset below threshold', (tester) async {
+    final valueNotifier = ValueNotifier<SlidingValue?>(null);
+    final percentNotifier = ValueNotifier<double>(0.0);
+    var successCalls = 0;
+
+    await tester.pumpWidget(
+      host(
+        valueNotifier: valueNotifier,
+        percentNotifier: percentNotifier,
+        onSuccess: () async {
+          successCalls++;
+          return true;
+        },
+      ),
+    );
+
+    final initialSemantics = tester.widget<Semantics>(
+      find.byWidgetPredicate((widget) => widget is Semantics && widget.properties.label == 'Slide button'),
+    );
+    initialSemantics.properties.onTap!();
+    await tester.pumpAndSettle();
+
+    final completedSemantics = tester.widget<Semantics>(
+      find.byWidgetPredicate((widget) => widget is Semantics && widget.properties.label == 'Slide button'),
+    );
+    expect(successCalls, 1);
+    completedSemantics.properties.onTap!();
+    await tester.pumpAndSettle();
+    expect(successCalls, 1);
+
+    valueNotifier.value = const SlidingValue.fixed(value: 0.0);
+    await tester.pumpAndSettle();
+
+    final resetSemantics = tester.widget<Semantics>(
+      find.byWidgetPredicate((widget) => widget is Semantics && widget.properties.label == 'Slide button'),
+    );
+    expect(resetSemantics.properties.enabled, isTrue);
+    expect(resetSemantics.properties.onTap, isNotNull);
+
+    resetSemantics.properties.onTap!();
+    await tester.pumpAndSettle();
+    expect(successCalls, 2);
+  });
+
   testWidgets('starts from 0, below threshold drag returns to 0', (tester) async {
     final valueNotifier = ValueNotifier<SlidingValue?>(null);
     final percentNotifier = ValueNotifier<double>(0.0);
@@ -189,12 +433,12 @@ void main() {
     expect(find.byKey(const Key('success-check')), findsOneWidget);
 
     final track = tester.widget<AnimatedContainer>(
-      find.byWidgetPredicate(
-        (widget) =>
-            widget is AnimatedContainer &&
-            widget.decoration is BoxDecoration &&
-            (widget.decoration as BoxDecoration).borderRadius != null,
-      ).first,
+      find
+          .byWidgetPredicate(
+            (widget) =>
+                widget is AnimatedContainer && widget.decoration is BoxDecoration && (widget.decoration as BoxDecoration).borderRadius != null,
+          )
+          .first,
     );
     expect((track.decoration as BoxDecoration).color, Colors.green);
   });

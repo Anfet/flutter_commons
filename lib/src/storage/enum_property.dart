@@ -1,33 +1,22 @@
-import 'dart:async';
-
-import 'package:flutter_commons/flutter_commons.dart';
+import 'storable_property.dart';
 
 /// Public class EnumProperty.
 class EnumProperty<T extends Enum> extends StorablePropertyImpl<T> {
-  late T _cachedValue;
   final T defaultValue;
   final Iterable<T> values;
 
-  EnumProperty(super.storage, super.name, {required this.values, super.onSave, required this.defaultValue}) : _cachedValue = defaultValue;
+  EnumProperty(super.storage, super.name, {required this.values, super.onSave, required this.defaultValue}) : super(defaultValue: () => defaultValue);
 
   @override
-  T get cachedValue => _cachedValue;
-
-  @override
-  FutureOr<T> getValue() async {
-    if (await storage.exists(name)) {
-      var string = await storage.get(name);
-      _cachedValue = values.byNameOr(string, defaultValue);
-    } else {
-      _cachedValue = defaultValue;
+  T decode(String value) {
+    for (final candidate in values) {
+      if (candidate.name == value) {
+        return candidate;
+      }
     }
-    return cachedValue;
+    throw FormatException('Invalid enum value for "$name"');
   }
 
   @override
-  Future<void> setValue(T val) async {
-    await storage.set(name, val.name);
-    _cachedValue = val;
-    onSave?.call(val);
-  }
+  String encode(T value) => value.name;
 }

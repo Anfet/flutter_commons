@@ -14,41 +14,87 @@ class ThrottleStreamTransformer<T> extends StreamTransformerBase<T, T> {
   @override
   /// Applies throttle behavior to [stream].
   Stream<T> bind(Stream<T> stream) {
-    late final StreamController<T> controller;
-    StreamSubscription<T>? subscription;
-    Timer? timer;
-    var ready = true;
+    return Stream<T>.multi(
+      (controller) {
+        StreamSubscription<T>? subscription;
+        Timer? timer;
+        var ready = true;
+        var isCancelled = false;
+        var isPaused = false;
+        Future<void>? sourceCancellation;
+        Completer<void>? pendingCancellation;
 
-    controller = StreamController<T>(
-      sync: true,
-      onListen: () {
+        Future<void> cancelSource() {
+          isCancelled = true;
+          timer?.cancel();
+          timer = null;
+
+          final activeSubscription = subscription;
+          if (activeSubscription != null) {
+            return sourceCancellation ??= activeSubscription.cancel();
+          }
+
+          return (pendingCancellation ??= Completer<void>()).future;
+        }
+
+        controller
+          ..onCancel = cancelSource
+          ..onPause = () {
+            isPaused = true;
+            subscription?.pause();
+          }
+          ..onResume = () {
+            isPaused = false;
+            subscription?.resume();
+          };
+
         subscription = stream.listen(
           (event) {
-            if (!ready) {
+            if (isCancelled || !ready) {
               return;
             }
 
-            controller.add(event);
             ready = false;
             timer?.cancel();
-            timer = Timer(duration, () => ready = true);
+            timer = Timer(duration, () {
+              timer = null;
+              if (!isCancelled) {
+                ready = true;
+              }
+            });
+            controller.addSync(event);
           },
-          onError: controller.addError,
+          onError: (Object error, StackTrace stackTrace) {
+            if (!isCancelled) {
+              controller.addErrorSync(error, stackTrace);
+            }
+          },
           onDone: () {
             timer?.cancel();
-            controller.close();
+            timer = null;
+            if (!isCancelled) {
+              controller.closeSync();
+            }
           },
         );
-      },
-      onPause: () => subscription?.pause(),
-      onResume: () => subscription?.resume(),
-      onCancel: () async {
-        timer?.cancel();
-        await subscription?.cancel();
-      },
-    );
 
-    return controller.stream;
+        if (isPaused) {
+          subscription.pause();
+        }
+        if (isCancelled) {
+          sourceCancellation ??= subscription.cancel();
+          final cancellation = pendingCancellation;
+          final activeCancellation = sourceCancellation;
+          if (cancellation != null && activeCancellation != null) {
+            activeCancellation.then(
+              (_) => cancellation.complete(),
+              onError: cancellation.completeError,
+            );
+          }
+        }
+      },
+      isBroadcast: stream.isBroadcast,
+    );
   }
 }
 

@@ -35,13 +35,20 @@ class FinalValue<T> {
   T? get tryTake => isSet ? _value : null;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is FinalValue && runtimeType == other.runtimeType && _value == other._value;
+  bool operator ==(Object other) =>
+      identical(this, other) || other is FinalValue && runtimeType == other.runtimeType && _isSet == other._isSet && _value == other._value;
 
   @override
-  int get hashCode => _value.hashCode;
+  int get hashCode => Object.hash(runtimeType, _isSet, _value);
 
   /// Creates an instance with optional initial value.
   FinalValue([T? value]) : _value = value, _isSet = value != null;
+
+  /// Creates an unset instance explicitly.
+  FinalValue.unset() : _value = null, _isSet = false;
+
+  /// Creates an instance that is set, including when [value] is null.
+  FinalValue.withValue(T? value) : _value = value, _isSet = true;
 
   @override
   String toString() {

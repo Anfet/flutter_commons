@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter_commons/src/extensions/duration_ext.dart';
 import 'package:flutter_commons/src/extensions/iterable_ext.dart';
 
 extension SiberianFutureIterableExt<T> on Future<Iterable<T>> {
@@ -26,14 +27,13 @@ extension LibFutureNullableExt<T> on Future<T?> {
 
 extension LibFutureExt<T> on Future<T> {
   Future<T> atLeast(Duration minimumDuration) async {
-    Stopwatch clock = Stopwatch()..start();
+    final clock = Stopwatch()..start();
     try {
-      T result = await this;
-      return result;
+      return await this;
     } finally {
-      var elapsed = clock.elapsed;
-      if (elapsed < minimumDuration) {
-        await (elapsed - minimumDuration);
+      final remaining = minimumDuration - clock.elapsed;
+      if (remaining > Duration.zero) {
+        await remaining.future;
       }
     }
   }

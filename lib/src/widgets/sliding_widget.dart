@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_commons/flutter_commons.dart';
 
@@ -28,13 +30,14 @@ class SlidingWidget extends StatefulWidget {
 
 class _SlidingWidgetState extends State<SlidingWidget> with SingleTickerProviderStateMixin, MountedCheck {
   late Animation<Offset> _offsetAnimation;
-  late Animation<double> _animation;
+  late CurvedAnimation _animation;
   late final AnimationController _animationController;
+  Timer? _delayTimer;
 
   @override
   void initState() {
     _animationController = AnimationController(vsync: this, duration: widget.duration);
-    _rebuildAnimations();
+    _initializeAnimations();
 
     if (widget.slidingPosition == SlidingPosition.start) {
       _animationController.value = 0.0;
@@ -50,6 +53,8 @@ class _SlidingWidgetState extends State<SlidingWidget> with SingleTickerProvider
 
   @override
   void dispose() {
+    _cancelDelay();
+    _animation.dispose();
     _animationController.dispose();
     super.dispose();
   }
@@ -61,15 +66,22 @@ class _SlidingWidgetState extends State<SlidingWidget> with SingleTickerProvider
     }
 
     if (oldWidget.curve != widget.curve || oldWidget.orientation != widget.orientation) {
-      _rebuildAnimations();
+      _replaceAnimations();
     }
 
-    if (oldWidget.slidingPosition != widget.slidingPosition && widget.slidingPosition == SlidingPosition.end) {
+    final positionChanged = oldWidget.slidingPosition != widget.slidingPosition;
+    final delayChanged = oldWidget.delay != widget.delay;
+    if (positionChanged || delayChanged) {
+      _cancelDelay();
+    }
+
+    if (positionChanged && widget.slidingPosition == SlidingPosition.end) {
       _animationController.stop();
       _animationController.value = 1.0;
     }
 
-    if (oldWidget.slidingPosition != SlidingPosition.start && widget.slidingPosition == SlidingPosition.start) {
+    if (widget.slidingPosition == SlidingPosition.start && (positionChanged || delayChanged)) {
+      _animationController.stop();
       _animationController.value = 0.0;
       _forwardWithDelay();
     }
@@ -90,7 +102,7 @@ class _SlidingWidgetState extends State<SlidingWidget> with SingleTickerProvider
     );
   }
 
-  void _rebuildAnimations() {
+  void _initializeAnimations() {
     _animation = CurvedAnimation(parent: _animationController, curve: widget.curve);
     _offsetAnimation = Tween<Offset>(
       begin: _beginOffset,
@@ -98,26 +110,39 @@ class _SlidingWidgetState extends State<SlidingWidget> with SingleTickerProvider
     ).animate(_animation);
   }
 
+  void _replaceAnimations() {
+    final previousAnimation = _animation;
+    _initializeAnimations();
+    previousAnimation.dispose();
+  }
+
   void _forwardWithDelay() {
-    (widget.delay ?? Duration.zero).future.then((value) {
-      if (mounted) {
+    _cancelDelay();
+    _delayTimer = Timer(widget.delay ?? Duration.zero, () {
+      _delayTimer = null;
+      if (mounted && widget.slidingPosition == SlidingPosition.start) {
         _animationController.forward();
       }
     });
   }
 
+  void _cancelDelay() {
+    _delayTimer?.cancel();
+    _delayTimer = null;
+  }
+
   Offset get _beginOffset => Offset(
-        widget.orientation == SlidingOrientation.leftToRight
-            ? -1
-            : widget.orientation == SlidingOrientation.rightToLeft
-                ? 1
-                : 0,
-        widget.orientation == SlidingOrientation.topToBottom
-            ? -1
-            : widget.orientation == SlidingOrientation.bottomToTop
-                ? 1
-                : 0,
-      );
+    widget.orientation == SlidingOrientation.leftToRight
+        ? -1
+        : widget.orientation == SlidingOrientation.rightToLeft
+        ? 1
+        : 0,
+    widget.orientation == SlidingOrientation.topToBottom
+        ? -1
+        : widget.orientation == SlidingOrientation.bottomToTop
+        ? 1
+        : 0,
+  );
 }
 
 /// Public enum SlidingOrientation.
@@ -126,14 +151,12 @@ enum SlidingOrientation {
   rightToLeft,
   topToBottom,
   bottomToTop,
-  ;
 }
 
 /// Public enum SlidingPosition.
 enum SlidingPosition {
   start,
   end,
-  ;
 }
 
 typedef SlidingTransitionBuilder = Widget Function(BuildContext context, Widget? child, Animation<double> animation);

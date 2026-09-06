@@ -51,11 +51,18 @@ sealed class NumericUtils {
     int maxFraction = 2,
     TypedResultCallback<String, String>? onFormat,
   }) {
-    var amount = (double.tryParse(controller.text.replaceAll(',', '.').replaceAll(' ', '')) ?? 0);
+    if (maxLength < 1) {
+      throw ArgumentError.value(maxLength, 'maxLength', 'Must be at least 1');
+    }
+    if (maxFraction < 0) {
+      throw ArgumentError.value(maxFraction, 'maxFraction', 'Must be non-negative');
+    }
+
+    final amount = double.tryParse(controller.text.replaceAll(',', '.').replaceAll(' ', '')) ?? 0;
     var truncated = amount.truncFraction(maxFraction).abs();
 
-    var i = truncated.toInt();
-    var len = '$i'.length;
+    final i = truncated.toInt();
+    final len = '$i'.length;
     if (len > maxLength) {
       truncated = double.parse('$i'.substring(0, maxLength));
     }
@@ -64,9 +71,9 @@ sealed class NumericUtils {
       truncated = truncated.truncateToDouble();
     }
 
-    if ('$amount' != '$truncated' || amount.fraction > truncated.fraction || controller.text.length > '$amount'.length) {
-      var fractionLimit = pow(1, -(maxFraction + 1));
-      var text = '${truncated.fraction < fractionLimit ? truncated.toInt() : truncated}';
+    final fractionLimit = pow(10, -(maxFraction + 1));
+    final text = '${truncated.fraction < fractionLimit ? truncated.toInt() : truncated}';
+    if (controller.text != text) {
       var formatted = onFormat?.call(text) ?? text;
       controller.text = formatted;
       controller.selection = TextSelection.collapsed(offset: formatted.length);

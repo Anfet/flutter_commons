@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
+import '../logging.dart';
 import 'storage.dart';
 
 /// Public abstract class StorableProperty.
@@ -23,27 +24,76 @@ abstract class StorablePropertyImpl<T> implements StorableProperty<T> {
   final PropertyStorage storage;
   final String name;
   final ValueSetter<T>? onSave;
+  final T Function()? _defaultValue;
+
+  late T _cachedValue;
 
   @override
-  T get cachedValue;
+  T get cachedValue => _cachedValue;
 
   StorablePropertyImpl(
     this.storage,
     this.name, {
     this.onSave,
-  });
+    T Function()? defaultValue,
+  }) : _defaultValue = defaultValue {
+    if (_defaultValue != null) {
+      _cachedValue = _defaultValue();
+    }
+  }
 
   @override
   Future<void> delete() async {
     await storage.delete(name);
-    await getValue();
+    final defaultValue = _defaultValue;
+    if (defaultValue == null) {
+      await getValue();
+    } else {
+      _cachedValue = defaultValue();
+    }
   }
 
   @override
+  Future<T> getValue() async {
+    final defaultValue = _defaultValue;
+    if (!await storage.exists(name)) {
+      if (defaultValue == null) {
+        throw UnsupportedError('A legacy StorablePropertyImpl subclass must override getValue().');
+      }
+      _cachedValue = defaultValue();
+      return cachedValue;
+    }
+
+    // Storage failures are not malformed values and must remain observable.
+    final rawValue = await storage.get(name);
+    try {
+      _cachedValue = decode(rawValue);
+    } catch (error) {
+      if (defaultValue == null) {
+        rethrow;
+      }
+      _cachedValue = defaultValue();
+      // Decoder errors may contain the entire stored value, including secrets.
+      logMessage('Invalid stored value for $runtimeType; using default (${error.runtimeType}).', tag: 'storage');
+      await _repairInvalidValue();
+    }
+    return cachedValue;
+  }
+
+  Future<void> _repairInvalidValue() async {}
+
+  @override
   Future<void> setValue(T val) async {
-    await storage.set(name, '$val');
+    await storage.set(name, encode(val));
+    if (_defaultValue != null) {
+      _cachedValue = val;
+    }
     onSave?.call(val);
   }
+
+  T decode(String value) => value as T;
+
+  String encode(T value) => '$value';
 
   @override
   String toString() => '$cachedValue';
@@ -53,113 +103,59 @@ abstract class StorablePropertyImpl<T> implements StorableProperty<T> {
 }
 
 final class BoolProperty extends StorablePropertyImpl<bool> {
-  late bool _cachedValue;
   final bool defaultValue;
 
-  @override
-  bool get cachedValue => _cachedValue;
-
-  BoolProperty(super.storage, super.name, {super.onSave, this.defaultValue = false}) : _cachedValue = defaultValue;
+  BoolProperty(super.storage, super.name, {super.onSave, this.defaultValue = false}) : super(defaultValue: () => defaultValue);
 
   @override
-  FutureOr<bool> getValue() async {
-    if (await exists()) {
-      _cachedValue = bool.tryParse(await storage.get(name)) ?? defaultValue;
-    } else {
-      _cachedValue = defaultValue;
-    }
-    return cachedValue;
-  }
+  bool decode(String value) => switch (value) {
+    'true' => true,
+    'false' => false,
+    _ => throw FormatException('Invalid boolean value for "$name"'),
+  };
 
   @override
-  Future<void> setValue(bool val) async {
-    await super.setValue(val);
-    _cachedValue = val;
-  }
+  String encode(bool value) => '$value';
 }
 
 final class IntProperty extends StorablePropertyImpl<int> {
-  @override
-  int get cachedValue => _cachedValue;
-  late int _cachedValue;
   final int defaultValue;
 
-  IntProperty(super.storage, super.name, {super.onSave, this.defaultValue = 0}) : _cachedValue = defaultValue;
+  IntProperty(super.storage, super.name, {super.onSave, this.defaultValue = 0}) : super(defaultValue: () => defaultValue);
 
   @override
-  FutureOr<int> getValue() async {
-    if (await storage.exists(name)) {
-      _cachedValue = int.tryParse(await storage.get(name)) ?? defaultValue;
-    } else {
-      _cachedValue = defaultValue;
-    }
-    return cachedValue;
-  }
+  int decode(String value) => int.parse(value);
 
   @override
-  Future<void> setValue(int val) async {
-    await super.setValue(val);
-    _cachedValue = val;
-  }
+  String encode(int value) => '$value';
 }
 
 final class DoubleProperty extends StorablePropertyImpl<double> {
-  @override
-  double get cachedValue => _cachedValue;
-  late double _cachedValue;
   final double defaultValue;
 
-  DoubleProperty(super.storage, super.name, {super.onSave, this.defaultValue = 0}) : _cachedValue = defaultValue;
+  DoubleProperty(super.storage, super.name, {super.onSave, this.defaultValue = 0}) : super(defaultValue: () => defaultValue);
 
   @override
-  FutureOr<double> getValue() async {
-    if (await storage.exists(name)) {
-      _cachedValue = double.tryParse(await storage.get(name)) ?? defaultValue;
-    } else {
-      _cachedValue = defaultValue;
-    }
-
-    return cachedValue;
-  }
+  double decode(String value) => double.parse(value);
 
   @override
-  Future<void> setValue(double val) async {
-    await super.setValue(val);
-    _cachedValue = val;
-  }
+  String encode(double value) => '$value';
 }
 
 final class StringProperty extends StorablePropertyImpl<String> {
-  @override
-  String get cachedValue => _cachedValue;
-  late String _cachedValue;
   final String defaultValue;
 
-  StringProperty(super.storage, super.name, {super.onSave, this.defaultValue = ''}) : _cachedValue = defaultValue;
+  StringProperty(super.storage, super.name, {super.onSave, this.defaultValue = ''}) : super(defaultValue: () => defaultValue);
 
   @override
-  FutureOr<String> getValue() async {
-    if (await storage.exists(name)) {
-      _cachedValue = await storage.get(name);
-    } else {
-      _cachedValue = defaultValue;
-    }
-    return cachedValue;
-  }
+  String decode(String value) => value;
 
   @override
-  Future<void> setValue(String val) async {
-    await super.setValue(val);
-    _cachedValue = val;
-  }
+  String encode(String value) => value;
 }
 
 /// Public class JsonProperty.
-class JsonProperty<T> extends StorablePropertyImpl<T>  {
-  @override
-  T get cachedValue => _cachedValue;
-  late T _cachedValue;
-
+class JsonProperty<T> extends StorablePropertyImpl<T> {
   final T Function(Map<String, dynamic> json) fromJson;
   final Map<String, dynamic> Function(T data) toJson;
   final T Function() ifNotExist;
@@ -171,58 +167,32 @@ class JsonProperty<T> extends StorablePropertyImpl<T>  {
     required this.fromJson,
     required this.toJson,
     required this.ifNotExist,
-  }) {
-    _cachedValue = ifNotExist();
-  }
+  }) : super(defaultValue: ifNotExist);
+
+  // Preserve the legacy JSON recovery contract without emitting an onSave event.
+  @override
+  Future<void> _repairInvalidValue() => storage.set(name, encode(cachedValue));
 
   @override
-  FutureOr<T> getValue() async {
-    try {
-      var text = await storage.get(name);
-      if (text.isEmpty) {
-        _cachedValue = ifNotExist();
-      } else {
-        _cachedValue = fromJson(jsonDecode(text));
-      }
-    } catch (ex) {
-      _cachedValue = ifNotExist();
-      await setValue(_cachedValue);
+  T decode(String value) {
+    final decoded = jsonDecode(value);
+    if (decoded is! Map<String, dynamic>) {
+      throw FormatException('Invalid JSON object for "$name"');
     }
-
-    return cachedValue;
+    return fromJson(decoded);
   }
 
   @override
-  Future<void> setValue(T val) async {
-    var text = jsonEncode(toJson(val));
-    await storage.set(name, text);
-    _cachedValue = val;
-  }
+  String encode(T value) => jsonEncode(toJson(value));
 }
 
 /// Public class DateTimeProperty.
-class DateTimeProperty extends StorablePropertyImpl<DateTime>   {
-  @override
-  late DateTime cachedValue = DateTime(0);
-
-  DateTimeProperty(super.storage, super.name);
+class DateTimeProperty extends StorablePropertyImpl<DateTime> {
+  DateTimeProperty(super.storage, super.name, {super.onSave}) : super(defaultValue: () => DateTime(0));
 
   @override
-  FutureOr<DateTime> getValue() async {
-    try {
-      var text = await storage.get(name);
-      cachedValue = (DateTime.tryParse(text) ?? DateTime(0)).toLocal();
-    } catch (ex) {
-      //mute
-    }
-
-    return cachedValue;
-  }
+  DateTime decode(String value) => DateTime.parse(value).toLocal();
 
   @override
-  Future<void> setValue(DateTime val) async {
-    var text = val.toUtc().toString();
-    await storage.set(name, text);
-    cachedValue = val;
-  }
+  String encode(DateTime value) => value.toUtc().toString();
 }

@@ -1,5 +1,7 @@
 // ignore: unused_element
 
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +15,9 @@ typedef SlidingButtonColorBuilder = Color Function(BuildContext context, double 
 /// Drag the thumb from left to right. When released:
 /// - below [successThreshold] it animates back to start
 /// - above [successThreshold] it animates to end and calls [onSuccess]
+///
+/// Accessibility activation performs the same confirmation flow as a completed
+/// drag: it animates to the end and calls [onSuccess].
 class SlidingButton extends StatefulWidget {
   /// Default widget height.
   static const kSlidingButtonDefaultHeight = 44.0;
@@ -76,6 +81,8 @@ class SlidingButton extends StatefulWidget {
   /// Called when progress reaches `1.0`.
   ///
   /// Return `true` to keep slider at end. Return `false` to animate back to start.
+  /// Errors are reported through [FlutterError.reportError] and leave the slider
+  /// at its current value.
   final AsyncValueGetter<bool> onSuccess;
 
   /// Optional animation duration for all internal slider animations.
@@ -128,6 +135,8 @@ class SlidingButton extends StatefulWidget {
 class _SlidingButtonState extends State<SlidingButton> with MountedCheck, SingleTickerProviderStateMixin {
   var isTapped = false;
   var _isRunningSuccess = false;
+  int? _activePointer;
+  var _animationTriggersSuccess = true;
   late double slideSize = 0.0;
   Offset tapOffset = Offset.zero;
   late Duration slidingDuration;
@@ -135,25 +144,33 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Single
 
   double get value => _value;
 
-  set value(double v) {
+  set value(double v) => _setValue(v);
+
+  void _setValue(double v, {bool triggerSuccess = true}) {
     _value = v.clamp(0.0, 1.0);
+    if (!triggerSuccess) {
+      canTriggerSuccess = value < 1.0;
+      return;
+    }
     if (value < widget.successThreshold) {
       canTriggerSuccess = true;
     } else if (canTriggerSuccess && value >= 1.0) {
       canTriggerSuccess = false;
-      runSuccess();
+      unawaited(runSuccess());
     }
   }
 
   late bool canTriggerSuccess = value < 1.0;
 
   Range<double> get thumbWidth => Range(
-        slideSize * value,
-        slideSize * value + widget.thumbWidth,
-      );
+    slideSize * value,
+    slideSize * value + widget.thumbWidth,
+  );
 
   late AnimationController slidingController;
   Tween<double>? _animationTween;
+
+  bool get _canInteract => widget.enabled && widget.isInteractable && !_isRunningSuccess;
 
   @override
   void initState() {
@@ -161,28 +178,57 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Single
     slidingController = AnimationController(vsync: this, duration: slidingDuration);
     slidingController.addListener(
       () {
-        value = _animationTween!.evaluate(require(slidingController));
+        final animationTween = _animationTween;
+        if (!mounted || animationTween == null) {
+          return;
+        }
+        _setValue(animationTween.evaluate(slidingController), triggerSuccess: _animationTriggersSuccess);
         markNeedsRebuild();
       },
     );
 
     super.initState();
+    final initialValue = widget.value;
+    if (initialValue != null) {
+      _setValue(initialValue.value, triggerSuccess: false);
+      if (initialValue.runAnimations) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            unawaited(_runAnimations(triggerSuccess: false));
+          }
+        });
+      }
+    }
   }
 
   @override
   void dispose() {
+    _activePointer = null;
     slidingController.dispose();
     super.dispose();
   }
 
   @override
   void didUpdateWidget(covariant SlidingButton oldWidget) {
-    if (widget.slidingDuration != slidingDuration) {
-      slidingDuration = widget.slidingDuration ?? SlidingButton.kDefaultAnimationDuration;
+    final newSlidingDuration = widget.slidingDuration ?? SlidingButton.kDefaultAnimationDuration;
+    if (newSlidingDuration != slidingDuration) {
+      slidingDuration = newSlidingDuration;
+      if (!slidingController.isAnimating) {
+        slidingController.duration = slidingDuration;
+      }
     }
 
     if (oldWidget.value != widget.value && widget.value != null) {
-      animateTo(require(widget.value).value, animateToSides: require(widget.value).runAnimations);
+      final newValue = widget.value!;
+      unawaited(animateTo(newValue.value, animateToSides: newValue.runAnimations));
+    }
+
+    if ((oldWidget.enabled && !widget.enabled) || (oldWidget.isInteractable && !widget.isInteractable)) {
+      _activePointer = null;
+      isTapped = false;
+      if (slidingController.isAnimating) {
+        slidingController.stop();
+      }
     }
 
     super.didUpdateWidget(oldWidget);
@@ -198,7 +244,7 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Single
           return Listener(
             behavior: HitTestBehavior.opaque,
             onPointerDown: (details) {
-              if (!widget.enabled || !widget.isInteractable || _isRunningSuccess) {
+              if (!_canInteract || _activePointer != null) {
                 return;
               }
 
@@ -208,17 +254,22 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Single
               }
 
               isTapped = isThumbTapped;
+              _activePointer = isThumbTapped ? details.pointer : null;
               tapOffset = Offset(thumbWidth.requireFrom - details.localPosition.dx, widget.height - details.localPosition.dy);
             },
             onPointerUp: (details) {
-              if (!widget.enabled || !widget.isInteractable || _isRunningSuccess) {
+              if (details.pointer != _activePointer) {
                 return;
               }
+              _activePointer = null;
               isTapped = false;
-              _runAnimations();
+              if (!_canInteract) {
+                return;
+              }
+              unawaited(_runAnimations());
             },
             onPointerMove: (details) {
-              if (!widget.enabled || !isTapped || !widget.isInteractable || slideSize <= 0.0 || _isRunningSuccess) {
+              if (details.pointer != _activePointer || !_canInteract || !isTapped || slideSize <= 0.0) {
                 return;
               }
 
@@ -227,6 +278,16 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Single
               value = actualPercent.clamp(0.0, 1.0);
               markNeedsRebuild();
             },
+            onPointerCancel: (details) {
+              if (details.pointer != _activePointer) {
+                return;
+              }
+              _activePointer = null;
+              isTapped = false;
+              if (mounted) {
+                unawaited(runAnimationToStart());
+              }
+            },
             child: Semantics(
               container: true,
               button: true,
@@ -234,6 +295,7 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Single
               label: widget.semanticLabel ?? 'Slide button',
               hint: widget.semanticHint ?? 'Slide to confirm',
               value: '${(value * 100).round()}%',
+              onTap: _canInteract ? _handleSemanticsTap : null,
               child: Stack(
                 children: [
                   Positioned.fill(
@@ -276,65 +338,104 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Single
   }
 
   Future runAnimationToSuccess() async {
-    if (value < 1.0) {
-      _animationTween = Tween<double>(begin: value, end: 1.0);
-      slidingController.reset();
-      slidingController.duration = (slidingDuration.inMilliseconds * ((value - 1.0).abs())).truncate().milliseconds;
-      try {
-        await slidingController.forward().orCancel;
-      } on TickerCanceled {
-        return;
-      }
+    if (!mounted || value >= 1.0) {
+      return;
     }
-  }
-
-  Future runAnimationToStart() async {
-    if (value > 0.0) {
-      _animationTween = Tween<double>(begin: value, end: 0.0);
-      slidingController.reset();
-      slidingController.duration = (slidingDuration.inMilliseconds * ((value - 0.0).abs())).truncate().milliseconds;
-      try {
-        await slidingController.forward().orCancel;
-      } on TickerCanceled {
-        return;
-      }
-    }
-  }
-
-  Future _runAnimations() {
-    return value > widget.successThreshold ? runAnimationToSuccess() : runAnimationToStart();
-  }
-
-  Future animateTo(double value, {bool animateToSides = false}) async {
-    final targetValue = value.clamp(0.0, 1.0);
-    _animationTween = Tween<double>(begin: this.value, end: targetValue);
+    _animationTween = Tween<double>(begin: value, end: 1.0);
     slidingController.reset();
-    var msecs = (slidingDuration.inMilliseconds * (this.value - targetValue).abs()).round();
-    var partialDuration = msecs.milliseconds;
-    slidingController.duration = partialDuration;
+    slidingController.duration = (slidingDuration.inMilliseconds * ((value - 1.0).abs())).truncate().milliseconds;
     try {
       await slidingController.forward().orCancel;
     } on TickerCanceled {
       return;
     }
-    if (animateToSides) {
-      _runAnimations();
+  }
+
+  Future runAnimationToStart({bool triggerSuccess = true}) async {
+    if (!mounted || value <= 0.0) {
+      return;
+    }
+    _animationTriggersSuccess = triggerSuccess;
+    _animationTween = Tween<double>(begin: value, end: 0.0);
+    slidingController.reset();
+    slidingController.duration = (slidingDuration.inMilliseconds * value.abs()).truncate().milliseconds;
+    try {
+      await slidingController.forward().orCancel;
+    } on TickerCanceled {
+      return;
     }
   }
 
-  Future runSuccess() async {
-    if (_isRunningSuccess) {
+  Future _runAnimations({bool triggerSuccess = true}) {
+    _animationTriggersSuccess = triggerSuccess;
+    return value > widget.successThreshold ? runAnimationToSuccess() : runAnimationToStart(triggerSuccess: triggerSuccess);
+  }
+
+  Future animateTo(double value, {bool animateToSides = false}) async {
+    if (!mounted) {
+      return;
+    }
+    final targetValue = value.clamp(0.0, 1.0);
+    _animationTriggersSuccess = true;
+    _animationTween = Tween<double>(begin: this.value, end: targetValue);
+    slidingController.reset();
+    final msecs = (slidingDuration.inMilliseconds * (this.value - targetValue).abs()).round();
+    slidingController.duration = msecs.milliseconds;
+    try {
+      await slidingController.forward().orCancel;
+    } on TickerCanceled {
+      return;
+    }
+    if (mounted && animateToSides) {
+      unawaited(_runAnimations());
+    }
+  }
+
+  void _handleSemanticsTap() {
+    if (!canTriggerSuccess) {
+      return;
+    }
+    unawaited(_activateFromSemantics());
+  }
+
+  Future<void> _activateFromSemantics() async {
+    if (!_canInteract || !canTriggerSuccess) {
+      return;
+    }
+    canTriggerSuccess = true;
+    _animationTriggersSuccess = true;
+    await runAnimationToSuccess();
+  }
+
+  Future<void> runSuccess() async {
+    if (_isRunningSuccess || !mounted) {
       return;
     }
 
     _isRunningSuccess = true;
+    markNeedsRebuild();
     try {
-      var success = await widget.onSuccess();
+      final success = await widget.onSuccess();
+      if (!mounted) {
+        return;
+      }
       if (!success) {
         await runAnimationToStart();
       }
+    } catch (error, stackTrace) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stackTrace,
+          library: 'flutter_commons',
+          context: ErrorDescription('while running SlidingButton.onSuccess'),
+        ),
+      );
     } finally {
       _isRunningSuccess = false;
+      if (mounted) {
+        markNeedsRebuild();
+      }
     }
   }
 }
@@ -350,19 +451,17 @@ class SlidingValue {
   /// Applies [value] without side animation.
   const SlidingValue.fixed({
     required this.value,
-  })  : runAnimations = false,
-        assert(value >= 0.0 && value <= 1.0);
+  }) : runAnimations = false,
+       assert(value >= 0.0 && value <= 1.0);
 
   /// Applies [value] and then animates to nearest side.
   const SlidingValue.progressed({
     required this.value,
-  })  : runAnimations = true,
-        assert(value >= 0.0 && value <= 1.0);
+  }) : runAnimations = true,
+       assert(value >= 0.0 && value <= 1.0);
 
   /// Convenience zero value (`0.0`) without side animation.
-  const SlidingValue.zero()
-      : runAnimations = false,
-        value = 0.0;
+  const SlidingValue.zero() : runAnimations = false, value = 0.0;
 
   /// Fully custom value and side-animation behavior.
   const SlidingValue.custom({
