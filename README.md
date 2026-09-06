@@ -6,6 +6,7 @@ Core Flutter package with reusable widgets, utils, extensions, and UI infrastruc
 
 - Type: internal package (`publish_to: none`)
 - Dart SDK: `>=3.10.0 <4.0.0`
+- CI: Flutter `3.38.10` on the stable channel (Dart 3.10.x)
 - Main entrypoint: `lib/flutter_commons.dart`
 
 ## Project goals
@@ -23,7 +24,7 @@ Core Flutter package with reusable widgets, utils, extensions, and UI infrastruc
 - `lib/src/data` - value wrappers and data primitives
 - `lib/src/storage` - persistent property abstractions
 - `lib/src/theming` - theming helpers
-- `test` - tests (currently minimal)
+- `test` - discovered unit and widget tests (`*_test.dart`)
 
 ## Quick start
 
@@ -58,7 +59,8 @@ final items = loader.items;
 - Run tests: `flutter test`
 - Outdated deps: `flutter pub outdated`
 
-Note: Flutter discovers only files matching `*_test.dart`.
+Note: Flutter discovers only files matching `*_test.dart`; all retained tests use
+matcher assertions rather than VM `assert` statements.
 
 ## Current priorities
 
@@ -70,8 +72,7 @@ Note: Flutter discovers only files matching `*_test.dart`.
 
 Use this section to append tasks gradually.
 
-- [ ] Add widget tests for `SlidingWidget`, `CollapsibleWidget`, `RevealingWidget`
-- [ ] Add semantics coverage for keyboard/buttons
+- [ ] Add widget tests for `SlidingWidget`, `RevealingWidget`
 - [ ] Document each public widget with usage snippet
 
 ## Contribution notes
@@ -83,7 +84,3 @@ Use this section to append tasks gradually.
 ## License
 
 See `LICENSE`.
-
-## Documentation
-
-- Project docs index: `docs/README.md`

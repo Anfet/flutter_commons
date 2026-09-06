@@ -14,7 +14,6 @@ enum QueryPriority {
   normal,
   belowNormal,
   low,
-  ;
 }
 
 /// Sequential request scheduler with priority queues and retry support.
@@ -23,6 +22,7 @@ class QueryScheduler implements Disposable {
   bool _isLooping = false;
 
   final Map<QueryPriority, List<QueryRequest>> _requests = {};
+  final Set<QueryRequest> _inFlight = {};
 
   Iterable<QueryPriority> get _keysWithRequests => _requests.keys.where((key) => require(_requests[key]).isNotEmpty);
 
@@ -68,7 +68,7 @@ class QueryScheduler implements Disposable {
         }
 
         requests.remove(request);
-        if (result == QueryRetry.reschedule) {
+        if (result == QueryRetry.reschedule && !request.completer.isCompleted && request.canTry) {
           requests.add(request);
         }
       }
@@ -81,10 +81,10 @@ class QueryScheduler implements Disposable {
   ///
   /// Dropped requests are completed with [CancelledQueryException].
   void drop({final Iterable<String> tags = const [], final Iterable<int> ids = const []}) {
-    List<QueryRequest> requests = [];
+    final requests = <QueryRequest>{..._inFlight};
 
     if (tags.isEmpty && ids.isEmpty) {
-      requests = Map.of(_requests).values.fold([], (previousValue, element) => [...previousValue, ...element]);
+      requests.addAll(_requests.values.expand((requests) => requests));
       for (var priority in QueryPriority.values) {
         _requests[priority]?.clear();
       }
@@ -102,12 +102,11 @@ class QueryScheduler implements Disposable {
           },
         );
       }
+      requests.removeWhere((request) => !tags.contains(request.tag) && !ids.contains(request.id));
     }
 
     for (var request in requests) {
-      if (!request.completer.isCompleted) {
-        request.completer.completeError(CancelledQueryException());
-      }
+      _completeCancelled(request);
     }
   }
 
@@ -124,7 +123,7 @@ class QueryScheduler implements Disposable {
       onFail: onFail ?? this.onFail,
     );
     if (priority == QueryPriority.immediate) {
-      _execute(rq);
+      _executeImmediate(rq);
     } else {
       require(_requests[priority]).add(rq);
       _loop();
@@ -149,39 +148,89 @@ class QueryScheduler implements Disposable {
       return QueryRetry.drop;
     }
 
-    Loadable result = const Loadable.loading();
-    while (request.canTry) {
-      try {
-        request.tries++;
-        result = result.result(await request.request());
-        break;
-      } catch (ex, stack) {
-        result = result.fail(ex, stack);
-        final retryResult = await request.onFail?.call(request, ex, request.tries);
-        switch (retryResult) {
-          case QueryRetry.retry:
-            continue;
-          case QueryRetry.reschedule:
-          case QueryRetry.drop:
-            return retryResult!;
-          default:
-            if (request.canTry) {
-              continue;
-            }
-            break;
+    _inFlight.add(request);
+    try {
+      while (request.canTry && !request.completer.isCompleted) {
+        try {
+          request.tries++;
+          final value = await request.request();
+          _completeSuccess(request, value);
+          return QueryRetry.drop;
+        } catch (error, stack) {
+          if (request.completer.isCompleted) {
+            return QueryRetry.drop;
+          }
+
+          QueryRetry? action;
+          try {
+            action = await request.onFail?.call(request, error, request.tries);
+          } catch (onFailError, onFailStack) {
+            _completeFailure(request, onFailError, onFailStack);
+            return QueryRetry.drop;
+          }
+
+          switch (action) {
+            case QueryRetry.retry:
+              if (request.canTry) {
+                continue;
+              }
+              _completeFailure(request, error, stack);
+              return QueryRetry.drop;
+            case QueryRetry.reschedule:
+              if (request.canTry) {
+                return QueryRetry.reschedule;
+              }
+              _completeFailure(request, error, stack);
+              return QueryRetry.drop;
+            case QueryRetry.fail:
+              _completeFailure(request, error, stack);
+              return QueryRetry.drop;
+            case QueryRetry.drop:
+              _completeCancelled(request);
+              return QueryRetry.drop;
+            case null:
+              if (request.canTry) {
+                continue;
+              }
+              _completeFailure(request, error, stack);
+              return QueryRetry.drop;
+          }
         }
       }
+      _completeFailure(request, StateError('Query request has no retry capacity'), StackTrace.current);
+      return QueryRetry.drop;
+    } finally {
+      _inFlight.remove(request);
     }
+  }
 
+  void _executeImmediate(QueryRequest request) {
+    unawaited(
+      _execute(request).then((result) {
+        if (result == QueryRetry.reschedule && !request.completer.isCompleted && request.canTry) {
+          require(_requests[QueryPriority.immediate]).add(request);
+          _loop();
+        }
+      }),
+    );
+  }
+
+  void _completeSuccess(QueryRequest request, Object? value) {
     if (!request.completer.isCompleted) {
-      if (result.hasError) {
-        request.completer.completeError(result.requireError, result.stack);
-      } else {
-        request.completer.complete(result.value);
-      }
+      request.completer.complete(value);
     }
+  }
 
-    return QueryRetry.drop;
+  void _completeFailure(QueryRequest request, Object error, StackTrace stack) {
+    if (!request.completer.isCompleted) {
+      request.completer.completeError(error, stack);
+    }
+  }
+
+  void _completeCancelled(QueryRequest request) {
+    if (!request.completer.isCompleted) {
+      request.completer.completeError(CancelledQueryException());
+    }
   }
 }
 
@@ -213,8 +262,8 @@ class QueryRequest<T> {
     int? tries,
     int? maxRetries,
     this.onFail,
-  })  : maxRetries = maxRetries ?? defaultRetries,
-        tries = 0;
+  }) : maxRetries = maxRetries ?? defaultRetries,
+       tries = 0;
 }
 
 ///указывает на действие по повтору запроса

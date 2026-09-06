@@ -11,12 +11,16 @@ class Enabling extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AbsorbPointer(
-      absorbing: !enabled,
-      child: AnimatedOpacity(
-        opacity: enabled ? 1.0 : disabledOpacity,
-        duration: 500.milliseconds,
-        child: child,
+    return Semantics(
+      container: true,
+      enabled: enabled,
+      child: AbsorbPointer(
+        absorbing: !enabled,
+        child: AnimatedOpacity(
+          opacity: enabled ? 1.0 : disabledOpacity,
+          duration: 500.milliseconds,
+          child: child,
+        ),
       ),
     );
   }

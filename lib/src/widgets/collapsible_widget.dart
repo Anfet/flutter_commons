@@ -35,7 +35,8 @@ class CollapsibleWidget extends StatefulWidget {
 
   static const Duration defaultAnimationDuration = Duration(milliseconds: 300);
 
-  static CollapsibleWidgetBuilder get defaultAnimationBuilder => (Animation<double> animation, Widget child) => child;
+  static CollapsibleWidgetBuilder get defaultAnimationBuilder =>
+      (Animation<double> animation, Widget child) => child;
 }
 
 class _CollapsibleWidgetState extends State<CollapsibleWidget> with MountedCheck {
@@ -127,12 +128,12 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox {
     required Curve curve,
     required this.onAnimationChanged,
     Axis? orientation,
-  })  : _duration = duration,
-        _expanded = expanded,
-        _curve = curve,
-        curveTween = CurveTween(curve: curve),
-        _clipBehavior = clipBehavior ?? Clip.hardEdge,
-        _orientation = orientation;
+  }) : _duration = duration,
+       _expanded = expanded,
+       _curve = curve,
+       curveTween = CurveTween(curve: curve),
+       _clipBehavior = clipBehavior ?? Clip.hardEdge,
+       _orientation = orientation;
 
   set expanded(bool value) {
     if (_expanded != value) {
@@ -200,14 +201,21 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox {
   }
 
   double get _animationPercent {
-    final widthAp = _animatedSize.width / max(sizeTween.end!.width, sizeTween.begin!.width);
-    final heightAp = _animatedSize.height / max(sizeTween.end!.height, sizeTween.begin!.height);
+    final widthAp = _sizePercent(_animatedSize.width, sizeTween.end!.width, sizeTween.begin!.width);
+    final heightAp = _sizePercent(_animatedSize.height, sizeTween.end!.height, sizeTween.begin!.height);
     return switch (_orientation) {
       Axis.horizontal => widthAp,
       Axis.vertical => heightAp,
       _ => max(widthAp, heightAp),
+    }.clamp(0.0, 1.0);
+  }
+
+  double _sizePercent(double size, double firstTarget, double secondTarget) {
+    final maximum = max(firstTarget, secondTarget);
+    if (maximum <= 0.0) {
+      return animationPosition.clamp(0.0, 1.0);
     }
-        .clamp(0.0, 1.0);
+    return (size / maximum).clamp(0.0, 1.0);
   }
 
   @override
@@ -231,6 +239,8 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox {
       sizeTween.begin = _animatedSize;
       sizeTween.end = debugAdoptSize(targetSize);
       _restartAnimation();
+    } else {
+      _resumeAnimation();
     }
 
     size = constraints.constrain(_animatedSize);
@@ -253,6 +263,14 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox {
     timer?.cancel();
     timer = null;
     super.detach();
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    timer = null;
+    _clipRectLayer.layer = null;
+    super.dispose();
   }
 
   @override
@@ -290,7 +308,7 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox {
     if (_duration.inMicroseconds <= 0) {
       animationPosition = 1.0;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        onAnimationChanged(_animationPercent);
+        _notifyAnimationChanged();
       });
       return;
     }
@@ -300,14 +318,37 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox {
     timer = Timer.periodic(30.milliseconds, recalculate);
   }
 
+  void _resumeAnimation() {
+    if (timer != null || animationPosition >= 1.0 || sizeTween.begin == sizeTween.end) {
+      return;
+    }
+
+    if (_duration.inMicroseconds <= 0) {
+      animationPosition = 1.0;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _notifyAnimationChanged();
+      });
+      return;
+    }
+
+    final elapsedMicros = (_duration.inMicroseconds * animationPosition).round();
+    timestamp = DateTime.now().subtract(Duration(microseconds: elapsedMicros));
+    timer = Timer.periodic(30.milliseconds, recalculate);
+  }
+
   void recalculate(Timer timer) {
+    if (!attached) {
+      timer.cancel();
+      this.timer = null;
+      return;
+    }
     if (_duration.inMicroseconds <= 0) {
       timer.cancel();
       this.timer = null;
       animationPosition = 1.0;
       markNeedsLayout();
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        onAnimationChanged(_animationPercent);
+        _notifyAnimationChanged();
       });
       return;
     }
@@ -322,7 +363,17 @@ class _RenderCollapsibleWidget extends RenderAligningShiftedBox {
       this.timer = null;
     }
 
-    onAnimationChanged(_animationPercent);
+    _notifyAnimationChanged();
     markNeedsLayout();
+  }
+
+  void _notifyAnimationChanged() {
+    if (!attached) {
+      return;
+    }
+    final percent = _animationPercent;
+    if (percent.isFinite) {
+      onAnimationChanged(percent);
+    }
   }
 }

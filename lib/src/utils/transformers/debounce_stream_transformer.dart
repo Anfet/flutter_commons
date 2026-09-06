@@ -13,50 +13,98 @@ class DebounceStreamTransformer<T> extends StreamTransformerBase<T, T> {
   @override
   /// Applies debounce behavior to [stream].
   Stream<T> bind(Stream<T> stream) {
-    late final StreamController<T> controller;
-    StreamSubscription<T>? subscription;
-    Timer? timer;
-    T? pendingEvent;
-    var hasPendingEvent = false;
+    return Stream<T>.multi(
+      (controller) {
+        StreamSubscription<T>? subscription;
+        Timer? timer;
+        T? pendingEvent;
+        var hasPendingEvent = false;
+        var isCancelled = false;
+        var isPaused = false;
+        Future<void>? sourceCancellation;
+        Completer<void>? pendingCancellation;
 
-    controller = StreamController<T>(
-      sync: true,
-      onListen: () {
+        void emitPendingEvent() {
+          if (isCancelled || !hasPendingEvent) {
+            return;
+          }
+
+          final event = pendingEvent as T;
+          hasPendingEvent = false;
+          pendingEvent = null;
+          controller.addSync(event);
+        }
+
+        Future<void> cancelSource() {
+          isCancelled = true;
+          timer?.cancel();
+          timer = null;
+
+          final activeSubscription = subscription;
+          if (activeSubscription != null) {
+            return sourceCancellation ??= activeSubscription.cancel();
+          }
+
+          return (pendingCancellation ??= Completer<void>()).future;
+        }
+
+        controller
+          ..onCancel = cancelSource
+          ..onPause = () {
+            isPaused = true;
+            subscription?.pause();
+          }
+          ..onResume = () {
+            isPaused = false;
+            subscription?.resume();
+          };
+
         subscription = stream.listen(
           (event) {
+            if (isCancelled) {
+              return;
+            }
+
             pendingEvent = event;
             hasPendingEvent = true;
             timer?.cancel();
             timer = Timer(duration, () {
-              if (!hasPendingEvent) {
-                return;
-              }
-              controller.add(pendingEvent as T);
-              hasPendingEvent = false;
-              pendingEvent = null;
+              timer = null;
+              emitPendingEvent();
             });
           },
-          onError: controller.addError,
+          onError: (Object error, StackTrace stackTrace) {
+            if (!isCancelled) {
+              controller.addErrorSync(error, stackTrace);
+            }
+          },
           onDone: () {
             timer?.cancel();
-            if (hasPendingEvent) {
-              controller.add(pendingEvent as T);
-              hasPendingEvent = false;
-              pendingEvent = null;
+            timer = null;
+            emitPendingEvent();
+            if (!isCancelled) {
+              controller.closeSync();
             }
-            controller.close();
           },
         );
-      },
-      onPause: () => subscription?.pause(),
-      onResume: () => subscription?.resume(),
-      onCancel: () async {
-        timer?.cancel();
-        await subscription?.cancel();
-      },
-    );
 
-    return controller.stream;
+        if (isPaused) {
+          subscription.pause();
+        }
+        if (isCancelled) {
+          sourceCancellation ??= subscription.cancel();
+          final cancellation = pendingCancellation;
+          final activeCancellation = sourceCancellation;
+          if (cancellation != null && activeCancellation != null) {
+            activeCancellation.then(
+              (_) => cancellation.complete(),
+              onError: cancellation.completeError,
+            );
+          }
+        }
+      },
+      isBroadcast: stream.isBroadcast,
+    );
   }
 }
 

@@ -1,10 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter_commons/flutter_commons.dart';
-import 'package:flutter_commons/src/data/data.dart';
-import 'package:flutter_commons/src/exceptions.dart';
-
-import 'iterable_ext.dart';
 
 typedef SortFunc<T> = int Function(T a, T b);
 
@@ -42,9 +38,15 @@ extension ListExt<T> on List<T> {
   List<X> map<X>(X Function(T it) mapper) => this.map((it) => mapper(it)).toList();
 
   List<T> extract(int amount, {int from = 0}) {
-    assert(length > from, 'Original list has $length elements, cannot extract $amount from $from');
-    List<T> result = <T>[];
-    while (result.length < amount && !isEmpty) {
+    if (amount < 0) {
+      throw ArgumentError.value(amount, 'amount', 'Must be non-negative');
+    }
+    if (from < 0 || from > length) {
+      throw ArgumentError.value(from, 'from', 'Must be between 0 and the list length');
+    }
+
+    final result = <T>[];
+    while (result.length < amount && from < length) {
       result.add(removeAt(from));
     }
 
@@ -139,6 +141,10 @@ extension ListExt<T> on List<T> {
   }
 
   List<List<T>> splitBy(int amount) {
+    if (amount <= 0) {
+      throw ArgumentError.value(amount, 'amount', 'Must be greater than zero');
+    }
+
     var copy = clone();
     List<List<T>> result = [];
 
@@ -173,6 +179,9 @@ extension ListExt<T> on List<T> {
   }
 
   List<T> takeCount(int count, {bool remove = false}) {
+    if (count < 0) {
+      throw ArgumentError.value(count, 'count', 'Must be non-negative');
+    }
     if (count == 0) {
       return [];
     }
@@ -186,6 +195,9 @@ extension ListExt<T> on List<T> {
   }
 
   List<T> takeLastCount(int count, {bool remove = false}) {
+    if (count < 0) {
+      throw ArgumentError.value(count, 'count', 'Must be non-negative');
+    }
     if (count == 0) {
       return [];
     }

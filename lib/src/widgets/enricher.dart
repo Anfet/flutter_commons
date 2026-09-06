@@ -24,28 +24,18 @@ class TextEnricher {
         continue;
       }
 
-      final from = lText.indexOf(lSubtext);
-      final to = from + subtext.length;
-      if (from == -1 || to == -1) {
-        continue;
+      var from = lText.indexOf(lSubtext);
+      while (from != -1) {
+        splitter.add(from, from + subtext.length, [spanBuilder]);
+        from = lText.indexOf(lSubtext, from + lSubtext.length);
       }
-
-      splitter.add(from, to, [spanBuilder]);
-    }
-
-    if (splitter.ranges.length == 1) {
-      yield TextSpan(text: text, style: style);
-      return;
     }
 
     for (var i = 0; i < splitter.ranges.length; i++) {
       final range = splitter.ranges[i];
-      if (range.listOfData.length > 1) {
-        throw IllegalArgumentException('bad list of data for range: $range');
-      }
 
       final part = text.substring(range.from, range.till);
-      final spanBuilder = range.listOfData.firstOrNull as TextEnricherSpanBuilder?;
+      final spanBuilder = range.listOfData.whereType<TextEnricherSpanBuilder>().lastOrNull;
       yield range.listOfData.isEmpty ? TextSpan(text: part, style: style) : spanBuilder?.call(part) ?? TextSpan(text: part, style: style);
     }
   }

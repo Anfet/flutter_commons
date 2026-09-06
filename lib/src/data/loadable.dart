@@ -10,6 +10,11 @@ import 'package:flutter_commons/flutter_commons.dart';
 /// - successful state with value;
 /// - failed state with error and stack trace.
 final class Loadable<T> {
+  static const Object _preserve = Object();
+
+  /// Sentinel passed to [copyWith] to clear a nullable field.
+  static const Object clearValue = _LoadableClear();
+
   /// Indicates whether operation is currently in progress.
   final bool isLoading;
   final T? _value;
@@ -66,24 +71,13 @@ final class Loadable<T> {
   bool get isWorking => isLoading;
 
   /// Creates idle state without value or error.
-  const Loadable.idle({this.defaultBuilder})
-      : isLoading = false,
-        _value = null,
-        error = null,
-        stack = null;
+  const Loadable.idle({this.defaultBuilder}) : isLoading = false, _value = null, error = null, stack = null;
 
   /// Creates loading state without value or error.
-  const Loadable.loading({this.defaultBuilder})
-      : isLoading = true,
-        _value = null,
-        error = null,
-        stack = null;
+  const Loadable.loading({this.defaultBuilder}) : isLoading = true, _value = null, error = null, stack = null;
 
   /// Creates error state.
-  const Loadable.error(this.error, [this.stack])
-      : isLoading = false,
-        _value = null,
-        defaultBuilder = null;
+  const Loadable.error(this.error, [this.stack]) : isLoading = false, _value = null, defaultBuilder = null;
 
   /// Creates a custom state with optional value/error/loading flags.
   const Loadable(
@@ -119,11 +113,16 @@ final class Loadable<T> {
   Loadable<T> fail(Object ex, [StackTrace? stack]) => Loadable(value, isLoading: isLoading, error: ex, stack: stack, defaultBuilder: defaultBuilder);
 
   /// Returns a copy with cleared error.
-  Loadable<T> clearError() => Loadable(value, isLoading: isLoading, error: null, defaultBuilder: defaultBuilder, stack: stack);
+  Loadable<T> clearError() => Loadable(value, isLoading: isLoading, error: null, defaultBuilder: defaultBuilder, stack: null);
 
   /// Clears selected state parts.
-  Loadable<T> clear({bool error = true, bool value = true, bool loading = true}) => Loadable(value ? null : this.value,
-      isLoading: loading ? false : isLoading, error: error ? null : this.error, defaultBuilder: defaultBuilder, stack: stack);
+  Loadable<T> clear({bool error = true, bool value = true, bool loading = true}) => Loadable(
+    value ? null : this.value,
+    isLoading: loading ? false : isLoading,
+    error: error ? null : this.error,
+    defaultBuilder: defaultBuilder,
+    stack: error ? null : stack,
+  );
 
   /// Returns stored value or [other] fallback.
   T valueOr(T other) => value ?? other;
@@ -142,19 +141,39 @@ final class Loadable<T> {
   /// Creates a partial copy.
   Loadable copyWith({
     bool? isLoading,
-    T? value,
-    Object? error,
-    StackTrace? stack,
-    ValueGetter<T>? defaultBuilder,
+    Object? value = _preserve,
+    Object? error = _preserve,
+    Object? stack = _preserve,
+    Object? defaultBuilder = _preserve,
   }) {
     return Loadable(
-      value ?? _value,
+      identical(value, _preserve)
+          ? _value
+          : identical(value, clearValue)
+          ? null
+          : value as T?,
       isLoading: isLoading ?? this.isLoading,
-      error: error ?? this.error,
-      stack: stack ?? this.stack,
-      defaultBuilder: defaultBuilder ?? this.defaultBuilder,
+      error: identical(error, _preserve)
+          ? this.error
+          : identical(error, clearValue)
+          ? null
+          : error,
+      stack: identical(stack, _preserve)
+          ? this.stack
+          : identical(stack, clearValue)
+          ? null
+          : stack as StackTrace?,
+      defaultBuilder: identical(defaultBuilder, _preserve)
+          ? this.defaultBuilder
+          : identical(defaultBuilder, clearValue)
+          ? null
+          : defaultBuilder as ValueGetter<T>?,
     );
   }
+}
+
+class _LoadableClear {
+  const _LoadableClear();
 }
 
 extension LoadableExt<T> on T {

@@ -1,0 +1,9 @@
+# Generated test coverage is local CI output, not package source.
+/coverage/
+/build/
+/.dart_tool/
+*.iml
+
+# Local engineering handoff files are not package documentation.
+/docs/audit.md
+/docs/todo.md

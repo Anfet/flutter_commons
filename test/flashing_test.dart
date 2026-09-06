@@ -11,6 +11,8 @@ void main() {
   Widget appFor({
     required ValueNotifier<bool> flashNotifier,
     required VoidCallback onFlashed,
+    Color flashColor = flashColor,
+    Color backgroundColor = backgroundColor,
   }) {
     return MaterialApp(
       home: Scaffold(
@@ -34,11 +36,53 @@ void main() {
   testWidgets('starts flash from init when flash=true', (tester) async {
     final flashNotifier = ValueNotifier<bool>(true);
     var flashedCount = 0;
-    await tester.pumpWidget(appFor(
-      flashNotifier: flashNotifier,
-      onFlashed: () => flashedCount++,
-    ));
+    await tester.pumpWidget(
+      appFor(
+        flashNotifier: flashNotifier,
+        onFlashed: () => flashedCount++,
+      ),
+    );
 
+    await tester.pump();
+    expect(_containerColor(tester), flashColor);
+
+    await tester.pump(flashDuration);
+    expect(_containerColor(tester), backgroundColor);
+    expect(flashedCount, 1);
+  });
+
+  testWidgets('does not start a stale init flash after same-frame true->false', (tester) async {
+    final flashNotifier = ValueNotifier<bool>(true);
+    var flashedCount = 0;
+    tester.binding.attachRootWidget(
+      View(
+        view: tester.view,
+        child: appFor(
+          flashNotifier: flashNotifier,
+          onFlashed: () => flashedCount++,
+        ),
+      ),
+    );
+
+    flashNotifier.value = false;
+    await tester.pump();
+    expect(_containerColor(tester), backgroundColor);
+
+    await tester.pump(flashDuration);
+    expect(flashedCount, 0);
+  });
+
+  testWidgets('completes an active flash after true->false', (tester) async {
+    final flashNotifier = ValueNotifier<bool>(true);
+    var flashedCount = 0;
+    await tester.pumpWidget(
+      appFor(
+        flashNotifier: flashNotifier,
+        onFlashed: () => flashedCount++,
+      ),
+    );
+
+    flashNotifier.value = false;
     await tester.pump();
     expect(_containerColor(tester), flashColor);
 
@@ -50,10 +94,12 @@ void main() {
   testWidgets('runs only on false->true edge', (tester) async {
     final flashNotifier = ValueNotifier<bool>(false);
     var flashedCount = 0;
-    await tester.pumpWidget(appFor(
-      flashNotifier: flashNotifier,
-      onFlashed: () => flashedCount++,
-    ));
+    await tester.pumpWidget(
+      appFor(
+        flashNotifier: flashNotifier,
+        onFlashed: () => flashedCount++,
+      ),
+    );
 
     expect(_containerColor(tester), backgroundColor);
 
@@ -69,6 +115,67 @@ void main() {
     flashNotifier.value = true;
     await tester.pump();
     await tester.pump(flashDuration);
+    expect(flashedCount, 1);
+  });
+
+  testWidgets('updates idle resting color when it equals the flash color', (tester) async {
+    const initialColor = Colors.red;
+    const nextColor = Colors.blue;
+    final flashNotifier = ValueNotifier<bool>(false);
+    await tester.pumpWidget(
+      appFor(
+        flashNotifier: flashNotifier,
+        onFlashed: () {},
+        flashColor: initialColor,
+        backgroundColor: initialColor,
+      ),
+    );
+
+    expect(_containerColor(tester), initialColor);
+
+    await tester.pumpWidget(
+      appFor(
+        flashNotifier: flashNotifier,
+        onFlashed: () {},
+        flashColor: initialColor,
+        backgroundColor: nextColor,
+      ),
+    );
+
+    expect(_containerColor(tester), nextColor);
+  });
+
+  testWidgets('applies resting color changed during an active flash after completion', (tester) async {
+    const initialColor = Colors.blue;
+    const activeColor = Colors.red;
+    const nextColor = Colors.green;
+    final flashNotifier = ValueNotifier<bool>(false);
+    var flashedCount = 0;
+    await tester.pumpWidget(
+      appFor(
+        flashNotifier: flashNotifier,
+        onFlashed: () => flashedCount++,
+        flashColor: activeColor,
+        backgroundColor: initialColor,
+      ),
+    );
+
+    flashNotifier.value = true;
+    await tester.pump();
+    expect(_containerColor(tester), activeColor);
+
+    await tester.pumpWidget(
+      appFor(
+        flashNotifier: flashNotifier,
+        onFlashed: () => flashedCount++,
+        flashColor: activeColor,
+        backgroundColor: nextColor,
+      ),
+    );
+    expect(_containerColor(tester), activeColor);
+
+    await tester.pump(flashDuration);
+    expect(_containerColor(tester), nextColor);
     expect(flashedCount, 1);
   });
 }

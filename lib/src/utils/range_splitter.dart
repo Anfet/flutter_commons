@@ -10,80 +10,36 @@ class RangeSplitter {
 
   /// Adds a range and merges payloads in intersection segments.
   void add(int from, int till, List<Object?> listOfData) {
-    var range = SplitterRange(from, till, listOfData);
-
-    final min = _ranges.first.from;
-    final max = _ranges.last.till;
-
-    if (range.till < min) {
-      _ranges.insert(0, range);
-      if (_ranges[1].listOfData.isEmpty) {
-        //растягиваем
-        _ranges[1] = _ranges[1].copyWith(from: range.till);
-      } else {
-        var middle = SplitterRange(range.till, min, []);
-        _ranges.insert(1, middle);
-      }
-      return;
+    final range = SplitterRange(from, till, listOfData);
+    final boundaries = <int>{from, till};
+    for (final existing in _ranges) {
+      boundaries.add(existing.from);
+      boundaries.add(existing.till);
     }
 
-    if (range.from > max) {
-      if (_ranges.last.listOfData.isEmpty) {
-        var replace = _ranges.last.copyWith(till: range.from);
-        _ranges[_ranges.length - 1] = replace;
-      } else {
-        var middle = SplitterRange(_ranges.last.till, range.from, []);
-        _ranges.add(middle);
+    final sortedBoundaries = boundaries.toList()..sort();
+    final result = <SplitterRange>[];
+    for (var i = 0; i < sortedBoundaries.length - 1; i++) {
+      final segmentFrom = sortedBoundaries[i];
+      final segmentTill = sortedBoundaries[i + 1];
+      if (segmentFrom == segmentTill) {
+        continue;
       }
 
-      _ranges.add(range);
-      return;
+      final segmentData = <Object?>[];
+      for (final existing in _ranges) {
+        if (existing.from <= segmentFrom && existing.till >= segmentTill) {
+          segmentData.addAll(existing.listOfData);
+        }
+      }
+      if (range.from <= segmentFrom && range.till >= segmentTill) {
+        segmentData.addAll(range.listOfData);
+      }
+      result.add(SplitterRange(segmentFrom, segmentTill, segmentData));
     }
-
-    var idx = -1;
-    while (++idx < _ranges.length) {
-      var r = _ranges[idx];
-      if (!r.intersectsWith(range)) {
-        continue;
-      }
-
-      if (range.from > r.from) {
-        //мы пересекаем после начала
-        var prefix = SplitterRange(r.from, range.from, r.listOfData);
-        _ranges[idx] = prefix;
-        r = SplitterRange(range.from, r.till, r.listOfData);
-        _ranges.insert(idx + 1, r);
-        continue;
-      }
-
-      if (range.from < r.from) {
-        //начало раньше
-        var prefix = SplitterRange(range.from, r.from, range.listOfData);
-        _ranges.insert(idx, prefix);
-        range = range.copyWith(from: r.from);
-        continue;
-      }
-
-      if (range.till < r.till) {
-        //конец входит в предыдущий ренж
-        var prefix = SplitterRange(range.from, range.till, r.listOfData + range.listOfData);
-        var suffix = SplitterRange(range.till, r.till, r.listOfData);
-        _ranges[idx] = prefix;
-        _ranges.insert(idx + 1, suffix);
-        continue;
-      }
-
-      if (range.till > r.till) {
-        var prefix = SplitterRange(r.from, r.till, r.listOfData + range.listOfData);
-        range = SplitterRange(r.till, range.till, range.listOfData);
-        _ranges[idx] = prefix;
-        continue;
-      }
-
-      if (range.from == r.from && range.till == r.till) {
-        _ranges[idx] = range;
-      }
-    }
+    _ranges
+      ..clear()
+      ..addAll(result);
   }
 }
 
@@ -101,8 +57,7 @@ class SplitterRange {
     int? from,
     int? till,
     List<Object?>? listOfData,
-  }) =>
-      SplitterRange(from ?? this.from, till ?? this.till, listOfData ?? this.listOfData);
+  }) => SplitterRange(from ?? this.from, till ?? this.till, listOfData ?? this.listOfData);
 
   SplitterRange(this.from, this.till, [this.listOfData = const []]);
 

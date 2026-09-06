@@ -1,11 +1,11 @@
 name: flutter_commons
 description: Core package
-version: 1.0.30+0
+version: 1.1.32+0
 publish_to: 'none'
 homepage: https://github.com/Anfet/flutter_commons.git
 
 environment:
-  sdk: ">=3.5.0 <4.0.0"
+  sdk: ">=3.10.0 <4.0.0"
 
 dependencies:
   flutter:

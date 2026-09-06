@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -24,8 +25,19 @@ class Base64ImageProvider extends ImageProvider<Base64ImageProvider> {
   }
 
   Future<ImageInfo> _loadAsync(Base64ImageProvider key, ImageDecoderCallback decode) async {
-    var bytes = await compute<String, Uint8List>((encoded) => base64Decode(encoded), encoded);
-    var image = await decodeImageFromList(bytes);
-    return ImageInfo(image: image);
+    final bytes = await compute<String, Uint8List>((encoded) => base64Decode(encoded), key.encoded);
+    final codec = await decode(await ui.ImmutableBuffer.fromUint8List(bytes));
+    try {
+      final frame = await codec.getNextFrame();
+      return ImageInfo(image: frame.image);
+    } finally {
+      codec.dispose();
+    }
   }
+
+  @override
+  bool operator ==(Object other) => other is Base64ImageProvider && other.encoded == encoded;
+
+  @override
+  int get hashCode => encoded.hashCode;
 }

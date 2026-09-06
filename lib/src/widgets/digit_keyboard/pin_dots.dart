@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_commons/flutter_commons.dart';
 
-const _defaultPinLength = 4; 
+const _defaultPinLength = 4;
 
 /// Builder for a single pin dot at [index].
 typedef PinDotBuilder = Widget Function(BuildContext context, int index);
@@ -66,8 +66,8 @@ class PinDots extends StatelessWidget {
         color: pin.length == pinLength
             ? (isSuccess ? theme?.successColor ?? Theme.of(context).colorScheme.primary : theme?.errorColor ?? Theme.of(context).colorScheme.error)
             : (index < pin.length
-                ? theme?.enteredColor ?? Theme.of(context).colorScheme.primary
-                : theme?.unenteredColor ?? Theme.of(context).colorScheme.secondary),
+                  ? theme?.enteredColor ?? Theme.of(context).colorScheme.primary
+                  : theme?.unenteredColor ?? Theme.of(context).colorScheme.secondary),
         size: size,
       );
     };
@@ -155,8 +155,8 @@ class PinDotsController extends ChangeNotifier {
     required this.onPinEntered,
     this.onPinsNotMatch,
     this.onPinChanged,
-  })  : _pin = initialPin,
-        _confirmation = initialConfirmation;
+  }) : _pin = initialPin,
+       _confirmation = initialConfirmation;
 
   /// Updates [pin] with automatic truncation to [pinLength].
   set pin(String value) {
@@ -199,8 +199,6 @@ class PinDotsController extends ChangeNotifier {
     } else if (pin.isNotEmpty) {
       pin = pin.take(pin.length - 1);
     }
-
-    _onChanged();
   }
 
   void _onChanged() {

@@ -19,7 +19,11 @@ class ListenableProperty<T> with ChangeNotifier implements StorableProperty<T> {
   }
 
   @override
-  FutureOr<T> getValue() => child.getValue();
+  Future<T> getValue() async {
+    final value = await child.getValue();
+    notifyListeners();
+    return value;
+  }
 
   @override
   Future<void> setValue(T val) async {

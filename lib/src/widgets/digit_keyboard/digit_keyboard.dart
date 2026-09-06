@@ -69,14 +69,19 @@ class _KeyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(_kDigitHeight / 2),
+      child: Semantics(
+        button: true,
+        label: val,
         onTap: () => onTap(val),
-        child: SizedBox(
-          width: _kDigitPlaceholderWidth,
-          height: _kDigitHeight,
-          child: Center(
-            child: Text(val, style: digitStyle),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(_kDigitHeight / 2),
+          onTap: () => onTap(val),
+          child: SizedBox(
+            width: _kDigitPlaceholderWidth,
+            height: _kDigitHeight,
+            child: Center(
+              child: Text(val, style: digitStyle),
+            ),
           ),
         ),
       ),
@@ -107,16 +112,22 @@ class _Backspace extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: InkWell(
-        splashColor: Colors.black12,
-        borderRadius: BorderRadius.circular(24),
+      child: Semantics(
+        button: true,
+        label: 'Backspace',
         onTap: onTap,
         onLongPress: onLongTap,
-        child: const SizedBox(
-          width: _kDigitPlaceholderWidth,
-          height: _kDigitHeight,
-          child: Center(
-            child: Icon(Icons.backspace_outlined, size: 24),
+        child: InkWell(
+          splashColor: Colors.black12,
+          borderRadius: BorderRadius.circular(24),
+          onTap: onTap,
+          onLongPress: onLongTap,
+          child: const SizedBox(
+            width: _kDigitPlaceholderWidth,
+            height: _kDigitHeight,
+            child: Center(
+              child: Icon(Icons.backspace_outlined, size: 24),
+            ),
           ),
         ),
       ),

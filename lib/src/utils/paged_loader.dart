@@ -7,7 +7,12 @@ typedef PagedLoaderCallback<T, A> = Future<List<T>> Function(int page, int items
 
 /// Loads paged data on demand and keeps accumulated items in memory.
 ///
-/// Exposes [stream] with loading/content/error state updates.
+/// Only successful page data is cached. A request error is exposed through
+/// [stream] and [hasError], without becoming part of [items]. Each request that
+/// remains current emits exactly two states: loading followed by either content
+/// or error. Calling [clear] or [dispose] invalidates any request already in
+/// flight; its future still completes for its caller, but its result cannot
+/// update this loader or emit a terminal state.
 class PagedLoader<T, A> {
   final StreamController<Loadable<List<T>>> _streamController = StreamController.broadcast();
   Stream<Loadable<List<T>>> get stream => _streamController.stream;
@@ -19,7 +24,7 @@ class PagedLoader<T, A> {
   final PagedLoaderCallback<T, A> onDemand;
   final TypedResultCallback<A, int>? onBuildArguments;
 
-  final SplayTreeMap<int, Loadable<List<T>>> _pages = SplayTreeMap<int, Loadable<List<T>>>();
+  final SplayTreeMap<int, List<T>> _pages = SplayTreeMap<int, List<T>>();
 
   int get lastPageLoaded => _pages.keys.last;
   int get nextPageToBeLoaded => (_pages.keys.lastOrNull ?? (initialPage - 1)) + 1;
@@ -31,9 +36,11 @@ class PagedLoader<T, A> {
   bool get isLoading => _lce.isLoading;
   bool get hasError => _lce.hasError;
 
-  List<T> get items => _pages.values.fold([], (previousValue, element) => previousValue + element.requireValue);
+  List<T> get items => [for (final page in _pages.values) ...page];
 
   bool _endReached = false;
+  int _generation = 0;
+  bool _isDisposed = false;
 
   PagedLoader({
     required this.itemsPerPage,
@@ -44,6 +51,7 @@ class PagedLoader<T, A> {
 
   /// Clears loaded pages and resets pagination state to the initial page.
   void clear() {
+    _generation++;
     _pages.clear();
     _endReached = false;
 
@@ -52,40 +60,61 @@ class PagedLoader<T, A> {
 
   /// Loads the next page unless loading is already in progress or the end is reached.
   ///
-  /// Returns loaded page items.
+  /// Returns loaded page items. Loading an explicit historical page replaces
+  /// its cached data but does not change [didReachEnd]. End detection belongs
+  /// to the page that was next when this request started.
   Future<List<T>> loadPage({int? page}) async {
-    if (_endReached || isLoading) {
+    if ((page == null && _endReached) || isLoading || _isDisposed) {
       return [];
     }
 
-    var loadingPage = page ?? nextPageToBeLoaded;
-    _emit(_lce.loading().clearError());
+    final requestGeneration = _generation;
+    final nextPage = nextPageToBeLoaded;
+    final loadingPage = page ?? nextPage;
+    final updatesEnd = loadingPage == nextPage;
+    _emit(Loadable(items, isLoading: true));
     try {
-      var result = await onDemand(
+      final result = await onDemand(
         loadingPage,
         itemsPerPage,
         onBuildArguments?.call(loadingPage),
       );
-      _endReached = result.isEmpty || result.length < itemsPerPage;
-      if (result.isNotEmpty) {
-        _pages.putIfAbsent(loadingPage, () => result.asLoadable);
+
+      if (!_isCurrent(requestGeneration)) {
+        return result;
       }
 
-      _emit(_lce.result(items));
+      if (result.isNotEmpty) {
+        _pages[loadingPage] = result;
+      } else {
+        _pages.remove(loadingPage);
+      }
+      if (updatesEnd) {
+        _endReached = result.length < itemsPerPage;
+      }
+
+      _emit(Loadable(items));
       return result;
     } catch (ex, stack) {
-      _pages.putIfAbsent(loadingPage, () => Loadable.error(ex, stack));
-      _emit(_lce.fail(ex, stack));
+      if (_isCurrent(requestGeneration)) {
+        _emit(Loadable(items, error: ex, stack: stack));
+      }
       rethrow;
-    } finally {
-      _emit(_lce.idle());
     }
   }
 
   /// Disposes internal stream controller.
   void dispose() {
+    if (_isDisposed) {
+      return;
+    }
+    _generation++;
+    _isDisposed = true;
+    _lce = Loadable.idle();
     _streamController.close();
   }
+
+  bool _isCurrent(int requestGeneration) => !_isDisposed && requestGeneration == _generation;
 
   void _emit(Loadable<List<T>> loadable) {
     _lce = loadable;

@@ -60,3 +60,16 @@ class CancelledQueryException extends FlowException {
     return 'CancelledQueryException{}';
   }
 }
+
+/// Indicates that a waitable event can no longer produce a current result.
+class StaleWaitEventException extends FlowException {
+  StaleWaitEventException([super.message = 'Waitable event became stale']);
+
+  StaleWaitEventException.timeout(Duration timeout)
+    : super(
+        'Waitable event did not complete before timeout '
+        '(${timeout.inMilliseconds} ms)',
+      );
+
+  StaleWaitEventException.blocClosed() : super('Waitable event became stale because its Bloc was closed');
+}

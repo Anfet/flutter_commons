@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_commons/flutter_commons.dart';
 
 /// Lazily initializes and caches a value on first access.
 ///
@@ -9,6 +8,8 @@ class Lazy<T> {
   /// Cached value created by [initializer].
   T? instance;
 
+  bool _initialized = false;
+
   /// Factory used to create [instance] on first access.
   final ValueGetter<T> initializer;
 
@@ -17,7 +18,10 @@ class Lazy<T> {
 
   /// Returns cached value, initializing it on first call.
   T call() {
-    instance ??= initializer();
-    return require(instance);
+    if (!_initialized) {
+      instance ??= initializer();
+      _initialized = true;
+    }
+    return instance as T;
   }
 }

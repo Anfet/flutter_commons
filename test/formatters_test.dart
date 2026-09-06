@@ -29,6 +29,13 @@ void main() {
 
       expect(formatter.formatted, '123-4');
     });
+
+    test('formatted can be read repeatedly', () {
+      final formatter = CustomFormatter(text: '12345', pattern: '###-##');
+
+      expect(formatter.formatted, '123-45');
+      expect(formatter.formatted, '123-45');
+    });
   });
 
   group('CustomInputFormatter', () {

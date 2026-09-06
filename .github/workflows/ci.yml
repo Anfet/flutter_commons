@@ -1,0 +1,126 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+      - master
+  push:
+    branches:
+      - dev
+      - main
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.10'
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Check formatting of changed Dart files
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            base="${{ github.event.pull_request.base.sha }}"
+          else
+            base="${{ github.event.before }}"
+            if [[ "$base" == "0000000000000000000000000000000000000000" ]]; then
+              base="HEAD^"
+            fi
+          fi
+          mapfile -t dart_files < <(git diff --name-only --diff-filter=ACMR "$base" HEAD -- '*.dart')
+          if ((${#dart_files[@]} > 0)); then
+            dart format --output=none --set-exit-if-changed "${dart_files[@]}"
+          else
+            echo 'No changed Dart files to format-check.'
+          fi
+
+      - name: Check diff whitespace
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            base="${{ github.event.pull_request.base.sha }}"
+          else
+            base="${{ github.event.before }}"
+            if [[ "$base" == "0000000000000000000000000000000000000000" ]]; then
+              base="HEAD^"
+            fi
+          fi
+          git diff --check "$base" HEAD
+
+      - name: Analyze
+        run: flutter analyze --fatal-infos
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Run tests with coverage
+        run: flutter test --coverage
+
+      - name: Report coverage baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s coverage/lcov.info
+          read -r covered total < <(awk -F'[:,]' '/^DA:/ { total++; if ($3 > 0) covered++ } END { print covered + 0, total + 0 }' coverage/lcov.info)
+          observed=$(awk -v covered="$covered" -v total="$total" 'BEGIN { if (total == 0) exit 1; printf "%.1f", covered * 100 / total }')
+          coverage_floor=60.0
+          echo "Observed line coverage: ${covered}/${total} (${observed}%)."
+          if ! awk -v covered="$covered" -v total="$total" -v floor="$coverage_floor" 'BEGIN { if (total == 0 || covered * 100 / total < floor) exit 1 }'; then
+            echo "Line coverage ${observed}% is below the required floor of ${coverage_floor}%." >&2
+            exit 1
+          fi
+          echo "Coverage floor: ${coverage_floor}%."
+
+      - name: Compile a minimal web consumer
+        shell: bash
+        run: |
+          set -euo pipefail
+          consumer="$RUNNER_TEMP/flutter_commons_web_consumer"
+          flutter create --platforms=web "$consumer"
+          cd "$consumer"
+          flutter pub add flutter_commons --path "$GITHUB_WORKSPACE"
+          cat > lib/main.dart <<'EOF'
+          import 'package:flutter/material.dart';
+          import 'package:flutter_commons/flutter_commons.dart';
+
+          void main() {
+            runApp(MaterialApp(home: Scaffold(body: EmptyBox())));
+          }
+          EOF
+          flutter build web --release
+
+      - name: Validate package archive
+        run: dart pub publish --dry-run
+
+      - name: Check tracked files for credential material
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git ls-files --error-unmatch git-token-read-only.txt >/dev/null 2>&1; then
+            echo 'Tracked credential filename detected.'
+            exit 1
+          fi
+          if git grep -Il -E 'BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY' -- . ':!pubspec.lock' | grep -q .; then
+            echo 'Tracked private-key material detected.'
+            exit 1
+          fi

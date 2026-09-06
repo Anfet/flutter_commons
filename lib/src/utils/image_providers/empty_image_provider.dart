@@ -5,6 +5,10 @@ import 'package:flutter/material.dart';
 
 /// Image provider that returns a 1x1 transparent image.
 class EmptyImageProvider extends ImageProvider<EmptyImageProvider> {
+  /// Overrides picture rasterization for tests.
+  @visibleForTesting
+  static Future<ui.Image> Function(ui.Picture picture)? debugPictureToImage;
+
   /// Creates an empty image provider.
   const EmptyImageProvider();
 
@@ -25,7 +29,11 @@ class EmptyImageProvider extends ImageProvider<EmptyImageProvider> {
     // ignore: unused_local_variable
     final canvas = Canvas(recorder);
     final picture = recorder.endRecording();
-    final image = await picture.toImage(1, 1);
-    return ImageInfo(image: image);
+    try {
+      final image = await (debugPictureToImage?.call(picture) ?? picture.toImage(1, 1));
+      return ImageInfo(image: image);
+    } finally {
+      picture.dispose();
+    }
   }
 }

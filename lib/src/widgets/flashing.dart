@@ -40,25 +40,33 @@ class Flashing extends StatefulWidget {
 
 class _FlashingState extends State<Flashing> with MountedCheck {
   late Color background = widget.backgroundColor;
+  bool _isFlashing = false;
   int _flashRunId = 0;
+  int _scheduledFlashId = 0;
 
   Duration get _duration => widget.duration ?? _kDefaultDuration;
-
-  bool get _isFlashingColorVisible => background == widget.flashColor;
 
   @override
   void initState() {
     super.initState();
     if (widget.flash) {
-      scheduleOnNextFrame(_runFlash);
+      final scheduledFlashId = ++_scheduledFlashId;
+      scheduleOnNextFrame(() {
+        if (mounted && widget.flash && scheduledFlashId == _scheduledFlashId) {
+          _runFlash();
+        }
+      });
     }
   }
 
   @override
   void didUpdateWidget(covariant Flashing oldWidget) {
+    if (oldWidget.flash != widget.flash) {
+      _scheduledFlashId++;
+    }
     if (!oldWidget.flash && widget.flash) {
       _runFlash();
-    } else if (!_isFlashingColorVisible && oldWidget.backgroundColor != widget.backgroundColor) {
+    } else if (!_isFlashing && oldWidget.backgroundColor != widget.backgroundColor) {
       background = widget.backgroundColor;
     }
     super.didUpdateWidget(oldWidget);
@@ -75,6 +83,7 @@ class _FlashingState extends State<Flashing> with MountedCheck {
 
   Future<void> _runFlash() async {
     final runId = ++_flashRunId;
+    _isFlashing = true;
     background = widget.flashColor;
     markNeedsRebuild();
 
@@ -84,6 +93,7 @@ class _FlashingState extends State<Flashing> with MountedCheck {
       return;
     }
 
+    _isFlashing = false;
     background = widget.backgroundColor;
     markNeedsRebuild();
     widget.onFlashed?.call();
