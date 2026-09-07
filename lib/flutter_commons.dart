@@ -8,8 +8,7 @@ export 'src/consts.dart';
 export 'src/exceptions.dart';
 export 'src/formatters/custom_formatter.dart';
 export 'src/formatters/custom_input_formatter.dart';
-export 'src/functions.dart';
-export 'src/logging.dart';
+export 'src/functions.dart'; 
 export 'src/mappers.dart';
 export 'src/randomizer.dart';
 

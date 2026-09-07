@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_commons/flutter_commons.dart';
+import 'package:flutter_commons/src/logging.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
