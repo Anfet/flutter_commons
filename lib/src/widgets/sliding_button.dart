@@ -106,6 +106,14 @@ class SlidingButton extends StatefulWidget {
   /// Optional semantics hint.
   final String? semanticHint;
 
+  /// Called whenever slider progress (`0..1`) changes.
+  ///
+  /// Fires for drag, internal animations and accessibility activation alike, and
+  /// only when the value actually changes, so consumers can drive progress-based
+  /// effects such as haptics without observing every animation frame. It is not
+  /// called for the initial [value] applied in `initState`.
+  final ValueChanged<double>? onProgressChanged;
+
   /// Creates a [SlidingButton].
   const SlidingButton({
     super.key,
@@ -126,6 +134,7 @@ class SlidingButton extends StatefulWidget {
     this.isInteractable = true,
     this.semanticLabel,
     this.semanticHint,
+    this.onProgressChanged,
   }) : assert(successThreshold >= 0.0 && successThreshold <= 1.0);
 
   @override
@@ -137,6 +146,7 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Single
   var _isRunningSuccess = false;
   int? _activePointer;
   var _animationTriggersSuccess = true;
+  var _isApplyingInitialValue = false;
   late double slideSize = 0.0;
   Offset tapOffset = Offset.zero;
   late Duration slidingDuration;
@@ -147,7 +157,13 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Single
   set value(double v) => _setValue(v);
 
   void _setValue(double v, {bool triggerSuccess = true}) {
+    final previousValue = _value;
     _value = v.clamp(0.0, 1.0);
+    // Reported before the success branch so consumers observe the final 1.0
+    // progress before `onSuccess` starts running.
+    if (!_isApplyingInitialValue && _value != previousValue) {
+      widget.onProgressChanged?.call(_value);
+    }
     if (!triggerSuccess) {
       canTriggerSuccess = value < 1.0;
       return;
@@ -190,7 +206,9 @@ class _SlidingButtonState extends State<SlidingButton> with MountedCheck, Single
     super.initState();
     final initialValue = widget.value;
     if (initialValue != null) {
+      _isApplyingInitialValue = true;
       _setValue(initialValue.value, triggerSuccess: false);
+      _isApplyingInitialValue = false;
       if (initialValue.runAnimations) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {

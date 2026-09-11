@@ -1,3 +1,15 @@
+## 1.1.34+0 - 2026-09-11
+
+### Widgets
+
+- `SlidingButton` gained an optional `onProgressChanged` callback reporting
+  slider progress (`0..1`). It fires for drag, internal animations and
+  accessibility activation alike, only when the value actually changes, and is
+  reported before `onSuccess` starts so consumers observe the final `1.0`. The
+  initial `value` applied during `initState` does not trigger it, so progress
+  driven effects such as haptics do not fire on mount. The addition is
+  API-compatible for existing consumers.
+
 ## 1.1.32+0 - 2026-09-06
 
 This private compatibility release keeps the existing public API while restoring

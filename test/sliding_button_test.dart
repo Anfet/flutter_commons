@@ -18,6 +18,7 @@ void main() {
     SlidingButtonWidgetBuilder? trackSuccessBuilder,
     bool enabled = true,
     bool isInteractable = true,
+    ValueChanged<double>? onProgressChanged,
   }) {
     return MaterialApp(
       home: Scaffold(
@@ -37,6 +38,7 @@ void main() {
                   trackBackgroundColorBuilder: trackBackgroundColorBuilder,
                   trackSuccessBuilder: trackSuccessBuilder,
                   onSuccess: onSuccess,
+                  onProgressChanged: onProgressChanged,
                   thumbBuilder: (context, percent) {
                     percentNotifier.value = percent;
                     return const SizedBox(key: Key('thumb'), width: thumbWidth, height: 44);
@@ -466,6 +468,128 @@ void main() {
     valueNotifier.value = const SlidingValue.progressed(value: 0.8);
     await tester.pumpAndSettle();
     expect(percentNotifier.value, closeTo(1.0, 0.02));
+  });
+
+  testWidgets('reports progress while dragging and while animating back to start', (tester) async {
+    final valueNotifier = ValueNotifier<SlidingValue?>(null);
+    final percentNotifier = ValueNotifier<double>(0.0);
+    final reported = <double>[];
+
+    await tester.pumpWidget(
+      host(
+        valueNotifier: valueNotifier,
+        percentNotifier: percentNotifier,
+        onSuccess: () async => true,
+        onProgressChanged: reported.add,
+      ),
+    );
+
+    await _dragThumbToPercent(tester, percentNotifier: percentNotifier, targetPercent: 0.6);
+    await tester.pump();
+
+    expect(reported, isNotEmpty);
+    expect(reported.last, closeTo(0.6, 0.08));
+
+    final duringDrag = reported.length;
+    await tester.pumpAndSettle();
+
+    // Releasing below the threshold animates home, which must keep reporting.
+    expect(reported.length, greaterThan(duringDrag));
+    expect(reported.last, closeTo(0.0, 0.02));
+  });
+
+  testWidgets('reports the final value before success runs', (tester) async {
+    final valueNotifier = ValueNotifier<SlidingValue?>(null);
+    final percentNotifier = ValueNotifier<double>(0.0);
+    final reported = <double>[];
+    double? progressAtSuccess;
+
+    await tester.pumpWidget(
+      host(
+        valueNotifier: valueNotifier,
+        percentNotifier: percentNotifier,
+        onSuccess: () async {
+          progressAtSuccess = reported.isEmpty ? null : reported.last;
+          return true;
+        },
+        onProgressChanged: reported.add,
+      ),
+    );
+
+    await _dragThumbToPercent(tester, percentNotifier: percentNotifier, targetPercent: 0.85);
+    await tester.pumpAndSettle();
+
+    expect(progressAtSuccess, closeTo(1.0, 0.001));
+  });
+
+  testWidgets('reports progress for accessible activation', (tester) async {
+    final valueNotifier = ValueNotifier<SlidingValue?>(null);
+    final percentNotifier = ValueNotifier<double>(0.0);
+    final reported = <double>[];
+
+    await tester.pumpWidget(
+      host(
+        valueNotifier: valueNotifier,
+        percentNotifier: percentNotifier,
+        onSuccess: () async => true,
+        onProgressChanged: reported.add,
+      ),
+    );
+
+    final semantics = tester.widget<Semantics>(
+      find.byWidgetPredicate((widget) => widget is Semantics && widget.properties.label == 'Slide button'),
+    );
+    semantics.properties.onTap!();
+    await tester.pumpAndSettle();
+
+    expect(reported, isNotEmpty);
+    expect(reported.last, closeTo(1.0, 0.02));
+  });
+
+  testWidgets('does not report the initial value applied on mount', (tester) async {
+    final valueNotifier = ValueNotifier<SlidingValue?>(const SlidingValue.fixed(value: 0.4));
+    final percentNotifier = ValueNotifier<double>(0.0);
+    final reported = <double>[];
+
+    await tester.pumpWidget(
+      host(
+        valueNotifier: valueNotifier,
+        percentNotifier: percentNotifier,
+        onSuccess: () async => true,
+        onProgressChanged: reported.add,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(percentNotifier.value, closeTo(0.4, 0.02));
+    expect(reported, isEmpty);
+  });
+
+  testWidgets('does not report while the value stays unchanged', (tester) async {
+    final valueNotifier = ValueNotifier<SlidingValue?>(null);
+    final percentNotifier = ValueNotifier<double>(0.0);
+    final reported = <double>[];
+
+    await tester.pumpWidget(
+      host(
+        valueNotifier: valueNotifier,
+        percentNotifier: percentNotifier,
+        onSuccess: () async => true,
+        onProgressChanged: reported.add,
+      ),
+    );
+
+    valueNotifier.value = const SlidingValue.fixed(value: 0.5);
+    await tester.pumpAndSettle();
+    final afterMove = reported.length;
+    expect(afterMove, greaterThan(0));
+
+    // Re-applying the same value must not produce further reports.
+    valueNotifier.value = const SlidingValue.fixed(value: 0.5);
+    await tester.pumpAndSettle();
+    await tester.pump(slidingDuration);
+
+    expect(reported.length, afterMove);
   });
 
   testWidgets('after success slider stays on true response and returns on false response', (tester) async {
