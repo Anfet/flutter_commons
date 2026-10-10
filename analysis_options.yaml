@@ -1,4 +1,6 @@
-include: package:flutter_lints/flutter.yaml
+include:
+  - package:flutter_lints/flutter.yaml
+  - package:flutter_commons/lints.yaml
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
@@ -6,6 +8,3 @@ include: package:flutter_lints/flutter.yaml
 formatter:
   page_width: 150
   trailing_commas: preserve
-plugins:
-  flutter_commons_lints:
-    path: flutter_commons_lints

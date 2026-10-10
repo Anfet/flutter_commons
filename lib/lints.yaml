@@ -1,0 +1,8 @@
+# Enables the flutter_commons_lints analyzer plugin for a consuming project:
+#
+#   include: package:flutter_commons/lints.yaml
+#
+# The plugin path is resolved relative to this file.
+plugins:
+  flutter_commons_lints:
+    path: ../flutter_commons_lints

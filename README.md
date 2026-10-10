@@ -25,6 +25,8 @@ Core Flutter package with reusable widgets, utils, extensions, and UI infrastruc
 - `lib/src/storage` - persistent property abstractions
 - `lib/src/theming` - theming helpers
 - `test` - discovered unit and widget tests (`*_test.dart`)
+- `lib/lints.yaml` - analysis options that enable the analyzer plugin in a consuming project
+- `flutter_commons_lints` - analyzer plugin with Bloc and `WaitableEvent` rules (a separate Dart package)
 
 ## Quick start
 
@@ -53,10 +55,31 @@ await loader.loadPage();
 final items = loader.items;
 ```
 
+## Analyzer plugin
+
+The `flutter_commons_lints` plugin reports Bloc and `WaitableEvent` mistakes
+that otherwise surface only at runtime: a missing `on<OnInit>`, unhandled
+events of a sealed event type, a `WaitableEvent` handler that never completes
+the event, and more. Enable it in the consuming project's
+`analysis_options.yaml` with one line:
+
+```yaml
+include:
+  - package:flutter_lints/flutter.yaml
+  - package:flutter_commons/lints.yaml
+```
+
+No path is needed: the plugin ships in this repository and its version always
+matches the `flutter_commons` version the project depends on. Diagnostics are
+shown in the IDE and by `dart analyze`; `flutter analyze` does not report them.
+See `flutter_commons_lints/README.md` for the rules, suppression and
+limitations.
+
 ## Local development
 
-- Analyze: `flutter analyze`
+- Analyze: `flutter analyze`; plugin diagnostics: `dart analyze`
 - Run tests: `flutter test`
+- Plugin tests: `dart test` in `flutter_commons_lints`
 - Outdated deps: `flutter pub outdated`
 
 Note: Flutter discovers only files matching `*_test.dart`; all retained tests use

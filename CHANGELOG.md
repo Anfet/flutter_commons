@@ -59,6 +59,8 @@
   the event. Quick fixes add the missing `onInit` and event handlers. See
   `flutter_commons_lints/README.md`; diagnostics are shown by `dart analyze`
   and the IDE, not by `flutter analyze`.
+- Consuming projects enable the plugin with
+  `include: package:flutter_commons/lints.yaml`; no plugin path is needed.
 
 ## 1.1.34+0 - 2026-09-11
 
