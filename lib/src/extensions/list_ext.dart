@@ -35,8 +35,6 @@ extension ListExt<T> on List<T> {
     return result;
   }
 
-  List<X> map<X>(X Function(T it) mapper) => this.map((it) => mapper(it)).toList();
-
   List<T> extract(int amount, {int from = 0}) {
     if (amount < 0) {
       throw ArgumentError.value(amount, 'amount', 'Must be non-negative');
@@ -145,12 +143,9 @@ extension ListExt<T> on List<T> {
       throw ArgumentError.value(amount, 'amount', 'Must be greater than zero');
     }
 
-    var copy = clone();
-    List<List<T>> result = [];
-
-    while (copy.isNotEmpty) {
-      result.add(copy.take(amount).toList(growable: false));
-      copy.removeRange(0, copy.length >= amount ? amount : copy.length);
+    final result = <List<T>>[];
+    for (var start = 0; start < length; start += amount) {
+      result.add(sublist(start, min(start + amount, length)));
     }
 
     return result;

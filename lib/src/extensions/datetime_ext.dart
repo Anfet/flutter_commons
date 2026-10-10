@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import '../data/data.dart';
@@ -11,13 +13,16 @@ extension SiberitanDateTimeExt on DateTime {
 
   DateTime operator -(Duration duration) => subtract(duration);
 
-  DateTime get startOfTheWeek => subtract(Duration(days: weekday - 1));
+  /// Monday of this week, keeping the time of day.
+  DateTime get startOfTheWeek => _copy(day: day - (weekday - 1));
 
-  DateTime get startOfTheMonth => DateTime(year, month, 1).stripTime;
+  DateTime get startOfTheMonth => DateTime(year, month, 1);
 
-  DateTime get endOfTheMonth => DateTime(year, month, 1).stripTime.add(Duration(days: daysInMonth - 1));
+  /// Midnight of the last day of this month.
+  DateTime get endOfTheMonth => DateTime(year, month, daysInMonth);
 
-  DateTime get endOfTheDay => DateTime(year, month, day, 23, 59, 59, 0, 0);
+  /// The last millisecond of this day.
+  DateTime get endOfTheDay => DateTime(year, month, day + 1).subtract(const Duration(milliseconds: 1));
 
   int get daysInMonth => DateUtils.getDaysInMonth(year, month);
 
@@ -27,9 +32,9 @@ extension SiberitanDateTimeExt on DateTime {
 
   bool betweenRange(Range<DateTime> range) => isSameOrAfter(range.requireFrom) && isSameOrBefore(range.requireTill);
 
-  DateTime get nextMonth => DateTime(year, month + 1, day);
+  DateTime get nextMonth => addMonths(1);
 
-  DateTime get nextDay => DateTime(year, month, day + 1);
+  DateTime get nextDay => _copy(day: day + 1);
 
   int differenceInMonth(DateTime other) {
     var yearDiff = year - other.year;
@@ -37,19 +42,23 @@ extension SiberitanDateTimeExt on DateTime {
     return yearDiff * 12 + monthDiff;
   }
 
-  int get weeksInMonth {
-    var start = startOfTheMonth.startOfTheWeek;
-    var startOfNextMonth = nextMonth.startOfTheMonth;
-    var end = DateTime(startOfNextMonth.year, startOfNextMonth.month, startOfNextMonth.day + 6);
-    var weeks = end.difference(start).inDays ~/ 7;
-    return weeks;
+  /// The number of calendar rows (weeks starting on Monday) this month touches.
+  int get weeksInMonth => ((startOfTheMonth.weekday - 1) + daysInMonth + 6) ~/ 7;
+
+  /// Moves by [amount] months, clamping the day to the target month's length and keeping the time of day.
+  DateTime addMonths(int amount) {
+    final index = year * 12 + (month - 1) + amount;
+    final targetYear = index ~/ 12;
+    final targetMonth = index % 12 + 1;
+    return _copy(year: targetYear, month: targetMonth, day: min(day, DateUtils.getDaysInMonth(targetYear, targetMonth)));
   }
 
-  DateTime addMonths(int amount) {
-    var years = amount ~/ 12;
-    var months = amount;
-    months -= years * 12;
-    var time = DateTime(year + years, month + months, day);
-    return time;
+  DateTime _copy({int? year, int? month, int? day}) {
+    final y = year ?? this.year;
+    final m = month ?? this.month;
+    final d = day ?? this.day;
+    return isUtc
+        ? DateTime.utc(y, m, d, hour, minute, second, millisecond, microsecond)
+        : DateTime(y, m, d, hour, minute, second, millisecond, microsecond);
   }
 }

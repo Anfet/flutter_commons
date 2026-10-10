@@ -37,9 +37,9 @@ extension IterableExt<T> on Iterable<T> {
 
   T? get lastOrNull => isEmpty ? null : last;
 
-  T get randomElement => elementAt(random.nextInt(length));
+  T get randomElement => isEmpty ? throw StateError('No element') : elementAt(random.nextInt(length));
 
-  T? get randomOrNull => isEmpty ? null : elementAt(Random().nextInt(length));
+  T? get randomOrNull => isEmpty ? null : elementAt(random.nextInt(length));
 
   bool anyOf(bool Function(T it) test) {
     for (var element in this) {
@@ -121,53 +121,47 @@ extension IterableExt<T> on Iterable<T> {
     return result;
   }
 
+  /// Largest [test] result (or element, when [test] is omitted and elements are numbers).
+  /// Returns [orElse], or 0, for an empty collection.
   num maxOf([num Function(T it)? test, num? orElse]) {
-    // assert(T is num || T is double || T is int || test != null, 'T must be num|int|double or test is required');
     num? x;
     for (final val in this) {
-      num t;
-      if (val is num || val is int || val is double) {
-        t = val as num;
-      } else {
-        t = test!.call(val);
-      }
-
-      x ??= t;
-      x = max(x, t);
+      final t = _numberOf(val, test);
+      x = x == null ? t : max(x, t);
     }
 
     return x ?? orElse ?? 0;
   }
 
+  /// Smallest [test] result (or element, when [test] is omitted and elements are numbers).
+  /// Returns [orElse], or 0, for an empty collection.
   num minOf([num Function(T it)? test, num? orElse]) {
-    // assert(T is num || T is double || T is int || test != null, 'T must be num|int|double or test is required');
     num? x;
     for (final val in this) {
-      num t;
-      if (val is num || val is int || val is double) {
-        t = val as num;
-      } else {
-        t = test!.call(val);
-      }
-
-      x ??= t;
-      x = min(x, t);
+      final t = _numberOf(val, test);
+      x = x == null ? t : min(x, t);
     }
 
     return x ?? orElse ?? 0;
   }
 
+  /// Sum of [test] results (or elements, when [test] is omitted and elements are numbers).
   num sumOf([num Function(T it)? test]) {
     num x = 0;
     for (final val in this) {
-      // assert(val is num || val is double || val is int || test != null, 'T must be num|int|double or test is required');
-      if (val is num || val is int || val is double) {
-        x += val as num;
-      } else {
-        x += test!.call(val);
-      }
+      x += _numberOf(val, test);
     }
     return x;
+  }
+
+  static num _numberOf<T>(T value, num Function(T it)? test) {
+    if (test != null) {
+      return test(value);
+    }
+    if (value is num) {
+      return value;
+    }
+    throw ArgumentError('A test is required for non-numeric elements');
   }
 
   int count([bool Function(T it)? test]) {

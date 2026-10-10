@@ -23,14 +23,17 @@ extension IntExt on int {
 }
 
 extension DoubleExt on double {
-  bool get isInt => (this - floor()).abs() < 0.00001;
+  bool get isInt => isFinite && (this - roundToDouble()).abs() < 0.00001;
 
-  int? get asIntOrNull => isInt ? floor() : null;
+  int? get asIntOrNull => isInt ? round() : null;
 
   double truncFraction([int digits = 1]) {
-    var divider = pow(10, digits);
-    var result = (this * divider).truncate() / divider;
-    return result;
+    final divider = pow(10, digits);
+    final scaled = this * divider;
+    // Snap values a float error left just below an integer (0.29 * 100 = 28.999...).
+    final nearest = scaled.roundToDouble();
+    final whole = (scaled - nearest).abs() < 1e-9 * max(1, scaled.abs()) ? nearest : scaled.truncateToDouble();
+    return whole / divider;
   }
 
   double get fraction {

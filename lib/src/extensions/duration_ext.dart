@@ -25,13 +25,13 @@ extension DurationExt on Duration {
 
   Future get wait => future;
 
-  Duration operator /(double divider) => Duration(milliseconds: inMilliseconds ~/ divider);
-
-  Duration operator *(double multiplier) => Duration(milliseconds: (inMilliseconds * multiplier).truncate());
-
-  Duration operator +(Duration other) => Duration(milliseconds: inMilliseconds + other.inMilliseconds);
-
-  Duration operator -(Duration other) => Duration(milliseconds: inMilliseconds - other.inMilliseconds);
+  /// Divides to millisecond precision. [divider] must be finite and non-zero.
+  Duration operator /(double divider) {
+    if (divider == 0 || !divider.isFinite) {
+      throw ArgumentError.value(divider, 'divider', 'Must be finite and non-zero');
+    }
+    return Duration(milliseconds: inMilliseconds ~/ divider);
+  }
 }
 
 extension IntForDuration on int {

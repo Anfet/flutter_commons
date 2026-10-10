@@ -6,7 +6,16 @@ extension WidgetExt on Widget {
 }
 
 extension StateExt<T extends StatefulWidget> on State<T> {
-  void scheduleOnNextFrame(VoidCallback block) => WidgetsBinding.instance.addPostFrameCallback((timeStamp) => block());
+  /// Runs [block] after the next frame, unless the state is unmounted by then.
+  void scheduleOnNextFrame(VoidCallback block) {
+    WidgetsBinding.instance
+      ..addPostFrameCallback((timeStamp) {
+        if (mounted) {
+          block();
+        }
+      })
+      ..ensureVisualUpdate();
+  }
 }
 
 extension GlobalKeyExt<T extends State<StatefulWidget>> on GlobalKey<T> {

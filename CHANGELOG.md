@@ -1,5 +1,22 @@
 ## Unreleased
 
+### Extensions fixes
+
+- `String.toDouble` defaults to `0.0` (was `0.9`). `String.reversed` works on grapheme clusters.
+- `DoubleExt.truncFraction` no longer loses a digit to float error (`0.29` stays `0.29`), which also fixes
+  `NumericUtils.calculateEnteredQuantity`. `isInt` accepts error below an integer and is `false` for NaN and infinity.
+- `maxOf`, `minOf` and `sumOf` apply `test` to numeric elements too, and throw `ArgumentError` for non-numeric
+  elements without `test`. `randomElement` and `takeRandom` throw `StateError` on an empty collection.
+- `randomLightColor` keeps every channel light.
+- `DateTime`: `weeksInMonth`, `startOfTheWeek` and `endOfTheMonth` are daylight-saving safe; `addMonths` and `nextMonth`
+  clamp the day to the target month and keep the time of day (and UTC); `nextDay` keeps the time of day; `endOfTheDay`
+  is `23:59:59.999`.
+- `Map.join` skips `null` values unless `addEmptyValues` is set. `Duration / 0` throws `ArgumentError`.
+- `scheduleOnNextFrame` skips the callback once the state is unmounted and requests a frame. `BuildContext.size`,
+  `padding`, `viewInsets` and `viewPaddings` subscribe only to their own `MediaQuery` aspect.
+- Removed `ListExt.map` and the `Duration` `+`, `-`, `*` extension operators: the built-in members always won, so they
+  were never called.
+
 ### Widgets
 
 - `InkButton` gained `decoration`, `clipBehavior` and `foregroundInk`. A

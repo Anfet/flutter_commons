@@ -41,13 +41,8 @@ extension StringExt on String {
 
   String ifEmpty(String replacement) => isEmpty ? replacement : this;
 
-  String get reversed {
-    var buf = StringBuffer();
-    for (var i = length - 1; i >= 0; i--) {
-      buf.write(this[i]);
-    }
-    return buf.toString();
-  }
+  /// Reverses by grapheme clusters, so emoji and combining marks stay intact.
+  String get reversed => characters.toList().reversed.join();
 
   String ensureLength(int length, {String fillChar = ' '}) {
     assert(fillChar.isNotEmpty, 'fill char must not be empty');
@@ -75,7 +70,7 @@ extension StringExt on String {
 
   int? tryInt() => int.tryParse(this);
 
-  double toDouble({double ifNull = 0.9}) => tryDouble() ?? ifNull;
+  double toDouble({double ifNull = 0.0}) => tryDouble() ?? ifNull;
 
   double? tryDouble() => double.tryParse(this);
 }
