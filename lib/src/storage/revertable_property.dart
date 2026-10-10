@@ -10,6 +10,10 @@ class RevertableProperty<T> implements StorableProperty<T> {
 
   bool _deletePending = false;
 
+  /// Whether [setValue] or [delete] was called since the last load, revert or commit, even with an equal value: a
+  /// mutable value changed in place compares equal to itself.
+  bool _dirty = false;
+
   int _mutationRevision = 0;
 
   final StorableProperty<T> child;
@@ -23,6 +27,7 @@ class RevertableProperty<T> implements StorableProperty<T> {
     _value = await child.getValue();
     _initialValue = _value;
     _deletePending = false;
+    _dirty = false;
     _mutationRevision++;
     return _value;
   }
@@ -35,6 +40,7 @@ class RevertableProperty<T> implements StorableProperty<T> {
   @override
   Future<void> delete() async {
     _deletePending = true;
+    _dirty = true;
     _mutationRevision++;
   }
 
@@ -42,18 +48,26 @@ class RevertableProperty<T> implements StorableProperty<T> {
   Future<void> setValue(T val) async {
     _value = val;
     _deletePending = false;
+    _dirty = true;
     _mutationRevision++;
   }
 
   FutureOr<void> revert() {
     _value = _initialValue;
     _deletePending = false;
+    _dirty = false;
     _mutationRevision++;
   }
 
+  /// Writes the draft to [child]. Does nothing without changes, so an unloaded property cannot overwrite the stored
+  /// value with its default.
   FutureOr<void> commit() async {
+    // hasChanged also covers a revert made while an earlier commit was pending.
+    if (!_dirty && !hasChanged) {
+      return;
+    }
+    final mutationRevision = _mutationRevision;
     if (_deletePending) {
-      final mutationRevision = _mutationRevision;
       await child.delete();
       final committedValue = await child.getValue();
       _initialValue = committedValue;
@@ -66,6 +80,9 @@ class RevertableProperty<T> implements StorableProperty<T> {
       final committedValue = _value;
       await child.setValue(committedValue);
       _initialValue = committedValue;
+    }
+    if (_mutationRevision == mutationRevision) {
+      _dirty = false;
     }
   }
 

@@ -1,9 +1,16 @@
+import 'dart:math';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_commons/src/extensions/string_ext.dart';
+import 'package:flutter/widgets.dart' show StringCharacters;
 
-import '../formatters/custom_formatter.dart';
+import 'text_mask.dart';
 
-/// Public class CustomInputFormatter.
+/// Text input formatter that masks the input with a `CustomFormatter` pattern.
+///
+/// The edit is applied to the value without the mask: typed and pasted characters fill the placeholders, Backspace or
+/// Delete over a literal erases the neighbouring character, and the caret stays at the edit. When the old text was not
+/// produced by this formatter (for example set by the app), the new text is formatted from scratch.
 class CustomInputFormatter extends TextInputFormatter {
   final String pattern;
   final bool stripPlaceholdersIfNoText;
@@ -13,31 +20,90 @@ class CustomInputFormatter extends TextInputFormatter {
 
   @override
   TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
-    // Backwards formatting keeps the trailing characters, so input beyond the pattern is cut here to keep the current
-    // value. Forward formatting is bounded by the pattern itself and must see the whole text, e.g. a paste with spaces.
-    final text = backwards ? newValue.text.take(pattern.length) : newValue.text;
-    // A plain deletion stays unformatted so that separators can be erased; a replaced selection is still formatted.
-    final formatted = !backwards && newValue.text._isDeletionOf(oldValue.text)
-        ? text
-        : CustomFormatter(text: text, pattern: pattern, stripPlaceholdersIfNoText: stripPlaceholdersIfNoText, backwards: backwards).formatted;
+    if (oldValue.text == newValue.text) {
+      return newValue;
+    }
 
+    final mask = TextMask(pattern, stripPlaceholdersIfNoText: stripPlaceholdersIfNoText);
+    // Backwards masks are handled as forward ones over reversed text; the caret is mirrored back at the end.
+    final directed = backwards ? mask.reversed : mask;
+    final old = _directedChars(oldValue.text);
+    final next = _directedChars(newValue.text);
+    final oldPayload = directed.extract(old);
+
+    final List<String> payload;
+    final int caret;
+    if (!listEquals(directed.format(oldPayload).chars, old)) {
+      payload = directed.extract(next);
+      caret = backwards ? 0 : payload.length;
+    } else {
+      final newCaret = _directedCaret(newValue.selection, next);
+      var prefix = 0;
+      final maxPrefix = min(min(old.length, next.length), newCaret ?? next.length);
+      while (prefix < maxPrefix && old[prefix] == next[prefix]) {
+        prefix++;
+      }
+      var suffix = 0;
+      final maxSuffix = min(min(old.length, next.length) - prefix, next.length - (newCaret ?? prefix));
+      while (suffix < maxSuffix && old[old.length - 1 - suffix] == next[next.length - 1 - suffix]) {
+        suffix++;
+      }
+
+      final removedEnd = old.length - suffix;
+      final start = directed.placeholdersBefore(prefix);
+      final end = directed.placeholdersBefore(removedEnd);
+      final insertedText = next.sublist(prefix, next.length - suffix);
+      // Text that replaces the whole value may be raw or formatted; text inserted after a slot is aligned to that slot.
+      var inserted = prefix == 0 && suffix == 0 ? directed.extract(insertedText) : directed.extractAt(insertedText, prefix);
+      inserted = inserted.take(max(0, directed.capacity - oldPayload.length + end - start)).toList();
+      final edited = [...oldPayload]..replaceRange(start, end, inserted);
+
+      if (start == end && inserted.isEmpty && removedEnd > prefix) {
+        // Only literals were erased: erase the character beyond them, as Backspace or Delete would.
+        final oldCaret = _directedCaret(oldValue.selection, old);
+        final isDelete = oldCaret == (backwards ? removedEnd : prefix);
+        final index = isDelete == backwards ? start - 1 : start;
+        if (index >= 0 && index < edited.length) {
+          edited.removeAt(index);
+        }
+        payload = edited;
+        // In both directions the caret ends where the erased character was.
+        caret = index.clamp(0, edited.length);
+      } else {
+        payload = edited;
+        caret = backwards ? start : start + inserted.length;
+      }
+    }
+
+    final masked = directed.format(payload);
+    final chars = backwards ? masked.chars.reversed.toList() : masked.chars;
+    final offset = backwards ? chars.length - masked.before(caret) : masked.after(caret);
     return TextEditingValue(
-      text: formatted,
-      selection: TextSelection.collapsed(offset: formatted.length),
+      text: chars.join(),
+      selection: TextSelection.collapsed(offset: chars.take(offset).join().length),
     );
   }
-}
 
-extension on String {
-  /// Whether this text is [previous] with one contiguous range removed.
-  bool _isDeletionOf(String previous) {
-    if (length >= previous.length) {
-      return false;
+  List<String> _directedChars(String text) {
+    final chars = text.characters.toList();
+    return backwards ? chars.reversed.toList() : chars;
+  }
+
+  /// Grapheme index of a collapsed [selection] in [directedChars], or `null` for a range or no selection.
+  int? _directedCaret(TextSelection selection, List<String> directedChars) {
+    if (!selection.isValid || !selection.isCollapsed) {
+      return null;
     }
-    var prefix = 0;
-    while (prefix < length && this[prefix] == previous[prefix]) {
-      prefix++;
+    var index = 0;
+    var units = 0;
+    final chars = backwards ? directedChars.reversed : directedChars;
+    for (final char in chars) {
+      if (units >= selection.baseOffset) {
+        break;
+      }
+      units += char.length;
+      index++;
     }
-    return previous.endsWith(substring(prefix));
+    return backwards ? directedChars.length - index : index;
   }
 }

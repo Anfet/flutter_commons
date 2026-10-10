@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 import '../logging.dart';
+import '../utils/concurrent/mutex.dart';
 import 'storage.dart';
 
 /// Public abstract class StorableProperty.
@@ -25,6 +26,8 @@ abstract class StorablePropertyImpl<T> implements StorableProperty<T> {
   final String name;
   final ValueSetter<T>? onSave;
   final T Function()? _defaultValue;
+  // Serializes reads and writes, so a slow read cannot put an older value into the cache over a newer write.
+  final _mutex = Mutex();
 
   late T _cachedValue;
 
@@ -44,17 +47,23 @@ abstract class StorablePropertyImpl<T> implements StorableProperty<T> {
 
   @override
   Future<void> delete() async {
-    await storage.delete(name);
     final defaultValue = _defaultValue;
+    await _mutex.lock(() async {
+      await storage.delete(name);
+      if (defaultValue != null) {
+        _cachedValue = defaultValue();
+      }
+    });
+    // A legacy subclass reloads through its own getValue(), outside the lock: the mutex is not reentrant.
     if (defaultValue == null) {
       await getValue();
-    } else {
-      _cachedValue = defaultValue();
     }
   }
 
   @override
-  Future<T> getValue() async {
+  Future<T> getValue() => _mutex.lock(_readValue);
+
+  Future<T> _readValue() async {
     final defaultValue = _defaultValue;
     if (!await storage.exists(name)) {
       if (defaultValue == null) {
@@ -83,13 +92,13 @@ abstract class StorablePropertyImpl<T> implements StorableProperty<T> {
   Future<void> _repairInvalidValue() async {}
 
   @override
-  Future<void> setValue(T val) async {
+  Future<void> setValue(T val) => _mutex.lock(() async {
     await storage.set(name, encode(val));
     if (_defaultValue != null) {
       _cachedValue = val;
     }
     onSave?.call(val);
-  }
+  });
 
   T decode(String value) => value as T;
 

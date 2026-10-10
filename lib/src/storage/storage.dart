@@ -5,8 +5,11 @@ export 'enum_property.dart';
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 abstract interface class PropertyStorage {
+  /// Returns the stored value. Defined only when [exists] is `true`: for a missing name [MemoryStorage] returns an
+  /// empty string and [FileStorage] throws a [FileSystemException].
   FutureOr<String> get(String name);
 
   Future<void> set(String name, String value);
@@ -52,7 +55,13 @@ class MemoryStorage implements PropertyStorage {
 }
 
 /// Public class FileStorage.
+///
+/// Each value is a file under [parentDirectory]. [set] writes a temporary file next to the target and renames it over
+/// the target, so an interrupted write leaves the previous value intact. Names ending with [_tempSuffix] are reserved.
 class FileStorage implements PropertyStorage {
+  static const _tempSuffix = '.fc-tmp';
+  static final _random = Random();
+
   final Directory parentDirectory;
 
   FileStorage({
@@ -67,6 +76,9 @@ class FileStorage implements PropertyStorage {
     final segments = name.split('/');
     if (segments.any((segment) => segment.isEmpty || segment == '.' || segment == '..') || name.contains('\\') || name.contains(':')) {
       throw ArgumentError.value(name, 'name', 'Must be a relative file name inside parentDirectory');
+    }
+    if (name.endsWith(_tempSuffix)) {
+      throw ArgumentError.value(name, 'name', 'Must not end with $_tempSuffix, it is reserved for temporary files');
     }
 
     final parent = Directory(parentDirectory.path).absolute.path;
@@ -111,7 +123,31 @@ class FileStorage implements PropertyStorage {
   Future<void> set(String name, String value) async {
     final file = _file(name);
     await file.parent.create(recursive: true);
-    await file.writeAsString(value, flush: true);
+    final temp = File('${file.path}.${_random.nextInt(1 << 32).toRadixString(36)}$_tempSuffix');
+    try {
+      await temp.writeAsString(value, flush: true);
+      await _replace(temp, file);
+    } catch (_) {
+      // The write already failed and is rethrown; a temporary file that cannot be removed goes with the next clear().
+      await temp.delete().then<void>((_) {}, onError: (_) {});
+      rethrow;
+    }
+  }
+
+  Future<void> _replace(File source, File target) async {
+    for (var attempt = 1; ; attempt++) {
+      try {
+        await source.rename(target.path);
+        return;
+      } on FileSystemException catch (error) {
+        // Antivirus and indexers briefly lock a freshly written file on Windows (access denied, sharing violation).
+        final code = error.osError?.errorCode;
+        if (!Platform.isWindows || attempt == 3 || (code != 5 && code != 32)) {
+          rethrow;
+        }
+        await Future<void>.delayed(Duration(milliseconds: 20 * attempt));
+      }
+    }
   }
 
   @override

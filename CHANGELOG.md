@@ -19,9 +19,25 @@
 
 ### Formatters fixes
 
-- `CustomInputFormatter` formats text that replaces a longer selection (it was left raw because the text got shorter);
-  only a plain deletion stays unformatted. Forward formatting no longer cuts pasted text to the pattern length before
-  formatting, so separators in a paste do not cost digits.
+- `CustomInputFormatter` applies each edit to the value without the mask: Backspace or Delete over a literal erases the
+  neighbouring character (a deletion is no longer left unformatted), text replacing a selection is formatted, the caret
+  stays at the edit instead of jumping to the end, and a full value ignores more input. Text the formatter did not
+  produce (set by the app) is formatted from scratch.
+- `CustomFormatter` and `CustomInputFormatter`: a literal no longer swallows a raw character equal to it (`7` in
+  `+7 (###)` gives `+7 (7`); literals are matched only in formatted text or raw text longer than the placeholders, such
+  as a phone number with its country code. No trailing literal after the last character for `_` or after trailing
+  non-digits (`ab` in `__-__` gives `ab`, `123a` in `###-#` gives `123`). Placeholders take grapheme clusters, so an
+  emoji is not split. Separators in a paste no longer cost characters.
+
+### Storage fixes
+
+- `RevertableProperty.commit` does nothing without changes, so an unloaded property no longer overwrites the stored
+  value with its default and `onSave` is not called; a value changed in place and passed to `setValue` is still written.
+- `StorablePropertyImpl` serializes `getValue`, `setValue` and `delete`, so a slow read cannot put an older value into
+  the cache over a newer write.
+- `FileStorage.set` writes a temporary file and renames it over the target (retrying a briefly locked file on Windows),
+  so an interrupted write keeps the previous value. Names ending with `.fc-tmp` are reserved and rejected.
+- `PropertyStorage.get` documents that it is defined only when `exists` is `true`.
 
 ### Widgets
 

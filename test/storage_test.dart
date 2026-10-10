@@ -514,6 +514,86 @@ void main() {
     expect(property.cachedValue, 'committed');
     expect(property.hasChanged, isFalse);
   });
+
+  test('commit without changes keeps the stored value of an unloaded property', () async {
+    final storage = MemoryStorage();
+    await storage.set('value', 'persisted');
+    final saved = <String>[];
+    final property = RevertableProperty(StringProperty(storage, 'value', onSave: saved.add));
+
+    await property.commit();
+
+    expect(await storage.get('value'), 'persisted');
+    expect(saved, isEmpty);
+  });
+
+  test('commit writes a value changed in place', () async {
+    final storage = MemoryStorage();
+    final property = RevertableProperty(
+      JsonProperty<Map<String, dynamic>>(
+        storage,
+        'value',
+        fromJson: (json) => json,
+        toJson: (value) => value,
+        ifNotExist: () => {'state': 'default'},
+      ),
+    );
+    final value = await property.getValue();
+
+    value['state'] = 'edited';
+    await property.setValue(value);
+    await property.commit();
+
+    expect(await storage.get('value'), '{"state":"edited"}');
+  });
+
+  test('a slow read does not overwrite the cache of a later write', () async {
+    final storage = _GatedReadStorage();
+    await storage.set('value', 'old');
+    final property = StringProperty(storage, 'value');
+
+    final read = property.getValue();
+    await storage.readStarted;
+    final write = property.setValue('new');
+    storage.completeRead();
+    await read;
+    await write;
+
+    expect(property.cachedValue, 'new');
+    expect(await storage.get('value'), 'new');
+  });
+
+  test('file storage replaces values through a temporary file and reserves its suffix', () async {
+    final root = await Directory.systemTemp.createTemp('flutter_commons_storage_atomic_test_');
+    addTearDown(() => root.delete(recursive: true));
+    final storage = FileStorage(parentDirectory: root);
+
+    await storage.set('value', 'first');
+    await storage.set('value', 'second');
+
+    expect(await storage.get('value'), 'second');
+    expect(root.listSync().map((entity) => entity.uri.pathSegments.last), ['value']);
+    await expectLater(storage.set('value.fc-tmp', 'value'), throwsArgumentError);
+  });
+}
+
+class _GatedReadStorage extends MemoryStorage {
+  final Completer<void> _readStarted = Completer<void>();
+  final Completer<void> _readCompleted = Completer<void>();
+
+  Future<void> get readStarted => _readStarted.future;
+
+  void completeRead() => _readCompleted.complete();
+
+  @override
+  Future<String> get(String name) async {
+    final value = await super.get(name);
+    if (!_readStarted.isCompleted) {
+      _readStarted.complete();
+      await _readCompleted.future;
+    }
+    return value;
+  }
 }
 
 class _FailingStorage extends MemoryStorage {
