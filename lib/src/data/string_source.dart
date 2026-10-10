@@ -6,6 +6,10 @@ import 'package:flutter_commons/src/exceptions.dart';
 ///
 /// Supports forward and backward traversal, peeking, and consuming characters
 /// incrementally.
+///
+/// A "character" is a UTF-16 code unit, as with [String] indexing: a surrogate
+/// pair (for example an emoji) is consumed as two characters, and backward
+/// traversal yields its halves in reverse order.
 class StringSource {
   int _pos = 0;
 
@@ -32,7 +36,7 @@ class StringSource {
   String get peek => hasMore ? text[_pos] : "";
 
   /// Whether there are characters left to consume.
-  bool get hasMore => remaining.isNotEmpty;
+  bool get hasMore => _remainingLength > 0;
 
   /// Current cursor position.
   int get position => _pos;
@@ -42,13 +46,15 @@ class StringSource {
 
   String get _nextChar => text[backwards ? _pos-- : _pos++];
 
+  int get _remainingLength => backwards ? _pos + 1 : text.length - _pos;
+
   /// Consumes up to [count] characters from the current cursor position.
   String consume({int count = 1}) {
     if (count < 0) {
       throw IllegalArgumentException("take count must be >= 0");
     }
 
-    final takeAmount = min(count, remaining.length);
+    final takeAmount = min(count, _remainingLength);
     if (takeAmount == 0) {
       return "";
     } else if (takeAmount == 1) {
@@ -85,6 +91,12 @@ class StringSource {
 
   @override
   String toString() {
+    if (backwards) {
+      // Backward cursor at `_pos` still has text[_pos] to read, so the boundary is right after it.
+      final boundary = _pos + 1;
+      return 'StringSource{text: ${text.substring(0, boundary)}<${text.substring(boundary)}}';
+    }
+
     if (_pos == text.length) {
       return 'StringSource{text: $text<}';
     }

@@ -19,7 +19,7 @@ class Range<T> {
       identical(this, other) || other is Range && runtimeType == other.runtimeType && from == other.from && till == other.till;
 
   @override
-  int get hashCode => from.hashCode ^ till.hashCode;
+  int get hashCode => Object.hash(from, till);
 
   @override
   String toString() {

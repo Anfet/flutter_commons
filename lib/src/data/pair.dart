@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 
 @immutable
 /// Immutable tuple of two values.
@@ -41,7 +41,7 @@ class Pair<A, B> {
       identical(this, other) || other is Pair && runtimeType == other.runtimeType && first == other.first && second == other.second;
 
   @override
-  int get hashCode => first.hashCode ^ second.hashCode;
+  int get hashCode => Object.hash(first, second);
 
   @override
   String toString() {

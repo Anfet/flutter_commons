@@ -18,6 +18,10 @@ class VisibleValue<T> {
   VisibleValue(T value, [bool isVisible = true]) : _value = value, _isVisible = isVisible;
 
   /// Updates value and/or visibility and calls [onChanged] when state changed.
+  ///
+  /// A `null` [value] means "keep the stored value"; without an explicit
+  /// [isVisible] it also hides it. To store `null` itself when [T] is nullable,
+  /// use [assign].
   void setValue(T? value, {bool? isVisible, VoidCallback? onChanged}) {
     final nextVisible = isVisible ?? (value != null);
     final changed = (value != null && _value != value) || nextVisible != _isVisible;
@@ -29,5 +33,15 @@ class VisibleValue<T> {
 
     if (changed) onChanged?.call();
   }
-}
 
+  /// Stores [value] as is, including `null` when [T] is nullable, sets
+  /// visibility to [isVisible] and calls [onChanged] when state changed.
+  void assign(T value, {bool isVisible = true, VoidCallback? onChanged}) {
+    final changed = _value != value || _isVisible != isVisible;
+
+    _value = value;
+    _isVisible = isVisible;
+
+    if (changed) onChanged?.call();
+  }
+}

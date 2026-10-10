@@ -42,6 +42,11 @@ abstract class _CancellableBase implements Cancellable {
 
   bool get isCancelled => _isCancelled;
 
+  CancellableErrorHandler? get onError;
+
+  /// Describes the failing callback in errors reported without [onError].
+  String get _errorContext;
+
   Future<void> _cancelAndWait() async {
     _isCancellationAwaited = true;
     (Object, StackTrace)? failure;
@@ -120,6 +125,25 @@ abstract class _CancellableBase implements Cancellable {
       _reportCancellationError(error, stackTrace);
     }
   }
+
+  void _handleError(Object error, StackTrace stackTrace) {
+    if (isCancelled) {
+      return;
+    }
+    final handler = onError;
+    if (handler != null) {
+      handler(error, stackTrace);
+      return;
+    }
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: error,
+        stack: stackTrace,
+        library: 'flutter_commons',
+        context: ErrorDescription(_errorContext),
+      ),
+    );
+  }
 }
 
 /// Listens to a [Stream] and maps each event through [mapper].
@@ -137,6 +161,7 @@ class StreamCancellable<T> extends _CancellableBase {
   final AsyncOrTypedCallback<Any, T> mapper;
 
   /// Receives source and mapper errors instead of leaving them unhandled.
+  @override
   final CancellableErrorHandler? onError;
 
   /// Active subscription to [stream].
@@ -165,24 +190,8 @@ class StreamCancellable<T> extends _CancellableBase {
     }
   }
 
-  void _handleError(Object error, StackTrace stackTrace) {
-    if (isCancelled) {
-      return;
-    }
-    final handler = onError;
-    if (handler != null) {
-      handler(error, stackTrace);
-      return;
-    }
-    FlutterError.reportError(
-      FlutterErrorDetails(
-        exception: error,
-        stack: stackTrace,
-        library: 'flutter_commons',
-        context: ErrorDescription('while processing a cancellable stream callback'),
-      ),
-    );
-  }
+  @override
+  String get _errorContext => 'while processing a cancellable stream callback';
 }
 
 /// Bridges a [ChangeNotifier] into a cancellable async callback pipeline.
@@ -204,6 +213,7 @@ class NotifierCancellable extends _CancellableBase {
   final AsyncOrTypedResult<Any> mapper;
 
   /// Receives mapper errors instead of leaving them unhandled.
+  @override
   final CancellableErrorHandler? onError;
 
   late final StreamSubscription<void> _subscription;
@@ -243,24 +253,8 @@ class NotifierCancellable extends _CancellableBase {
     }
   }
 
-  void _handleError(Object error, StackTrace stackTrace) {
-    if (isCancelled) {
-      return;
-    }
-    final handler = onError;
-    if (handler != null) {
-      handler(error, stackTrace);
-      return;
-    }
-    FlutterError.reportError(
-      FlutterErrorDetails(
-        exception: error,
-        stack: stackTrace,
-        library: 'flutter_commons',
-        context: ErrorDescription('while processing a cancellable notifier callback'),
-      ),
-    );
-  }
+  @override
+  String get _errorContext => 'while processing a cancellable notifier callback';
 }
 
 /// Bridges a [ValueListenable] into a cancellable async callback pipeline.
@@ -280,6 +274,7 @@ class ListenableCancellable<T> extends _CancellableBase {
   final AsyncOrTypedCallback<Any, T> mapper;
 
   /// Receives mapper errors instead of leaving them unhandled.
+  @override
   final CancellableErrorHandler? onError;
 
   late final StreamSubscription<void> _subscription;
@@ -319,22 +314,6 @@ class ListenableCancellable<T> extends _CancellableBase {
     }
   }
 
-  void _handleError(Object error, StackTrace stackTrace) {
-    if (isCancelled) {
-      return;
-    }
-    final handler = onError;
-    if (handler != null) {
-      handler(error, stackTrace);
-      return;
-    }
-    FlutterError.reportError(
-      FlutterErrorDetails(
-        exception: error,
-        stack: stackTrace,
-        library: 'flutter_commons',
-        context: ErrorDescription('while processing a cancellable value-listenable callback'),
-      ),
-    );
-  }
+  @override
+  String get _errorContext => 'while processing a cancellable value-listenable callback';
 }

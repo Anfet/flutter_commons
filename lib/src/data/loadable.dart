@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_commons/flutter_commons.dart';
+import 'package:flutter_commons/src/utils/utils.dart';
 
 @immutable
 /// Immutable state holder for async loading/result/error flows.
@@ -32,6 +32,9 @@ final class Loadable<T> {
   T? get value => _value;
 
   /// Value or lazily built default value.
+  ///
+  /// The default is not cached: [defaultBuilder] runs on every access while
+  /// [value] is null.
   T? get v => _value ?? defaultBuilder?.call();
 
   /// Non-null value accessor.
@@ -61,7 +64,10 @@ final class Loadable<T> {
   /// Whether an error is present.
   bool get hasError => error != null;
 
-  /// Whether value is present.
+  /// Whether a stored [value] is present.
+  ///
+  /// The [defaultBuilder] is not considered: a state that only has a default
+  /// reports `false`, which tells "result loaded" apart from "placeholder".
   bool get hasValue => value != null;
 
   /// Alias for [isLoading].
@@ -100,6 +106,9 @@ final class Loadable<T> {
   Loadable<T> idle() => Loadable(value, isLoading: false, error: error, defaultBuilder: defaultBuilder, stack: stack);
 
   /// Returns a copy with updated value.
+  ///
+  /// [isLoading] and [error] are kept as is; chain [idle] or [clearError] to
+  /// finish the operation explicitly.
   Loadable<T> result([T? value]) => Loadable(value, isLoading: isLoading, error: error, defaultBuilder: defaultBuilder, stack: stack);
 
   /// Returns a typed copy with mapped value type.
@@ -110,6 +119,9 @@ final class Loadable<T> {
   Loadable<T> clearResult() => Loadable(null, isLoading: isLoading, error: error, defaultBuilder: defaultBuilder, stack: stack);
 
   /// Returns a copy with assigned error.
+  ///
+  /// [isLoading] and [value] are kept as is; chain [idle] to finish the
+  /// operation explicitly.
   Loadable<T> fail(Object ex, [StackTrace? stack]) => Loadable(value, isLoading: isLoading, error: ex, stack: stack, defaultBuilder: defaultBuilder);
 
   /// Returns a copy with cleared error.
@@ -124,11 +136,11 @@ final class Loadable<T> {
     stack: error ? null : stack,
   );
 
-  /// Returns stored value or [other] fallback.
-  T valueOr(T other) => value ?? other;
+  /// Returns [v] (stored or default value) or [other] fallback.
+  T valueOr(T other) => v ?? other;
 
-  /// Returns stored value or [other] fallback.
-  T or(T other) => value ?? other;
+  /// Shorthand for [valueOr].
+  T or(T other) => valueOr(other);
 
   /// Builds a [ValueKey] reflecting current state.
   ValueKey generateKey({
@@ -139,7 +151,7 @@ final class Loadable<T> {
   }
 
   /// Creates a partial copy.
-  Loadable copyWith({
+  Loadable<T> copyWith({
     bool? isLoading,
     Object? value = _preserve,
     Object? error = _preserve,
@@ -179,5 +191,6 @@ class _LoadableClear {
 extension LoadableExt<T> on T {
   Loadable<T> get asLoadable => Loadable(this);
 
+  @Deprecated('Use asLoadable. This alias is too generic for an extension on every type.')
   Loadable<T> get asValue => Loadable(this);
 }

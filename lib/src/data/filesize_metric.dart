@@ -17,35 +17,26 @@ enum FilesizeMetric {
 
 /// Stores a file size in bytes and exposes convenience conversions/formatting.
 ///
-/// Exactly one constructor argument is typically provided (`bytes`, `kbytes`,
-/// `mbytes`, or `gbytes`). If all are omitted, the value defaults to `0`.
+/// At most one constructor argument may be provided (`bytes`, `kbytes`,
+/// `mbytes`, or `gbytes`); passing several fails an assertion. If all are
+/// omitted, the value defaults to `0`.
 class FormattedFilesize {
   /// Size value normalized to bytes.
-  late final int bytes;
+  final int bytes;
 
   /// Creates a size object from one of supported units.
-  FormattedFilesize({int? bytes, int? kbytes, int? mbytes, int? gbytes}) {
-    if (bytes != null) {
-      this.bytes = bytes;
-    } else if (kbytes != null) {
-      this.bytes = kbytes * kb;
-    } else if (mbytes != null) {
-      this.bytes = mbytes * mb;
-    } else if (gbytes != null) {
-      this.bytes = gbytes * gb;
-    } else {
-      this.bytes = 0;
-    }
-  }
+  FormattedFilesize({int? bytes, int? kbytes, int? mbytes, int? gbytes})
+    : assert([bytes, kbytes, mbytes, gbytes].where((it) => it != null).length <= 1, 'Provide at most one size argument'),
+      bytes = bytes ?? (kbytes != null ? kbytes * kb : (mbytes != null ? mbytes * mb : (gbytes ?? 0) * gb));
 
   /// Size in kilobytes, truncated.
-  int get inKB => (bytes / kb).truncate();
+  int get inKB => bytes ~/ kb;
 
   /// Size in megabytes, truncated.
-  int get inMB => (bytes / mb).truncate();
+  int get inMB => bytes ~/ mb;
 
   /// Size in gigabytes, truncated.
-  int get inGB => (bytes / gb).truncate();
+  int get inGB => bytes ~/ gb;
 
   /// Best-fit metric based on current [bytes] value.
   FilesizeMetric get metric =>
@@ -65,6 +56,13 @@ class FormattedFilesize {
     }
   }
 
+  @override
+  bool operator ==(Object other) => identical(this, other) || other is FormattedFilesize && bytes == other.bytes;
+
+  @override
+  int get hashCode => bytes.hashCode;
+
+  /// Formats the size in the best-fit [metric], truncated (1.9 MB -> `1MB`).
   @override
   String toString() {
     return "${inMetric(metric)}${metric.abbr}";
