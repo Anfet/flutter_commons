@@ -73,5 +73,67 @@ void main() {
 
       expect(result.text, ' A');
     });
+
+    test('formats text that replaces a longer selection', () {
+      final inputFormatter = CustomInputFormatter(pattern: '###-###');
+
+      final result = inputFormatter.formatEditUpdate(
+        const TextEditingValue(text: '123-456'),
+        const TextEditingValue(text: '9876'),
+      );
+
+      expect(result.text, '987-6');
+    });
+
+    test('keeps a plain deletion unformatted so separators can be erased', () {
+      final inputFormatter = CustomInputFormatter(pattern: '###-###');
+
+      final result = inputFormatter.formatEditUpdate(
+        const TextEditingValue(text: '123-'),
+        const TextEditingValue(text: '123'),
+      );
+
+      expect(result.text, '123');
+    });
+
+    test('formats pasted text longer than the pattern without losing digits', () {
+      final inputFormatter = CustomInputFormatter(pattern: '###-###');
+
+      final result = inputFormatter.formatEditUpdate(
+        const TextEditingValue(text: ''),
+        const TextEditingValue(text: '1 2 3 4 5 6'),
+      );
+
+      expect(result.text, '123-456');
+    });
+
+    test('backwards ignores input beyond the pattern', () {
+      final inputFormatter = CustomInputFormatter(pattern: '### ###', backwards: true);
+
+      final result = inputFormatter.formatEditUpdate(
+        const TextEditingValue(text: '123 456'),
+        const TextEditingValue(text: '123 4567'),
+      );
+
+      expect(result.text, '123 456');
+    });
+  });
+
+  group('CustomFormatter modes', () {
+    final cases = <({String name, String text, String pattern, bool strip, bool backwards, String expected})>[
+      (name: 'backwards groups from the end', text: '12345', pattern: '### ###', strip: false, backwards: true, expected: '12 345'),
+      (name: 'backwards reformats a deletion', text: '12 34', pattern: '### ###', strip: false, backwards: true, expected: '1 234'),
+      (name: 'any placeholder copies characters', text: 'ab1c', pattern: '__-__', strip: false, backwards: false, expected: 'ab-1c'),
+      (name: 'empty text keeps the leading literals', text: '', pattern: '+X (###)', strip: false, backwards: false, expected: '+X ('),
+      (name: 'empty text strips the leading literals', text: '', pattern: '+X (###)', strip: true, backwards: false, expected: ''),
+    ];
+
+    for (final c in cases) {
+      test(c.name, () {
+        final formatter = CustomFormatter(text: c.text, pattern: c.pattern, stripPlaceholdersIfNoText: c.strip, backwards: c.backwards);
+
+        expect(formatter.formatted, c.expected);
+      });
+    }
   });
 }

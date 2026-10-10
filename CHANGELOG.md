@@ -17,6 +17,12 @@
 - Removed `ListExt.map` and the `Duration` `+`, `-`, `*` extension operators: the built-in members always won, so they
   were never called.
 
+### Formatters fixes
+
+- `CustomInputFormatter` formats text that replaces a longer selection (it was left raw because the text got shorter);
+  only a plain deletion stays unformatted. Forward formatting no longer cuts pasted text to the pattern length before
+  formatting, so separators in a paste do not cost digits.
+
 ### Widgets
 
 - `InkButton` gained `decoration`, `clipBehavior` and `foregroundInk`. A

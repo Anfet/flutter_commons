@@ -64,6 +64,8 @@ void main() {
 
         expect(await storage.get(''), '');
         expect(await storage.exists(''), isFalse);
+        await storage.delete('missing');
+        await storage.delete('missing/nested');
         if (storageFactory.name == 'file') {
           await expectLater(storage.get('missing'), throwsA(isA<FileSystemException>()));
         } else {
