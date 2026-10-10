@@ -1,3 +1,14 @@
+## Unreleased
+
+### Widgets
+
+- `InkButton` gained `decoration`, `clipBehavior` and `foregroundInk`. A
+  `decoration` (gradient, image, outline, shadow) is painted below the ink, so
+  the splash stays visible without nesting `Material`, `Ink` and `InkWell` by
+  hand; when no `customBorder` or `border` is given, the clip and ink shape are
+  taken from it. `clipBehavior` defaults to the previous `Clip.hardEdge`.
+  `foregroundInk` paints the splash above an opaque child. `Padding` is no
+  longer inserted when `padding` is null. The change is API-compatible.
 ## 1.1.34+0 - 2026-09-11
 
 ### Widgets

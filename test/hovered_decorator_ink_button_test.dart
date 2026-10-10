@@ -222,6 +222,110 @@ void main() {
     expect(inkWell.customBorder, customBorder);
   });
 
+  testWidgets('InkButton paints its decoration below the ink and takes the shape from it', (tester) async {
+    const decoration = BoxDecoration(
+      gradient: LinearGradient(colors: [Colors.red, Colors.blue]),
+      borderRadius: BorderRadius.all(Radius.circular(12)),
+      boxShadow: [BoxShadow(blurRadius: 4)],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Center(
+          child: InkButton(
+            onTap: () {},
+            decoration: decoration,
+            child: const SizedBox(width: 100, height: 48),
+          ),
+        ),
+      ),
+    );
+
+    final button = find.byType(InkButton);
+    final decorated = tester.widget<DecoratedBox>(find.descendant(of: button, matching: find.byType(DecoratedBox)).first);
+    expect(decorated.decoration, same(decoration));
+    // The decoration sits outside the Material, so the ink is painted above it.
+    expect(find.descendant(of: find.byWidget(decorated), matching: find.byType(Material)), findsOneWidget);
+
+    const expectedShape = RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12)));
+    final material = tester.widget<Material>(find.descendant(of: button, matching: find.byType(Material)));
+    expect(material.shape, expectedShape);
+    expect(material.color, Colors.transparent);
+    expect(tester.widget<InkWell>(find.byType(InkWell)).customBorder, expectedShape);
+  });
+
+  testWidgets('InkButton derives a circle and a ShapeDecoration shape', (tester) async {
+    const stadium = StadiumBorder();
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Column(
+          children: [
+            InkButton(
+              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.red),
+              child: SizedBox(width: 48, height: 48),
+            ),
+            InkButton(
+              decoration: ShapeDecoration(shape: stadium, color: Colors.red),
+              child: SizedBox(width: 100, height: 48),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final inkWells = tester.widgetList<InkWell>(find.byType(InkWell)).toList();
+    expect(inkWells[0].customBorder, const CircleBorder());
+    expect(inkWells[1].customBorder, stadium);
+  });
+
+  testWidgets('InkButton forwards clipBehavior to its Material', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: InkButton(
+          clipBehavior: Clip.none,
+          child: SizedBox(width: 100, height: 48),
+        ),
+      ),
+    );
+
+    expect(tester.widget<Material>(find.descendant(of: find.byType(InkButton), matching: find.byType(Material))).clipBehavior, Clip.none);
+  });
+
+  testWidgets('InkButton with foregroundInk draws the ink above the child and keeps tapping', (tester) async {
+    var taps = 0;
+    const childKey = Key('child');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Center(
+          child: InkButton(
+            onTap: () => taps++,
+            foregroundInk: true,
+            padding: const EdgeInsets.all(8),
+            child: const ColoredBox(
+              color: Colors.red,
+              child: SizedBox(key: childKey, width: 100, height: 48),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final inkWell = find.byType(InkWell);
+    expect(tester.widget<InkWell>(inkWell).child, isNull);
+    // The InkWell hosts its ink on a Material that is above the child, not on the outer one.
+    final inkMaterial = tester.widget<Material>(find.ancestor(of: inkWell, matching: find.byType(Material)).first);
+    expect(inkMaterial.type, MaterialType.transparency);
+    expect(find.descendant(of: find.byWidget(inkMaterial), matching: find.byKey(childKey)), findsNothing);
+    expect(tester.getSize(inkWell), tester.getSize(find.byType(InkButton)));
+    expect(tester.getSize(find.byType(InkButton)), const Size(116, 64));
+
+    await tester.tap(find.byType(InkButton));
+    await tester.pump(kDoubleTapTimeout);
+    expect(taps, 1);
+  });
+
   testWidgets('HoveredDecorator composes with transparent and opaque InkButton materials', (tester) async {
     const transparentKey = Key('transparent');
     const opaqueKey = Key('opaque');
