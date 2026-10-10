@@ -1,76 +1,64 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_commons/flutter_commons.dart';
 
-typedef ListenableValueMapper<T> = FutureOr<Any> Function(T value);
-
 /// Adds cancellable stream and listenable registrations to a [Bloc].
-mixin BlocListenables<S, E> on Bloc<S, E> {
-  final List<Cancellable> _subscriptions = [];
-  bool _isClosing = false;
+///
+/// Every registration is cancelled when the Bloc closes; [close] waits until
+/// their resources are released before closing the Bloc itself.
+mixin BlocListenables<E, S> on Bloc<E, S> {
+  final CancellableRegistry _registry = CancellableRegistry();
   Future<void>? _closing;
 
   /// Active registrations, exposed only for lifecycle tests.
   @visibleForTesting
-  int get debugActiveListenableCount => _subscriptions.length;
+  int get debugActiveListenableCount => _registry.length;
 
   /// Subscribes to [stream] and invokes [mapper] for each emitted value.
   ///
   /// Returning `false` from [mapper] stops the registration.
-  Cancellable onStreamChange<T>(Stream<T> stream, ListenableValueMapper<T> mapper) {
-    return _track((onCancel) => StreamCancellable(stream, mapper, onCancel: onCancel));
+  Cancellable onStreamChange<T>(Stream<T> stream, ListenableValueMapper<T> mapper, {CancellableErrorHandler? onError}) {
+    return _registry.onStreamChange(stream, mapper, onError: onError);
   }
 
   /// Observes [listenable] and invokes [mapper] for its current and future values.
-  Cancellable onValueChanged<T>(ValueListenable<T> listenable, ListenableValueMapper<T> mapper) {
-    return _track((onCancel) => ListenableCancellable(listenable, mapper, onCancel: onCancel));
+  Cancellable onValueChanged<T>(
+    ValueListenable<T> listenable,
+    ListenableValueMapper<T> mapper, {
+    ListenableDelivery delivery = ListenableDelivery.every,
+    CancellableErrorHandler? onError,
+  }) {
+    return _registry.onValueChanged(listenable, mapper, delivery: delivery, onError: onError);
   }
 
-  /// Observes [notifier] and invokes [mapper] immediately and for every change.
-  Cancellable onAnyChange(ChangeNotifier notifier, AsyncOrTypedResult<Any> mapper) {
-    return _track((onCancel) => NotifierCancellable(notifier, mapper, onCancel: onCancel));
+  /// Observes [listenable] and invokes [mapper] immediately and for every change.
+  Cancellable onAnyChange(
+    Listenable listenable,
+    AsyncOrTypedResult<Any> mapper, {
+    ListenableDelivery delivery = ListenableDelivery.every,
+    CancellableErrorHandler? onError,
+  }) {
+    return _registry.onAnyChange(listenable, mapper, delivery: delivery, onError: onError);
   }
 
-  Cancellable _track(Cancellable Function(VoidCallback onCancel) create) {
-    Cancellable? cancellable;
-    var finished = false;
-    cancellable = create(() {
-      finished = true;
-      _subscriptions.remove(cancellable);
-    });
-    if (_isClosing || isClosed) {
-      cancellable.cancel();
-    } else if (!finished) {
-      _subscriptions.add(cancellable);
-    }
-    return cancellable;
-  }
+  /// Disposes [notifier] when this Bloc closes and returns it.
+  T own<T extends ChangeNotifier>(T notifier) => _registry.own(notifier);
 
   @override
   Future<void> close() => _closing ??= _closeListenables(() => super.close());
 
   Future<void> _closeListenables(Future<void> Function() closeBloc) async {
-    _isClosing = true;
-    final subscriptions = List<Cancellable>.of(_subscriptions);
-    _subscriptions.clear();
-    final failures = <(Object, StackTrace)>[];
-    await Future.wait(
-      subscriptions.map((subscription) async {
-        try {
-          await subscription.cancelAndWait();
-        } on Object catch (error, stackTrace) {
-          failures.add((error, stackTrace));
-        }
-      }),
-    );
+    (Object, StackTrace)? failure;
+    try {
+      await _registry.cancelAllAndWait();
+    } on Object catch (error, stackTrace) {
+      failure = (error, stackTrace);
+    }
     try {
       await closeBloc();
     } on Object catch (error, stackTrace) {
-      failures.add((error, stackTrace));
-    }
-    if (failures.isNotEmpty) {
-      for (final (error, stackTrace) in failures.skip(1)) {
+      if (failure == null) {
+        failure = (error, stackTrace);
+      } else {
         FlutterError.reportError(
           FlutterErrorDetails(
             exception: error,
@@ -80,8 +68,9 @@ mixin BlocListenables<S, E> on Bloc<S, E> {
           ),
         );
       }
-      final (error, stackTrace) = failures.first;
-      Error.throwWithStackTrace(error, stackTrace);
+    }
+    if (failure != null) {
+      Error.throwWithStackTrace(failure.$1, failure.$2);
     }
   }
 }

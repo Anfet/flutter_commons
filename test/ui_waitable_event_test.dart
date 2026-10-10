@@ -9,7 +9,11 @@ class _WaitableFailureEvent extends _Event with WaitableEvent<int> {}
 
 class _WaitableNeverCompletesEvent extends _Event with WaitableEvent<int> {}
 
+class _WaitableCompletesEmptyEvent extends _Event with WaitableEvent<int> {}
+
 class _RegularEvent extends _Event {}
+
+class _ForeignWaitableEvent with WaitableEvent<int> implements BlocEvent {}
 
 class _State implements BlocState {
   final int value;
@@ -29,6 +33,8 @@ class _TestBloc extends Bloc<_Event, _State> {
     });
 
     on<_WaitableNeverCompletesEvent>((event, emit) {});
+
+    on<_WaitableCompletesEmptyEvent>((event, emit) => event.complete());
 
     on<_RegularEvent>((event, emit) {
       emit(const _State(2));
@@ -73,14 +79,18 @@ void main() {
       expect(bloc.state.value, 1);
     });
 
-    test('addAndWait throws when event is not WaitableEvent<T>', () async {
+    test('addAndWait rejects a waitable event of another Bloc', () async {
       final bloc = _TestBloc();
       addTearDown(bloc.close);
 
-      expect(
-        () => bloc.addAndWait<int>(_RegularEvent()),
-        throwsA(isA<IllegalArgumentException>()),
-      );
+      await expectLater(bloc.addAndWait(_ForeignWaitableEvent()), throwsA(isA<IllegalArgumentException>()));
+    });
+
+    test('complete without a result for a non-nullable type fails the wait instead of hanging', () async {
+      final bloc = _TestBloc();
+      addTearDown(bloc.close);
+
+      await expectLater(bloc.addAndWait(_WaitableCompletesEmptyEvent()), throwsA(isA<ArgumentError>()));
     });
 
     test('completes with StaleWaitEventException when the timeout expires', () async {

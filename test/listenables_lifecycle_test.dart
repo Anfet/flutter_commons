@@ -534,6 +534,58 @@ void main() {
     });
   });
 
+  group('Delivery and ownership', () {
+    test('latest delivery collapses values queued behind a running mapper', () async {
+      final notifier = ValueNotifier<int>(0);
+      final gate = Completer<void>();
+      final started = <int>[];
+      final cancellable = ListenableCancellable<int>(notifier, (value) async {
+        started.add(value);
+        if (value == 0) {
+          await gate.future;
+        }
+      }, delivery: ListenableDelivery.latest);
+      addTearDown(notifier.dispose);
+      addTearDown(cancellable.cancelAndWait);
+      await _settle();
+
+      notifier.value = 1;
+      notifier.value = 2;
+      notifier.value = 3;
+      gate.complete();
+      await _settle();
+
+      expect(started, [0, 3]);
+    });
+
+    test('BlocListenables forwards mapper errors of any Listenable to onError', () async {
+      final bloc = _ListenableBloc();
+      final first = ChangeNotifier();
+      final second = ChangeNotifier();
+      final errors = <Object>[];
+      addTearDown(first.dispose);
+      addTearDown(second.dispose);
+      addTearDown(bloc.close);
+
+      bloc.onAnyChange(Listenable.merge([first, second]), () => throw StateError('mapper failure'), onError: (error, _) => errors.add(error));
+      await _settle();
+
+      expect(errors.single, isA<StateError>());
+    });
+
+    test('own disposes notifiers when the registry closes, and immediately once it is closed', () {
+      final registry = CancellableRegistry();
+      final owned = registry.own(_DisposeTrackingNotifier());
+
+      registry.cancelAll();
+      final afterClose = registry.own(_DisposeTrackingNotifier());
+
+      expect(owned.isDisposed, isTrue);
+      expect(afterClose.isDisposed, isTrue);
+      expect(registry.length, 0);
+    });
+  });
+
   test('StreamCancellable reports source and mapper errors to its handler', () async {
     final controller = StreamController<int>();
     final errors = <Object>[];
@@ -659,6 +711,16 @@ class _BlocState implements BlocState {
 
 class _ListenableBloc extends Bloc<_Event, _BlocState> with BlocListenables<_Event, _BlocState> {
   _ListenableBloc() : super(const _BlocState());
+}
+
+class _DisposeTrackingNotifier extends ChangeNotifier {
+  bool isDisposed = false;
+
+  @override
+  void dispose() {
+    isDisposed = true;
+    super.dispose();
+  }
 }
 
 class _TrackingNotifier extends ChangeNotifier {

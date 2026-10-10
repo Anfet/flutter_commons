@@ -9,6 +9,38 @@
   taken from it. `clipBehavior` defaults to the previous `Clip.hardEdge`.
   `foregroundInk` paints the splash above an opaque child. `Padding` is no
   longer inserted when `padding` is null. The change is API-compatible.
+
+### Listenables and Bloc helpers
+
+- `mapValue` chains no longer leak: `MappedValueListenable` listens to its
+  source only while it has listeners, so a chain is released once nobody
+  listens to its tail, even without `dispose()`. The mapper now runs lazily
+  (first read or listener) instead of in the constructor; while detached,
+  `value` is computed from the source on every read.
+- New `mapValueAsync` / `AsyncMappedValueListenable` maps a `ValueListenable`
+  through an asynchronous mapper into a `ValueListenable<Loadable<Y>>`. Only
+  the result for the latest source value is applied.
+- New `CancellableRegistry` holds the shared registration logic of
+  `BlocListenables` and `StateListenable` and can be used by other owners.
+  Both mixins gained `own()` to dispose a notifier with the owner.
+- `onStreamChange`, `onValueChanged` and `onAnyChange` accept `onError`.
+  `onValueChanged` and `onAnyChange` accept `delivery:
+  ListenableDelivery.latest`, which collapses notifications queued behind a
+  slow mapper to the newest one.
+- `onAnyChange` and `NotifierCancellable` accept any `Listenable` instead of
+  `ChangeNotifier`; `NotifierCancellable.notifier` is now typed `Listenable`.
+- **Breaking:** `addAndWait` takes a `WaitableEvent<T>`, so passing an event
+  without `WaitableEvent` is a compile-time error and `T` is inferred from the
+  event. Callers that pass a variable typed as the Bloc's base event must use
+  the concrete event type. An event of another Bloc fails with
+  `IllegalArgumentException`.
+- `WaitableEvent.complete()` without a result for a non-nullable `T` now fails
+  the wait with `ArgumentError` instead of throwing inside the handler and
+  leaving the caller waiting.
+- New `debounceRestartable` event transformer: a newer debounced event cancels
+  the handler of the previous one.
+- `BlocLogging.onEvent` takes the typed event.
+
 ## 1.1.34+0 - 2026-09-11
 
 ### Widgets
