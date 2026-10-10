@@ -22,6 +22,27 @@ void main() {
 
     expect(emitted, ['ab']);
   });
+
+  for (final (name, transformer) in [
+    ('debounce', debounce<_Waitable>(const Duration(milliseconds: 10))),
+    ('debounceRestartable', debounceRestartable<_Waitable>(const Duration(milliseconds: 10))),
+    ('throttle', throttle<_Waitable>(const Duration(milliseconds: 50))),
+  ]) {
+    test('$name fails a dropped waitable event instead of leaving it waiting', () async {
+      final bloc = _WaitableBloc(transformer);
+      addTearDown(bloc.close);
+
+      final first = bloc.addAndWait(_Waitable(1));
+      final second = bloc.addAndWait(_Waitable(2));
+      final results = await Future.wait([
+        first.then<Object>((value) => value, onError: (Object error) => error),
+        second.then<Object>((value) => value, onError: (Object error) => error),
+      ]);
+
+      expect(results.whereType<int>(), hasLength(1));
+      expect(results.whereType<StaleWaitEventException>(), hasLength(1));
+    });
+  }
 }
 
 class _Search implements BlocEvent {
@@ -45,5 +66,20 @@ class _SearchBloc extends Bloc<_Search, _SearchState> {
       await responses[event.query]!.future;
       emit(_SearchState(event.query));
     }, transformer: debounceRestartable(const Duration(milliseconds: 10)));
+  }
+}
+
+class _Waitable with WaitableEvent<int> implements BlocEvent {
+  _Waitable(this.value);
+
+  final int value;
+
+  @override
+  String toString() => '_Waitable{value: $value}';
+}
+
+class _WaitableBloc extends Bloc<_Waitable, _SearchState> {
+  _WaitableBloc(EventTransformer<_Waitable> transformer) : super(const _SearchState('')) {
+    on<_Waitable>((event, emit) => event.complete(event.value), transformer: transformer);
   }
 }

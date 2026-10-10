@@ -29,6 +29,58 @@ mixin WaitableEvent<T> {
       completer().completeError(error, stack);
     }
   }
+
+  void _closeIfPending(Object? error, StackTrace? stackTrace) {
+    if (completer().isCompleted) {
+      return;
+    }
+    if (error != null) {
+      fail(error, stackTrace);
+    } else if (null is T) {
+      complete();
+    } else {
+      fail(StateError('$runtimeType handler finished without complete()'), StackTrace.current);
+    }
+  }
+}
+
+/// Fails [event] with [StaleWaitEventException.dropped] if it is a pending [WaitableEvent].
+///
+/// The `debounce`, `debounceRestartable` and `throttle` event transformers of
+/// this package call it for every event they drop. A custom transformer that
+/// drops events should call it as well, otherwise `addAndWait` for a dropped
+/// event waits until its timeout or the Bloc closes.
+void failDroppedWaitableEvent(Object? event) {
+  if (event is WaitableEvent) {
+    event.fail(StaleWaitEventException.dropped());
+  }
+}
+
+/// Closes every [WaitableEvent] whose handler finished without completing it.
+///
+/// When the handler of a waitable event returns or throws, a pending wait is
+/// finished from [onDone]:
+/// - the handler threw: the wait fails with that error and stack trace;
+/// - the event's result type is `void` or nullable: the wait completes with `null`;
+/// - otherwise: the wait fails with a [StateError] naming the event.
+///
+/// Explicit [WaitableEvent.complete] and [WaitableEvent.fail] calls made by the
+/// handler always win.
+///
+/// Not supported: completing an event after its handler returned (from another
+/// event, a callback or an unawaited future) — the wait is already closed by
+/// then. Events dropped by a transformer never reach a handler or [onDone];
+/// the transformers of this package fail them through
+/// [failDroppedWaitableEvent], third-party ones (for example droppable from
+/// `bloc_concurrency`) leave them waiting until the timeout or Bloc close.
+mixin AutoCloseWaitableEvents<E, S> on Bloc<E, S> {
+  @override
+  void onDone(E event, [Object? error, StackTrace? stackTrace]) {
+    super.onDone(event, error, stackTrace);
+    if (event is WaitableEvent) {
+      event._closeIfPending(error, stackTrace);
+    }
+  }
 }
 
 extension BlocWaitableEventExt<E extends BlocEvent, S> on Bloc<E, S> {

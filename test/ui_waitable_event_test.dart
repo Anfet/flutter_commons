@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_commons/flutter_commons.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -69,6 +71,36 @@ class _TrackingBloc extends _TestBloc {
 Future<void> _settle() => Future<void>.delayed(Duration.zero);
 
 void main() {
+  group('AutoCloseWaitableEvents', () {
+    test('closes a wait its handler left pending', () async {
+      final bloc = _AutoCloseBloc(StateError('unused'));
+      addTearDown(bloc.close);
+
+      await expectLater(bloc.addAndWait(_AutoVoidEvent()), completes);
+      await expectLater(
+        bloc.addAndWait(_AutoForgottenEvent()),
+        throwsA(isA<StateError>().having((e) => e.message, 'message', contains('_AutoForgottenEvent'))),
+      );
+      expect(await bloc.addAndWait(_AutoCompletedEvent()), 7);
+    });
+
+    test('fails the wait with the error thrown by the handler', () async {
+      final failure = StateError('handler threw');
+      final uncaught = <Object>[];
+      final waitError = Completer<Object>();
+      // Bloc rethrows handler errors into the zone the Bloc was created in. An error future does not cross an error
+      // zone boundary, so the wait result is captured inside the zone.
+      runZonedGuarded(() {
+        final bloc = _AutoCloseBloc(failure);
+        bloc.addAndWait(_AutoThrowsEvent()).then<void>((_) => waitError.complete('completed'), onError: waitError.complete);
+        waitError.future.then((_) => bloc.close());
+      }, (error, _) => uncaught.add(error));
+
+      expect(await waitError.future, same(failure));
+      expect(uncaught, [same(failure)]);
+    });
+  });
+
   group('BlocWaitableEventExt', () {
     test('addAndWait completes with event result', () async {
       final bloc = _TestBloc();
@@ -222,4 +254,25 @@ void main() {
       expect(bloc.cancelledStreamListeners, 2);
     });
   });
+}
+
+sealed class _AutoEvent implements BlocEvent {}
+
+class _AutoThrowsEvent extends _AutoEvent with WaitableEvent<int> {}
+
+class _AutoVoidEvent extends _AutoEvent with WaitableEvent<void> {}
+
+class _AutoForgottenEvent extends _AutoEvent with WaitableEvent<int> {}
+
+class _AutoCompletedEvent extends _AutoEvent with WaitableEvent<int> {}
+
+class _AutoCloseBloc extends Bloc<_AutoEvent, _State> with AutoCloseWaitableEvents<_AutoEvent, _State> {
+  _AutoCloseBloc(this.failure) : super(const _State(0)) {
+    on<_AutoThrowsEvent>((event, emit) => throw failure);
+    on<_AutoVoidEvent>((event, emit) {});
+    on<_AutoForgottenEvent>((event, emit) async {});
+    on<_AutoCompletedEvent>((event, emit) => event.complete(7));
+  }
+
+  final StateError failure;
 }

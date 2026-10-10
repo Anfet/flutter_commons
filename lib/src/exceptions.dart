@@ -72,4 +72,6 @@ class StaleWaitEventException extends FlowException {
       );
 
   StaleWaitEventException.blocClosed() : super('Waitable event became stale because its Bloc was closed');
+
+  StaleWaitEventException.dropped() : super('Waitable event was dropped by an event transformer before reaching its handler');
 }

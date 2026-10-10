@@ -8,8 +8,11 @@ class ThrottleStreamTransformer<T> extends StreamTransformerBase<T, T> {
   /// Throttle window.
   final Duration duration;
 
+  /// Receives each event suppressed because it arrived inside the window.
+  final TypedCallback<T>? onDropped;
+
   /// Creates a throttle transformer with the provided [duration].
-  ThrottleStreamTransformer(this.duration);
+  ThrottleStreamTransformer(this.duration, {this.onDropped});
 
   @override
   /// Applies throttle behavior to [stream].
@@ -50,7 +53,11 @@ class ThrottleStreamTransformer<T> extends StreamTransformerBase<T, T> {
 
         subscription = stream.listen(
           (event) {
-            if (isCancelled || !ready) {
+            if (isCancelled) {
+              return;
+            }
+            if (!ready) {
+              onDropped?.call(event);
               return;
             }
 

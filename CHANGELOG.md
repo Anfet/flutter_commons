@@ -37,6 +37,15 @@
 - `WaitableEvent.complete()` without a result for a non-nullable `T` now fails
   the wait with `ArgumentError` instead of throwing inside the handler and
   leaving the caller waiting.
+- New `AutoCloseWaitableEvents` Bloc mixin finishes a wait its handler left
+  pending: with the handler's error, with `null` for a `void`/nullable result,
+  or with a `StateError` otherwise. Completing an event after its handler
+  returned is not supported with this mixin.
+- `debounce`, `debounceRestartable` and `throttle` fail the waitable events
+  they drop with `StaleWaitEventException.dropped()` instead of leaving
+  `addAndWait` waiting. Custom dropping transformers can do the same through
+  `failDroppedWaitableEvent`; `DebounceStreamTransformer` and
+  `ThrottleStreamTransformer` gained `onDropped`.
 - New `debounceRestartable` event transformer: a newer debounced event cancels
   the handler of the previous one.
 - `BlocLogging.onEvent` takes the typed event.

@@ -12,10 +12,12 @@ final Duration kDefaultDebounceDuration = 300.milliseconds;
 /// value should be processed. Handlers run one after another: a slow handler
 /// delays the next debounced event. Use [debounceRestartable] when a newer
 /// event should cancel the handler that is still running.
+///
+/// A replaced [WaitableEvent] fails with [StaleWaitEventException.dropped].
 EventTransformer<T> debounce<T>([Duration? duration]) {
   return (events, mapper) {
     final debounceDuration = duration ?? kDefaultDebounceDuration;
-    return events.debounce(debounceDuration).asyncExpand(mapper);
+    return events.transform(DebounceStreamTransformer(debounceDuration, onDropped: failDroppedWaitableEvent)).asyncExpand(mapper);
   };
 }
 
@@ -25,7 +27,8 @@ EventTransformer<T> debounce<T>([Duration? duration]) {
 /// After cancellation the previous handler's `emit` calls are ignored, so a
 /// slow response for an outdated search query never overwrites the newer one.
 EventTransformer<T> debounceRestartable<T>([Duration? duration]) {
-  return (events, mapper) => events.debounce(duration ?? kDefaultDebounceDuration).switchMap(mapper);
+  return (events, mapper) =>
+      events.transform(DebounceStreamTransformer(duration ?? kDefaultDebounceDuration, onDropped: failDroppedWaitableEvent)).switchMap(mapper);
 }
 
 extension _SwitchMapExt<T> on Stream<T> {

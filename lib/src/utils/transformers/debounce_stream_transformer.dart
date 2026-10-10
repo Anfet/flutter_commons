@@ -7,8 +7,11 @@ class DebounceStreamTransformer<T> extends StreamTransformerBase<T, T> {
   /// Debounce window.
   final Duration duration;
 
+  /// Receives each event replaced by a newer one before the quiet period ended.
+  final TypedCallback<T>? onDropped;
+
   /// Creates a debounce transformer with the provided [duration].
-  DebounceStreamTransformer(this.duration);
+  DebounceStreamTransformer(this.duration, {this.onDropped});
 
   @override
   /// Applies debounce behavior to [stream].
@@ -65,6 +68,9 @@ class DebounceStreamTransformer<T> extends StreamTransformerBase<T, T> {
               return;
             }
 
+            if (hasPendingEvent) {
+              onDropped?.call(pendingEvent as T);
+            }
             pendingEvent = event;
             hasPendingEvent = true;
             timer?.cancel();
