@@ -34,8 +34,10 @@ class _TestBloc extends Bloc<_Event, _State> {
       event.fail(StateError('handler failed'));
     });
 
+    // ignore: flutter_commons_lints/waitable_event_not_completed
     on<_WaitableNeverCompletesEvent>((event, emit) {});
 
+    // ignore: flutter_commons_lints/waitable_complete_without_result
     on<_WaitableCompletesEmptyEvent>((event, emit) => event.complete());
 
     on<_RegularEvent>((event, emit) {
@@ -268,8 +270,11 @@ class _AutoCompletedEvent extends _AutoEvent with WaitableEvent<int> {}
 
 class _AutoCloseBloc extends Bloc<_AutoEvent, _State> with AutoCloseWaitableEvents<_AutoEvent, _State> {
   _AutoCloseBloc(this.failure) : super(const _State(0)) {
+    // The incomplete handlers below are the cases AutoCloseWaitableEvents closes.
+    // ignore: flutter_commons_lints/waitable_event_not_completed
     on<_AutoThrowsEvent>((event, emit) => throw failure);
     on<_AutoVoidEvent>((event, emit) {});
+    // ignore: flutter_commons_lints/waitable_event_not_completed
     on<_AutoForgottenEvent>((event, emit) async {});
     on<_AutoCompletedEvent>((event, emit) => event.complete(7));
   }

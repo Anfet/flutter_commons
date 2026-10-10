@@ -50,6 +50,16 @@
   the handler of the previous one.
 - `BlocLogging.onEvent` takes the typed event.
 
+### Analyzer plugin
+
+- New `flutter_commons_lints` analyzer plugin in this repository reports a
+  missing `on<OnInit>`, a `BlocWidgetState` without an initial event for a
+  narrowly typed Bloc, unhandled events of a sealed event type, `complete()`
+  without a required result, and `WaitableEvent` handlers that never complete
+  the event. Quick fixes add the missing `onInit` and event handlers. See
+  `flutter_commons_lints/README.md`; diagnostics are shown by `dart analyze`
+  and the IDE, not by `flutter analyze`.
+
 ## 1.1.34+0 - 2026-09-11
 
 ### Widgets

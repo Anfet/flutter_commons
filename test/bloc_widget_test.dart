@@ -293,6 +293,8 @@ class _NarrowProbe extends BlocWidget<_TestState, _NarrowEventBloc> {
   State<_NarrowProbe> createState() => _NarrowProbeState();
 }
 
+// Deliberately relies on the legacy OnInit being rejected by the narrow event type.
+// ignore: flutter_commons_lints/bloc_widget_without_init_event
 class _NarrowProbeState extends BlocWidgetState<_TestState, _NarrowEventBloc, _NarrowProbe> {
   @override
   _NarrowEventBloc? onCreateBloc(BuildContext context) => widget.createBloc?.call(context);
