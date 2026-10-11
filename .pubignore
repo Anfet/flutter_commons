@@ -7,3 +7,4 @@
 # Local engineering handoff files are not package documentation.
 /docs/audit.md
 /docs/todo.md
+/.memory/
