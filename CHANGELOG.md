@@ -1,5 +1,11 @@
 ## Unreleased
 
+### New widgets
+
+- `PressScale`: tappable wrapper that shrinks and dims its child while pressed, without ink.
+- `WorkInProgressWatermark`: faint rotated "WORK IN PROGRESS" label that ignores pointers. `text`, `style`, `color`, `fontSize`,
+  `fontWeight`, `opacity`, `angle`, `alignment`, `fit`, `clipBehavior` and `ignorePointer` are configurable.
+
 ### Extensions fixes
 
 - `String.toDouble` defaults to `0.0` (was `0.9`). `String.reversed` works on grapheme clusters.
