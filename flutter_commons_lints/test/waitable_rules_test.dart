@@ -1,3 +1,4 @@
+import 'package:flutter_commons_lints/src/rules/add_and_wait_non_waitable.dart';
 import 'package:flutter_commons_lints/src/rules/waitable_complete_without_result.dart';
 import 'package:flutter_commons_lints/src/rules/waitable_event_not_completed.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -8,6 +9,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(WaitableCompleteWithoutResultTest);
     defineReflectiveTests(WaitableEventNotCompletedTest);
+    defineReflectiveTests(AddAndWaitNonWaitableTest);
   });
 }
 
@@ -24,6 +26,43 @@ class Save extends FeatureEvent with WaitableEvent<void> {}
 
 class Find extends FeatureEvent with WaitableEvent<int?> {}
 ''';
+
+@reflectiveTest
+class AddAndWaitNonWaitableTest extends FlutterCommonsRuleTest {
+  @override
+  void setUp() {
+    rule = AddAndWaitNonWaitable();
+    super.setUp();
+  }
+
+  Future<void> test_reports_definitely_non_waitable_events() async {
+    const code = '''${_events}
+final class Plain extends FeatureEvent {}
+class FeatureBloc extends Bloc<FeatureEvent, S> { FeatureBloc() : super(S()); }
+void run(FeatureBloc bloc, Plain event) {
+  bloc.addAndWait(Plain());
+  bloc.addAndWait(event);
+}
+''';
+    await assertDiagnostics(code, [lint(code.indexOf('Plain());'), 'Plain()'.length)]);
+  }
+
+  Future<void> test_ignores_waitable_uncertain_and_unrelated_calls() async {
+    await assertNoDiagnostics('''${_events}
+class Plain extends FeatureEvent { Plain(); factory Plain.make() = WaitablePlain; }
+class WaitablePlain extends Plain with WaitableEvent<void> {}
+class FeatureBloc extends Bloc<FeatureEvent, S> { FeatureBloc() : super(S()); }
+class Other { void addAndWait(Plain event) {} }
+void run(FeatureBloc bloc, FeatureEvent event, Plain maybe, Other other) {
+  bloc.addAndWait(LoadCount());
+  bloc.addAndWait(event);
+  bloc.addAndWait(maybe);
+  bloc.addAndWait(Plain.make());
+  other.addAndWait(Plain());
+}
+''');
+  }
+}
 
 @reflectiveTest
 class WaitableCompleteWithoutResultTest extends FlutterCommonsRuleTest {

@@ -2,6 +2,7 @@ import 'package:analysis_server_plugin/plugin.dart';
 import 'package:analysis_server_plugin/registry.dart';
 
 import 'src/fixes/add_event_handlers.dart';
+import 'src/rules/add_and_wait_non_waitable.dart';
 import 'src/rules/bloc_missing_on_init.dart';
 import 'src/rules/bloc_unhandled_event.dart';
 import 'src/rules/bloc_widget_without_init_event.dart';
@@ -27,6 +28,7 @@ class FlutterCommonsLintsPlugin extends Plugin {
       ..registerWarningRule(BlocUnhandledEvent())
       ..registerWarningRule(WaitableCompleteWithoutResult())
       ..registerWarningRule(WaitableEventNotCompleted())
+      ..registerWarningRule(AddAndWaitNonWaitable())
       ..registerFixForRule(BlocMissingOnInit.code, AddOnInitHandler.new)
       ..registerFixForRule(BlocUnhandledEvent.code, AddUnhandledEventHandlers.new);
   }

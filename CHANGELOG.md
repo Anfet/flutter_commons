@@ -89,6 +89,7 @@
 
 ### Analyzer plugin
 
+- Added `add_and_wait_non_waitable` to warn when a directly constructed event passed to `addAndWait` is not waitable.
 - New `flutter_commons_lints` analyzer plugin in this repository reports a
   missing `on<OnInit>`, a `BlocWidgetState` without an initial event for a
   narrowly typed Bloc, unhandled events of a sealed event type, `complete()`
