@@ -46,9 +46,11 @@ include, which suits only path dependencies.
 | `bloc_unhandled_event` | A direct `Bloc` subclass whose event type is `sealed` and some concrete event has no `on<...>` registration, directly or through a parent type. | Registers `on<Event>(onEvent)` and adds an empty handler for every listed event. |
 | `waitable_complete_without_result` | `complete()` without a result on a `WaitableEvent<T>` with a non-nullable `T`. | — |
 | `waitable_event_not_completed` | A handler of a `WaitableEvent` that never calls `complete` or `fail` on the event. | — |
+| `add_and_wait_non_waitable` | A directly constructed non-waitable event passed to `addAndWait`. | — |
 
 ### Limits
 
+- `add_and_wait_non_waitable` checks generative constructor calls; variables and factory constructors may return a waitable subtype.
 - Registrations are read from the constructors of the Bloc itself. A Bloc
   extending another custom Bloc is not checked by `bloc_missing_on_init` and
   `bloc_unhandled_event`, because its base may register the handlers.

@@ -45,6 +45,10 @@ mixin WaitableEvent<T> {
 
 mixin AutoCloseWaitableEvents<E, S> on Bloc<E, S> {}
 
+extension BlocWaitableEventExt<E extends BlocEvent, S> on Bloc<E, S> {
+  Future<T> addAndWait<T>(E event) async => throw UnimplementedError();
+}
+
 abstract class BlocWidgetState<S extends BlocState, B extends Bloc<BlocEvent, S>, W> {
   B? onCreateBloc() => null;
 

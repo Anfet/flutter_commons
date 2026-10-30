@@ -15,8 +15,6 @@ class _WaitableCompletesEmptyEvent extends _Event with WaitableEvent<int> {}
 
 class _RegularEvent extends _Event {}
 
-class _ForeignWaitableEvent with WaitableEvent<int> implements BlocEvent {}
-
 class _State implements BlocState {
   final int value;
 
@@ -113,11 +111,21 @@ void main() {
       expect(bloc.state.value, 1);
     });
 
-    test('addAndWait rejects a waitable event of another Bloc', () async {
+    test('addAndWait accepts a waitable event typed as the base event', () async {
       final bloc = _TestBloc();
       addTearDown(bloc.close);
 
-      await expectLater(bloc.addAndWait(_ForeignWaitableEvent()), throwsA(isA<IllegalArgumentException>()));
+      final _Event event = _WaitableSuccessEvent();
+      expect(await bloc.addAndWait<int>(event), 7);
+    });
+
+    test('addAndWait rejects non-waitable and incompatible result events before dispatch', () async {
+      final bloc = _TestBloc();
+      addTearDown(bloc.close);
+
+      await expectLater(bloc.addAndWait<int>(_RegularEvent()), throwsA(isA<IllegalArgumentException>()));
+      await expectLater(bloc.addAndWait<String>(_WaitableSuccessEvent()), throwsA(isA<IllegalArgumentException>()));
+      expect(bloc.state.value, 0);
     });
 
     test('complete without a result for a non-nullable type fails the wait instead of hanging', () async {
