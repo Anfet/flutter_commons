@@ -68,11 +68,9 @@
   slow mapper to the newest one.
 - `onAnyChange` and `NotifierCancellable` accept any `Listenable` instead of
   `ChangeNotifier`; `NotifierCancellable.notifier` is now typed `Listenable`.
-- **Breaking:** `addAndWait` takes a `WaitableEvent<T>`, so passing an event
-  without `WaitableEvent` is a compile-time error and `T` is inferred from the
-  event. Callers that pass a variable typed as the Bloc's base event must use
-  the concrete event type. An event of another Bloc fails with
-  `IllegalArgumentException`.
+- `addAndWait` accepts the Bloc's event type, including values typed as its base
+  event. It checks `WaitableEvent<T>` at runtime and rejects incompatible events
+  with `IllegalArgumentException`; specify `T` when context does not infer it.
 - `WaitableEvent.complete()` without a result for a non-nullable `T` now fails
   the wait with `ArgumentError` instead of throwing inside the handler and
   leaving the caller waiting.
