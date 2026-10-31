@@ -35,3 +35,4 @@ git-token-read-only.txt
 # Local engineering audit handoff
 /docs/audit.md
 /docs/todo.md
+.memory/

@@ -1,5 +1,7 @@
 export 'spacers.dart';
 export 'ink_button.dart';
+export 'press_scale.dart';
+export 'work_in_progress_watermark.dart';
 export 'hovered_decorator.dart';
 
 export 'sliders/slider_no_padding.dart';
